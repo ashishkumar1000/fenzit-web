@@ -1,0 +1,11 @@
+{
+  // Cloudflare Workers with Static Assets: serves the Vite build as a SPA.
+  // Unknown paths return index.html so React Router handles the route.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fenzit-web",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
