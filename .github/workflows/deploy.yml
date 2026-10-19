@@ -33,6 +33,19 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Gate the deploy on the same checks the standard requires before a commit.
+      - name: Lint, format, styles, and test
+        run: |
+          bun run lint
+          bun run format:check
+          bun run check:styles
+          bun run check:design-system
+          bun run test
+
       # `deploy` runs `bun run build` (tsc + vite) and then `wrangler deploy`.
+      # VITE_API_BASE_URL is public: it is compiled into the bundle, so it is a
+      # plain value here, not a secret.
       - name: Build and deploy
+        env:
+          VITE_API_BASE_URL: https://api.fenzit.com
         run: bun run deploy

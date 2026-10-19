@@ -1,0 +1,178 @@
+# Fenzit Design System
+
+The single source of truth for all UI in this React Native app. **Every screen
+and component must compose the tokens and components defined here.** This system
+was ported from a web design system into native React Native primitives.
+
+> **Rule of thumb for any agent or developer:** never hard-code a color, font
+> size, spacing value, radius, or shadow in a screen. Always import from
+> `src/theme` and build from `src/components/ui`. If something you need isn't in
+> the system, add it to the tokens first, then use it.
+
+---
+
+## Where things live
+
+```
+src/theme/                 design tokens (the source of truth)
+  colors.ts                raw palette + semantic aliases + status colors
+  typography.ts            sizes, weights, semantic text roles
+  spacing.ts               4px grid, touch targets, layout constants
+  radius.ts                radii, shadows (RN shadow+elevation), motion
+  fonts.ts                 Inter wiring (system-font fallback until linked)
+  index.ts                 barrel — import { colors, spacing, typography, theme }
+src/components/ui/         the component library (compose these in screens)
+  Button, IconButton       core actions
+  Badge, Card, Avatar      feedback / surfaces / identity
+  Input, Select, Switch    forms (Select's sheetTitle names the options sheet when the visible label lives in a SectionHead)
+  Eyebrow, SectionHead     section separation (hairline divider + letter-spaced caps label)
+  SegmentedControl         view switching (sunken track, raised active card)
+  Sheet                    bottom sheet (native TrueSheet — keyboard, drag-to-
+                           dismiss and safe areas handled by the OS; controlled
+                           via visible/onClose, title/subtitle header built in;
+                           scrollable for long forms, e.g. detents={[0.85]})
+                           NOTE: native module — new native deps need a rebuild
+                           (pod install on iOS) before the change runs
+  index.ts                 barrel — import { Button, Badge, ... }
+src/assets/fonts/          Inter .ttf files (see README there)
+```
+
+Import patterns:
+```ts
+import { colors, spacing, typography, radius, shadow } from '../theme';
+import { Button, Badge, Card, Input } from '../components/ui';
+```
+
+**Component note — Button `loading`.** A mutating action whose request is in
+flight (a workflow advance, a submit) uses `<Button loading>` — the spinner
+takes the leading slot, pressing is blocked, and the press-scale feedback
+detaches — rather than swapping the button for a spinner or adding a disabled
+style inline. `loading` is transient (clears when the request settles);
+`disabled` is the settled, permanently-off state. They compose.
+
+**Component note — `Sheet` dismissal & focus.** Dismissal paths are the close
+button, drag-down and Android back — there is **no tap-outside-to-close**
+(the native sheet can't intercept taps on the dimmed area; the old Modal
+backdrop could). The close button routes through `onClose`, so a parent
+guarding it (mid-submit) still works — but drag-down and back dismiss
+natively before `onClose`, and a guarded parent cannot veto them. To focus
+an input when the sheet opens, pass `ref` to the `Input` (it forwards to the
+inner `TextInput`) and focus it in `Sheet`'s `onDidPresent` — never
+`autoFocus`, which fires before the native presentation finishes.
+
+---
+
+## Visual foundations (the discipline)
+
+**Color.** A focused palette anchored on four brand colors. Blue `#1A56DB`
+(`colors.primary`) is the primary action *and* the "in progress" status — color
+is deliberately overloaded with meaning. Green `#06956F` = done/success, amber
+`#D97706` = scheduled/pending/warning, red `#C92A2A` = cancelled/danger.
+Backgrounds are near-white (`colors.surfacePage` `#F9FAFB`, cards `#FFFFFF`);
+text is near-black `#111827`. **Always reference semantic aliases**
+(`colors.primary`, `colors.surfaceCard`, `colors.status.done.bg`, …), never the
+raw `palette.*` scales, except inside the token files themselves.
+
+**Status vocabulary (fixed — do not invent synonyms).** Job state maps 1:1 to a
+badge color: **Done / In Progress / Scheduled / Cancelled** (+ neutral = Draft).
+Use `<Badge status="done|progress|scheduled|cancelled|neutral">`.
+
+**Urgency rail (time-to-start, not a status).** When a job list needs a
+time-urgency signal, draw a 3px left border on the Card (`borderLeftWidth: 3`)
+borrowing the status palettes — never a new colour, never a fifth badge:
+more than 2h to start → `colors.status.done.solid` (green, on track) ·
+inside 2h → `colors.status.scheduled.solid` (amber, coming up) · inside 30m or
+the slot has passed → `colors.status.cancelled.solid` (red, act now — the same
+borrow the Urgent badge makes). Active jobs only: done/cancelled rows keep the
+neutral card however late they ran, and an in-progress row past its slot stays
+red ("running behind") until it completes. The rail is deliberately
+colour-only: the card's scheduled-time text already carries the same
+information for screen readers, so a non-colour cue is a separate design
+decision, not a gap. The mapping lives with the feature
+(`features/jobs/urgency.ts`), the caller owns the ticking clock so one timer
+serves the list, and the clock re-syncs on app resume (`useNow`).
+
+**Selection controls — navigation vs filter.** `SegmentedControl` (sunken
+track, raised card on the active segment) is for **view switching**: 2–5 short,
+mutually exclusive choices that change what you're looking at. Chip rows
+(filter chip bars, e.g. `StatusFilterBar`) are for **narrowing a list**; their
+active state is a soft tint (`primarySoft` bg + `primary` border +
+`primaryHover` label), never a solid primary fill — solid primary stays
+reserved for primary actions (e.g. "New job"). When both appear on one screen
+the control owns "you are here" and the chips own "what's filtered".
+
+**Type.** A single typeface — **Inter** (weights 400–800). No serif, no second
+family. Mobile-first scale: body 16px (never smaller on inputs, to avoid iOS
+zoom), screen titles 28px, hero 48px. Use the semantic roles, not raw sizes:
+`typography.display | title | heading | body | bodySm | label | caption` (plus
+the strong variants `bodyStrong | labelStrong | captionStrong` and the
+`eyebrow` role for tiny letter-spaced caps — weight rides the font family,
+never a `fontWeight` patch). Money and counts should use tabular figures where
+possible. Form sections separate with the DS `<SectionHead title=…>` — a
+hairline divider (`StyleSheet.hairlineWidth`, `colors.borderSubtle`) plus an
+`<Eyebrow>` label (`typography.eyebrow`, muted, caps, `accessibilityRole
+"header"`). The eyebrow is then a single-field section's only visible name —
+the control carries no duplicate label (a `Select` keeps its options-sheet
+title and trigger name via `sheetTitle`; an `Input` carries
+`accessibilityLabel`). Multi-field sections keep their per-field labels; the
+eyebrow names the group (e.g. "Date & time" over Date/Time).
+
+**Spacing & layout.** 4px base grid via `spacing.s1 … spacing.s20`. Phone-first:
+`layout.contentMax` 480px, 16px screen gutters (`layout.gutterMobile`), 56px app
+bar, 64px bottom nav. Lists are single-column stacks of cards with ~10px gaps.
+
+**Shape.** Soft, friendly rounding — inputs/buttons `radius.md` (10), cards
+`radius.lg` (14), sheets/modals `radius.xl` (20), badges & avatars `radius.pill`.
+Nothing is sharp-cornered.
+
+**Elevation.** Light, cool-gray shadows (`shadow.xs|sm|md|lg`), never harsh
+black. Cards sit on `shadow.sm`. The primary button carries a blue-tinted lift
+(`shadow.primary`). `shadow.sheet` (upward) is for JS-rendered overlays like
+dropdown menus — bottom sheets are native (`Sheet`/TrueSheet) and draw their
+own elevation. Cards use a 1px
+`colors.borderSubtle` hairline *and* a soft shadow together.
+
+**Backgrounds.** Flat color only. **No gradients, no photographic hero imagery,
+no textures or repeating patterns.**
+
+**Motion.** Quick and functional, never showy. Durations 120–320ms
+(`motion.durationFast|Base|Slow`) with `motion.easeStandard` / `motion.easeOut`
+(cubic-bezier points usable via RN `Easing.bezier(...)`). Press states scale
+down (buttons 0.97, icon buttons 0.92). No bounces, no decorative loops.
+
+**Touch targets.** Never below 44px on mobile (`touch.min`). Inputs are 48px
+(`touch.comfort`).
+
+---
+
+## Content & voice
+
+- Speak **to** the user as "you". Warm, direct, plain English. No jargon.
+- **Sentence case** everywhere (headings, buttons, labels). Caps only for tiny
+  letter-spaced eyebrow labels.
+- Buttons are 1–2 words ("New job", "Mark as done"). Labels are nouns.
+- Money: ₹ with Indian grouping ("₹28,600"); 12-hour times ("10:30 AM").
+- **No emoji in product UI.** Meaning is carried by color + icon + word.
+
+---
+
+## Iconography
+
+- Outline (stroke) icons, ~18–24px in lists/actions. Stroke inherits the text/
+  brand color of its context.
+- No emoji as icons. No one-off hand-drawn SVGs — keep weight/style consistent.
+
+---
+
+## How to build a new screen (checklist for any agent)
+
+1. Background: `colors.surfacePage`. Content padding: `spacing.s4`.
+2. Compose from `src/components/ui` — don't rebuild buttons, inputs, etc.
+3. Text uses `typography.*` roles + `colors.text*`. No raw font sizes/colors.
+4. Spacing/radii/shadows come from tokens. No magic numbers.
+5. Job/task state → `<Badge>` with the fixed status vocabulary.
+6. Tap targets ≥ 44px. Inputs 48px.
+7. Flat backgrounds, soft shadows, sentence-case copy, no emoji.
+
+If a need isn't covered, extend the **tokens** first, then the components — never
+hard-code around the system.

@@ -1,0 +1,9 @@
+.banner {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+  border-bottom: 1px solid var(--color-status-scheduled-border);
+  text-align: center;
+}

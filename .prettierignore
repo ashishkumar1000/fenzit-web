@@ -1,0 +1,10 @@
+dist
+.wrangler
+coverage
+bun.lock
+# Verbatim ports of the live fenzit.com page and deploy config. Keep their
+# formatting as-is so they still diff cleanly against the live site.
+index.html
+wrangler.jsonc
+src/theme/
+src/styles/tokens.css

@@ -1,0 +1,19 @@
+/* Added with CSS Modules. The page had no styles before; this only sets the
+ * layout width and spacing, and keeps the same text colour and size. */
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 56px 24px;
+}
+
+.title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+.link {
+  color: var(--blue-900);
+  font-weight: 600;
+}

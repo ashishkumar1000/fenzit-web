@@ -1,0 +1,4 @@
+[test]
+# Order matters. happydom.ts registers the DOM first; testing-library.ts then
+# loads React Testing Library, which needs `document` at import time.
+preload = ["./src/testing/happydom.ts", "./src/testing/testing-library.ts"]

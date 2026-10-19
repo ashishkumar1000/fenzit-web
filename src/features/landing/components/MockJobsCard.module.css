@@ -1,0 +1,269 @@
+.visual {
+  position: relative;
+  opacity: 0;
+  animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.42s forwards;
+}
+
+.visual:hover .card {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 44px rgba(23, 43, 77, 0.16);
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  position: relative;
+  z-index: 2;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cardLive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 0;
+}
+
+.task + .task {
+  border-top: 1px solid #eef1f5;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.avatarViolet {
+  background: #6554c0;
+}
+
+.avatarBlue {
+  background: var(--blue-700);
+}
+
+.avatarOrange {
+  background: #e56910;
+}
+
+.taskInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskName {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.taskMeta {
+  font-size: 12px;
+  color: var(--subtle);
+}
+
+.status {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusRoute {
+  color: var(--blue-900);
+  background: var(--bg-tint-2);
+}
+
+.statusProgress {
+  color: var(--amber);
+  background: #fff7e0;
+  position: relative;
+  overflow: hidden;
+}
+
+.statusProgress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer 2.8s ease-in-out infinite;
+}
+
+.statusDone {
+  color: var(--green);
+  background: #e3fcef;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.float {
+  position: absolute;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 12px 15px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.float1 {
+  top: -22px;
+  right: -14px;
+  animation: bob 4s ease-in-out infinite;
+}
+
+.float2 {
+  bottom: -24px;
+  left: -18px;
+  animation: bob 4s ease-in-out infinite 0.8s;
+}
+
+.floatDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+}
+
+.dotBlue {
+  background: var(--bg-tint-2);
+  color: var(--blue-700);
+}
+
+.dotGreen {
+  background: #e3fcef;
+  color: var(--green);
+}
+
+.floatIcon {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+  flex-shrink: 0;
+}
+
+.floatLabel {
+  white-space: nowrap;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visual {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 880px) {
+  .visual {
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .visual {
+    max-width: 100%;
+    padding: 0 6px;
+  }
+
+  .float {
+    padding: 10px 13px;
+    font-size: 12px;
+  }
+
+  .floatDot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .float1 {
+    top: -30px;
+    right: 2px;
+  }
+
+  .float2 {
+    bottom: -20px;
+    left: 2px;
+  }
+}
+
+@media (max-width: 360px) {
+  .floatLabel {
+    max-width: 90px;
+  }
+}

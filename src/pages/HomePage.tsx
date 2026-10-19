@@ -1,10 +1,11 @@
-import { Header } from "../components/landing/Header";
-import { Hero } from "../components/landing/Hero";
-import { Footer } from "../components/landing/Footer";
+import { Header } from "../features/landing/components/Header";
+import { Hero } from "../features/landing/components/Hero";
+import { Footer } from "../features/landing/components/Footer";
+import styles from "./HomePage.module.css";
 
 export function HomePage() {
   return (
-    <div className="wrap">
+    <div className={styles.wrap}>
       <Header />
       <Hero />
       <Footer />

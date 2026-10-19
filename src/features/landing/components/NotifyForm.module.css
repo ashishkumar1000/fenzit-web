@@ -1,0 +1,142 @@
+.form {
+  display: flex;
+  gap: 10px;
+  max-width: 480px;
+}
+
+.email {
+  flex: 1;
+  /* 16px or more: iOS Safari zooms in on any focused input with smaller text. */
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--navy);
+  padding: 13px 15px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.email:focus {
+  border-color: var(--blue-700);
+  box-shadow: 0 0 0 3px rgba(24, 104, 219, 0.15);
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  background: var(--blue-700);
+  border: none;
+  border-radius: 10px;
+  padding: 13px 22px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    transform 0.05s;
+  box-shadow: 0 4px 12px rgba(24, 104, 219, 0.3);
+}
+
+.submit:hover {
+  background: var(--blue-800);
+}
+
+.submit:hover .icon {
+  animation: ring 0.6s ease;
+  transform-origin: top center;
+}
+
+.submit:active {
+  transform: translateY(1px);
+}
+
+.submit .icon {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(6deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+
+.icon {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+  flex-shrink: 0;
+}
+
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--green);
+  font-weight: 600;
+}
+
+.confirmIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--green);
+}
+
+.note {
+  font-size: 13px;
+  color: var(--subtle);
+  margin-top: 12px;
+}
+
+.noteInvalid {
+  color: var(--red);
+}
+
+@media (max-width: 880px) {
+  .form {
+    max-width: 460px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .form {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .email,
+  .submit {
+    width: 100%;
+  }
+
+  .submit {
+    padding: 14px 22px;
+  }
+}

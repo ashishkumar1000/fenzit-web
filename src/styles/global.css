@@ -1,0 +1,98 @@
+/*
+ * Global styles: the reset and the page background. Nothing here may style a
+ * component. Component styles live in their own *.module.css files. The design
+ * tokens are in tokens.css, generated from the design system in src/theme.
+ */
+
+/* Short names the sample landing page still uses. They point at the design
+ * system, so the sample and the app share one palette. Remove this block with
+ * the sample page. */
+:root {
+  --blue-700: var(--color-primary);
+  --blue-800: var(--color-primary-hover);
+  --blue-900: var(--color-text-link);
+  --blue-soft: var(--palette-blue-200);
+  --navy: var(--color-text-strong);
+  --slate: var(--color-text-body);
+  --subtle: var(--color-text-muted);
+  --border: var(--color-border-subtle);
+  --bg-tint: var(--color-primary-soft);
+  --bg-tint-2: var(--color-primary-soft);
+  --white: var(--color-surface-card);
+  --green: var(--color-success);
+  --amber: var(--color-warning);
+  --red: var(--color-danger);
+  --shadow: var(--shadow-md);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--navy);
+  background:
+    radial-gradient(1100px 520px at 85% -10%, var(--bg-tint-2) 0%, rgba(234, 242, 255, 0) 60%),
+    radial-gradient(900px 480px at 5% 110%, var(--bg-tint) 0%, rgba(244, 248, 255, 0) 55%),
+    var(--white);
+  min-height: 100vh;
+  /* Mobile browsers change the visible height as their toolbars move. */
+  min-height: 100dvh;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Slow drifting glow behind the page. */
+body::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    420px 420px at 78% 28%,
+    rgba(24, 104, 219, 0.1),
+    rgba(24, 104, 219, 0) 70%
+  );
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-40px, 36px);
+  }
+}
+
+/* Safety net: stop every animation and transition for reduced-motion users.
+ * Components also set their own content to visible, because a stopped
+ * entrance animation would otherwise leave it at opacity 0. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
