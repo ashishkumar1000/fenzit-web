@@ -8,7 +8,9 @@ describe("Header", () => {
   it("links each section name to its anchor on the page", () => {
     render(<Header />);
 
-    expect(screen.getByRole("link", { name: "How it works" }).getAttribute("href")).toBe("#how-it-works");
+    expect(screen.getByRole("link", { name: "How it works" }).getAttribute("href")).toBe(
+      "#how-it-works",
+    );
     expect(screen.getByRole("link", { name: "Features" }).getAttribute("href")).toBe("#features");
     expect(screen.getByRole("link", { name: "Your data" }).getAttribute("href")).toBe("#trust");
     expect(screen.getByRole("link", { name: "Questions" }).getAttribute("href")).toBe("#faq");

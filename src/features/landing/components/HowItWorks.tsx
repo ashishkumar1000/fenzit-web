@@ -79,8 +79,8 @@ export function HowItWorks() {
                       <span className={styles.done}>Done</span>
                     </span>
                     <span className={styles.proof}>
-                      <CircleCheck className={styles.proofIcon} focusable="false" />
-                      2 photos and a signature
+                      <CircleCheck className={styles.proofIcon} focusable="false" />2 photos and a
+                      signature
                     </span>
                   </div>
                 )}

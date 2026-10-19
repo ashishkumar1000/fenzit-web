@@ -14,9 +14,28 @@ type JobCard = {
 
 // Sample jobs. Each status is one the app shows: Scheduled, In progress and Done.
 const JOBS: JobCard[] = [
-  { key: "water-tank", title: "Water tank cleaning", tone: "done", statusLabel: "Done", meta: "Ravi K. • 9:00 AM" },
-  { key: "pump-repair", title: "Pump repair", tone: "progress", statusLabel: "In progress", meta: "Sunita M. • 11:30 AM", active: true },
-  { key: "gate-fitting", title: "Gate fitting", tone: "scheduled", statusLabel: "Scheduled", meta: "Arjun T. • 2:00 PM" },
+  {
+    key: "water-tank",
+    title: "Water tank cleaning",
+    tone: "done",
+    statusLabel: "Done",
+    meta: "Ravi K. • 9:00 AM",
+  },
+  {
+    key: "pump-repair",
+    title: "Pump repair",
+    tone: "progress",
+    statusLabel: "In progress",
+    meta: "Sunita M. • 11:30 AM",
+    active: true,
+  },
+  {
+    key: "gate-fitting",
+    title: "Gate fitting",
+    tone: "scheduled",
+    statusLabel: "Scheduled",
+    meta: "Arjun T. • 2:00 PM",
+  },
 ];
 
 /** The owner's jobs for today, with the status of each one. */
@@ -51,17 +70,21 @@ export function HeroJobsPanel() {
             <div className={styles.cardHead}>
               <p className={styles.jobTitle}>{job.title}</p>
               <StatusPill tone={job.tone}>
-                {job.tone === "done" ? <Check className={styles.pillIcon} aria-hidden="true" focusable="false" /> : null}
-                {job.tone === "scheduled" ? <Clock className={styles.pillIcon} aria-hidden="true" focusable="false" /> : null}
+                {job.tone === "done" ? (
+                  <Check className={styles.pillIcon} aria-hidden="true" focusable="false" />
+                ) : null}
+                {job.tone === "scheduled" ? (
+                  <Clock className={styles.pillIcon} aria-hidden="true" focusable="false" />
+                ) : null}
                 {job.statusLabel}
               </StatusPill>
             </div>
             <p className={styles.meta}>{job.meta}</p>
           </li>
         ))}
-      <div className={styles.route}>
-        <RouteArt />
-      </div>
+        <div className={styles.route}>
+          <RouteArt />
+        </div>
       </ul>
     </HeroPanel>
   );

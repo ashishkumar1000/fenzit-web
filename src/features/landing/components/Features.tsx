@@ -55,7 +55,9 @@ export function Features() {
               <p className={styles.text}>{block.text}</p>
               <div
                 className={
-                  block.key === "attendance" ? `${styles.preview} ${styles.previewFill}` : styles.preview
+                  block.key === "attendance"
+                    ? `${styles.preview} ${styles.previewFill}`
+                    : styles.preview
                 }
                 aria-hidden="true"
               >
@@ -103,7 +105,9 @@ export function Features() {
                     <span className={styles.mapLabel}>
                       <span className={styles.previewValue}>HQ Connaught Place</span>
                       <span className={styles.previewLabel}>Checked in 8:45 AM</span>
-                      <span className={`${styles.pill} ${styles.done}`}>Leave request approved</span>
+                      <span className={`${styles.pill} ${styles.done}`}>
+                        Leave request approved
+                      </span>
                     </span>
                   </>
                 )}

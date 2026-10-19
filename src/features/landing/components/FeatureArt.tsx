@@ -5,7 +5,13 @@ import styles from "./FeatureArt.module.css";
 
 export function PhotoArt() {
   return (
-    <svg className={styles.photo} viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <svg
+      className={styles.photo}
+      viewBox="0 0 120 80"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      focusable="false"
+    >
       <rect width="120" height="80" className={styles.skyFill} />
       <circle cx="90" cy="24" r="9" className={styles.sunFill} />
       <path d="M0 80 L36 42 L62 64 L82 48 L120 80 Z" className={styles.hillBack} />
@@ -39,8 +45,17 @@ export function RouteArt() {
 
 export function MapArt() {
   return (
-    <svg className={styles.map} viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-      <path d="M-10 100 H330 M110 -10 V150 M230 -10 C240 50 210 90 250 150" className={styles.street} />
+    <svg
+      className={styles.map}
+      viewBox="0 0 320 140"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M-10 100 H330 M110 -10 V150 M230 -10 C240 50 210 90 250 150"
+        className={styles.street}
+      />
       <circle cx="160" cy="62" r="50" className={styles.fenceFill} />
       <circle cx="160" cy="62" r="50" className={styles.fenceRing} />
       <circle cx="160" cy="62" r="8" className={styles.pin} />
@@ -82,9 +97,18 @@ export function GeofenceArt() {
 
 export function GeofenceMapArt() {
   return (
-    <svg className={styles.fenceMap} viewBox="0 0 320 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <svg
+      className={styles.fenceMap}
+      viewBox="0 0 320 120"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      focusable="false"
+    >
       <rect width="320" height="120" rx="12" className={styles.mapGround} />
-      <path d="M-10 84 H330 M96 -10 V130 M236 -10 C244 40 214 80 252 130" className={styles.street} />
+      <path
+        d="M-10 84 H330 M96 -10 V130 M236 -10 C244 40 214 80 252 130"
+        className={styles.street}
+      />
       <circle cx="160" cy="60" r="44" className={styles.fenceFill} />
       <circle cx="160" cy="60" r="44" className={styles.fenceRing} />
       <circle cx="160" cy="60" r="8" className={styles.pin} />
@@ -115,9 +139,23 @@ export function DotGridArt() {
 export function MonthlyBarsArt() {
   const heights = [34, 46, 40, 52, 44, 56, 48];
   return (
-    <svg className={styles.bars} viewBox="0 0 280 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <svg
+      className={styles.bars}
+      viewBox="0 0 280 60"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
       {heights.map((height, index) => (
-        <rect key={index} x={index * 40 + 6} y={60 - height} width={28} height={height} rx={4} className={index === 5 ? styles.barCurrent : styles.bar} />
+        <rect
+          key={index}
+          x={index * 40 + 6}
+          y={60 - height}
+          width={28}
+          height={height}
+          rx={4}
+          className={index === 5 ? styles.barCurrent : styles.bar}
+        />
       ))}
     </svg>
   );

@@ -45,7 +45,7 @@ export function HeroAttendancePanel() {
               Leave
             </span>
           </div>
-      <MonthlyBarsArt />
+          <MonthlyBarsArt />
         </li>
       </ul>
     </HeroPanel>
