@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Runs the same checks as the CI gate, so a commit that would fail CI fails here first.
+set -e
+
+bun run lint
+bun run format:check
+bun run check:styles
+bun run check:design-system
+bun run typecheck
+bun run test
