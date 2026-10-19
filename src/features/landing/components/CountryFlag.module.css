@@ -11,8 +11,10 @@
   pointer-events: none;
 }
 
+/* The SVG sits inside this box. As an inline element it would sit on the text baseline and leave a
+ * gap at the bottom, which the flag box then cuts off. A flex box makes the SVG fill it exactly. */
 .svg {
-  display: block;
+  display: flex;
   width: 100%;
   height: 100%;
 }
