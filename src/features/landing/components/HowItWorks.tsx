@@ -30,7 +30,11 @@ export function HowItWorks() {
   return (
     <section className={styles.section} aria-labelledby="how-title">
       <Container>
-        <SectionHeading id="how-title" title="How it works" />
+        <SectionHeading
+          id="how-title"
+          title="How a job works"
+          lead="Jobs are one way to use Fenzit. Attendance and leave work on their own."
+        />
         <ol className={styles.list}>
           {STEPS.map((step, index) => (
             <li key={step.key} className={styles.step}>

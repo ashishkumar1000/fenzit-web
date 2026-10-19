@@ -30,10 +30,10 @@ const BLOCKS: FeatureBlock[] = [
     text: "Save customers with address search, then open directions in one tap.",
   },
   {
-    key: "reports",
+    key: "attendance",
     icon: CalendarCheck,
-    title: "Reports and attendance",
-    text: "Get PDF reports and track check-ins, leave and days off.",
+    title: "Attendance and leave",
+    text: "Check in at your office locations, see monthly attendance, and handle leave requests.",
   },
 ];
 
@@ -44,7 +44,7 @@ export function Features() {
         <SectionHeading
           id="features-title"
           title="Everything your team needs, in one place"
-          lead="Four areas the app covers today, from the office to the job site."
+          lead="Use any one of these on its own, or several together."
         />
         <ul className={styles.list}>
           {BLOCKS.map((block) => {

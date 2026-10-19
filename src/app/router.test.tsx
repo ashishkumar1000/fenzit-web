@@ -35,7 +35,10 @@ describe("router", () => {
     renderAt("/");
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: /run your field team/i }),
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /run your jobs, attendance and leave/i,
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
   });
@@ -58,7 +61,10 @@ describe("router", () => {
     fireEvent.click(link);
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: /run your field team/i }),
+      await screen.findByRole("heading", {
+        level: 1,
+        name: /run your jobs, attendance and leave/i,
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
   });

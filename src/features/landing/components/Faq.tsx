@@ -14,7 +14,13 @@ const ITEMS: FaqItem[] = [
     key: "who",
     question: "Who is Fenzit for?",
     answer:
-      "Businesses that send technicians to customer sites, such as repair, cleaning and installation teams.",
+      "Businesses with field teams, such as repair, cleaning and installation, and businesses that track attendance and leave for their staff.",
+  },
+  {
+    key: "attendance-only",
+    question: "Can I use only attendance and leave?",
+    answer:
+      "Yes. Attendance and leave is switched on separately, so you can use it without creating any jobs.",
   },
   {
     key: "offline",

@@ -16,9 +16,9 @@ const GROUPS: AudienceGroup[] = [
     icon: Briefcase,
     title: "For owners",
     points: [
-      "Create a job and assign the right skill and team.",
-      "See every job's status live, from one screen.",
-      "Get PDF reports for jobs and attendance.",
+      "Create jobs and assign the right skill and team.",
+      "Turn on attendance, set office locations and approve leave.",
+      "See live job status, and get PDF reports.",
     ],
   },
   {
@@ -26,9 +26,9 @@ const GROUPS: AudienceGroup[] = [
     icon: Wrench,
     title: "For technicians",
     points: [
-      "See today's jobs and the steps for each one.",
       "Check in and out, and see your own month.",
-      "Mark each step done, with photos and the customer's signature.",
+      "Apply for leave from your phone.",
+      "See today's jobs, and mark each step done with photos and the customer's signature.",
     ],
   },
 ];
@@ -40,7 +40,7 @@ export function Audience() {
         <SectionHeading
           id="audience-title"
           title="Built for owners and technicians"
-          lead="Owners set up the work. Technicians do it. Each has what they need on one screen."
+          lead="Owners set up jobs and attendance. Your team uses the app on their phones."
         />
         <div className={styles.grid}>
           {GROUPS.map((group) => {

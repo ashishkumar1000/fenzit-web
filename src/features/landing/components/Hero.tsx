@@ -14,11 +14,12 @@ export function Hero() {
               Early access
             </p>
             <h1 id="hero-title" className={styles.title}>
-              Run your field team <span className={styles.accent}>in real time.</span>
+              Run your jobs, attendance and leave{" "}
+              <span className={styles.accent}>in one place.</span>
             </h1>
             <p className={styles.sub}>
-              Assign jobs, send your team out, and watch each job move from scheduled to done, all
-              from one screen.
+              Use Fenzit for field jobs, for attendance and leave, or for both. Owners set it up
+              once, and the team uses it on their phones.
             </p>
             <div className={styles.actions}>
               <LinkButton href="#early-access" variant="primary">

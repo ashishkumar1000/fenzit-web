@@ -18,12 +18,12 @@ const POINTS: TrustPoint[] = [
   {
     key: "separate",
     icon: ShieldCheck,
-    text: "Each company sees only its own jobs, people and reports.",
+    text: "Each company sees only its own jobs, attendance, people and reports.",
   },
   {
     key: "location",
     icon: LocateFixed,
-    text: "Location is taken only at the job steps that need it.",
+    text: "Location is taken only at job steps and attendance check-ins that need it.",
   },
 ];
 
