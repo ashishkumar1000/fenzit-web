@@ -1,0 +1,12 @@
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--layout-gutter-mobile);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--layout-gutter-desktop);
+  }
+}

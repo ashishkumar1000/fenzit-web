@@ -1,137 +1,41 @@
 .header {
-  padding: 28px 0;
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
+}
+
+.bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  opacity: 0;
-  animation: fadeUp 0.6s ease-out forwards;
+  gap: var(--space-4);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-weight: 800;
-  font-size: 22px;
+  gap: var(--space-3);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
-  cursor: default;
+  color: var(--color-text-strong);
 }
 
 .mark {
-  position: relative;
-  overflow: hidden;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #2a7bff, var(--blue-900));
   display: grid;
   place-items: center;
-  box-shadow: 0 6px 16px rgba(24, 104, 219, 0.4);
-  transition:
-    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.35s;
-}
-
-/* Moving sheen across the tile. */
-.mark::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -120%;
-  width: 60%;
-  height: 100%;
-  transform: skewX(-20deg);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: sheen 4.5s ease-in-out infinite;
-}
-
-@keyframes sheen {
-  0%,
-  60% {
-    left: -120%;
-  }
-  85%,
-  100% {
-    left: 130%;
-  }
-}
-
-.logo:hover .mark {
-  transform: rotate(-6deg) scale(1.06);
-  box-shadow: 0 8px 22px rgba(24, 104, 219, 0.5);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
 }
 
 .mark svg {
   width: 22px;
   height: 22px;
-  position: relative;
-  z-index: 1;
-  color: var(--white);
 }
 
 .node {
-  fill: var(--blue-soft);
-  animation: nodePulse 2.4s ease-in-out infinite;
-  transform-origin: 24.5px 8px;
-}
-
-@keyframes nodePulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.85);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
-.word {
-  background: linear-gradient(90deg, var(--navy), var(--blue-900));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.badge {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--blue-900);
-  background: var(--bg-tint-2);
-  border: 1px solid #d3e2ff;
-  padding: 6px 12px;
-  border-radius: 999px;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .header {
-    opacity: 1;
-  }
-}
-
-@media (max-width: 600px) {
-  .header {
-    padding: 20px 0;
-  }
-
-  .logo {
-    font-size: 20px;
-  }
+  fill: var(--color-ring-focus);
 }

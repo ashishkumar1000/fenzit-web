@@ -5,7 +5,7 @@ import { NotifyForm } from "./NotifyForm";
 function submit(value: string) {
   const input = screen.getByLabelText("Email address");
   fireEvent.change(input, { target: { value } });
-  fireEvent.click(screen.getByRole("button", { name: /notify me/i }));
+  fireEvent.click(screen.getByRole("button", { name: /join early access/i }));
 }
 
 describe("NotifyForm", () => {
@@ -37,7 +37,9 @@ describe("NotifyForm", () => {
       submit("you@company.com");
 
       expect(screen.getByText(/on the list/i)).toBeInTheDocument();
-      expect(screen.getByText(/we'll email you@company\.com at launch/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/we'll email you@company\.com when access opens/i),
+      ).toBeInTheDocument();
     });
 
     it("trims surrounding spaces before it checks and echoes the address", () => {
@@ -45,7 +47,9 @@ describe("NotifyForm", () => {
 
       submit("   you@company.com   ");
 
-      expect(screen.getByText(/we'll email you@company\.com at launch/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/we'll email you@company\.com when access opens/i),
+      ).toBeInTheDocument();
     });
 
     it("accepts a single-letter local part and a multi-level domain", () => {
@@ -67,7 +71,9 @@ describe("NotifyForm", () => {
     });
 
     expect(screen.getByLabelText("Email address")).toHaveAttribute("aria-invalid", "false");
-    expect(screen.getByRole("status")).toHaveTextContent("No spam, ever.");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "We'll only email you about early access. No spam.",
+    );
   });
 });
 

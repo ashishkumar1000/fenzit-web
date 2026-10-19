@@ -1,7 +1,0 @@
-/* A static live dot. The design rules allow no decorative loops, so it does not pulse. */
-.pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-}

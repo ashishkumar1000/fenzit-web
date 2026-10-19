@@ -36,7 +36,7 @@ export function NotifyForm() {
           <CircleCheck className={styles.confirmIcon} aria-hidden="true" focusable="false" />
           You're on the list — we'll be in touch soon.
         </p>
-        <p className={styles.note}>Thanks! We'll email {submittedEmail} at launch.</p>
+        <p className={styles.note}>Thanks! We'll email {submittedEmail} when access opens.</p>
       </>
     );
   }
@@ -63,7 +63,7 @@ export function NotifyForm() {
         />
         <button type="submit" className={styles.submit}>
           <BellRing className={styles.icon} aria-hidden="true" focusable="false" />
-          Notify me
+          Join early access
         </button>
       </form>
       <p
@@ -72,7 +72,7 @@ export function NotifyForm() {
       >
         {status === "invalid"
           ? "Please enter a valid email address."
-          : "Be the first to know when we launch. No spam, ever."}
+          : "We'll only email you about early access. No spam."}
       </p>
     </>
   );

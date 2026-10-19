@@ -1,142 +1,100 @@
 .form {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: var(--space-3);
   max-width: 480px;
 }
 
 .email {
   flex: 1;
+  min-width: 0;
+  min-height: var(--touch-comfort);
+  padding: 0 var(--space-4);
   /* 16px or more: iOS Safari zooms in on any focused input with smaller text. */
-  font-size: 16px;
   font-family: inherit;
-  color: var(--navy);
-  padding: 13px 15px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  background: var(--white);
-  outline: none;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+  font-size: var(--font-size-base);
+  color: var(--color-text-strong);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
 }
 
-.email:focus {
-  border-color: var(--blue-700);
-  box-shadow: 0 0 0 3px rgba(24, 104, 219, 0.15);
+.email:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.email[aria-invalid="true"] {
+  border-color: var(--color-danger);
 }
 
 .submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
+  min-height: var(--touch-comfort);
+  padding: 0 var(--space-5);
   font-family: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--white);
-  background: var(--blue-700);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
   border: none;
-  border-radius: 10px;
-  padding: 13px 22px;
-  cursor: pointer;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-primary);
   white-space: nowrap;
-  transition:
-    background 0.15s,
-    transform 0.05s;
-  box-shadow: 0 4px 12px rgba(24, 104, 219, 0.3);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .submit:hover {
-  background: var(--blue-800);
+  background: var(--color-primary-hover);
 }
 
-.submit:hover .icon {
-  animation: ring 0.6s ease;
-  transform-origin: top center;
-}
-
-.submit:active {
-  transform: translateY(1px);
-}
-
-.submit .icon {
-  width: 16px;
-  height: 16px;
-}
-
-@keyframes ring {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  20% {
-    transform: rotate(14deg);
-  }
-  40% {
-    transform: rotate(-10deg);
-  }
-  60% {
-    transform: rotate(6deg);
-  }
-  80% {
-    transform: rotate(-4deg);
-  }
+.submit:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
 }
 
 .icon {
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  display: block;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
 .confirm {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  color: var(--green);
-  font-weight: 600;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-done-fg);
 }
 
 .confirmIcon {
   width: 18px;
   height: 18px;
-  color: var(--green);
+  color: var(--color-success);
 }
 
 .note {
-  font-size: 13px;
-  color: var(--subtle);
-  margin-top: 12px;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .noteInvalid {
-  color: var(--red);
+  color: var(--color-danger);
 }
 
-@media (max-width: 880px) {
+@media (min-width: 600px) {
   .form {
-    max-width: 460px;
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .form {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
   }
 
   .email,
   .submit {
-    width: 100%;
-  }
-
-  .submit {
-    padding: 14px 22px;
+    width: auto;
   }
 }

@@ -1,11 +1,9 @@
-.wrap {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 24px;
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
-@media (max-width: 600px) {
-  .wrap {
-    padding: 0 18px;
-  }
+.main {
+  flex: 1;
 }

@@ -4,9 +4,8 @@
  * tokens are in tokens.css, generated from the design system in src/theme.
  */
 
-/* Short names the sample landing page still uses. They point at the design
- * system, so the sample and the app share one palette. Remove this block with
- * the sample page. */
+/* Short names the not-found page and the old sample styles still use. They point
+ * at the design system. Remove this block once those files use tokens directly. */
 :root {
   --blue-700: var(--color-primary);
   --blue-800: var(--color-primary-hover);
@@ -48,41 +47,15 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: var(--navy);
-  background:
-    radial-gradient(1100px 520px at 85% -10%, var(--bg-tint-2) 0%, rgba(234, 242, 255, 0) 60%),
-    radial-gradient(900px 480px at 5% 110%, var(--bg-tint) 0%, rgba(244, 248, 255, 0) 55%),
-    var(--white);
+  color: var(--color-text-strong);
+  /* Flat page colour only. The design system bans gradients and decorative loops. */
+  background: var(--color-surface-page);
   min-height: 100vh;
   /* Mobile browsers change the visible height as their toolbars move. */
   min-height: 100dvh;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-
-/* Slow drifting glow behind the page. */
-body::before {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    420px 420px at 78% 28%,
-    rgba(24, 104, 219, 0.1),
-    rgba(24, 104, 219, 0) 70%
-  );
-  animation: drift 16s ease-in-out infinite alternate;
-}
-
-@keyframes drift {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(-40px, 36px);
-  }
 }
 
 /* Safety net: stop every animation and transition for reduced-motion users.
