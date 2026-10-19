@@ -139,9 +139,7 @@ describe("NotifyForm: rejects malformed email addresses", () => {
 
     await submit({ email: value });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Please enter a valid email address.",
-    );
+    expect(await screen.findByText("Please enter a valid email address.")).toBeInTheDocument();
     expect(emailInput()).toHaveAttribute("aria-invalid", "true");
     expect(sent).toHaveLength(0);
   });
@@ -223,9 +221,7 @@ describe("NotifyForm: phone numbers", () => {
 
     await submit({ phone });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Type the number after the country code",
-    );
+    expect(await screen.findByText(/Type the number after the country code/)).toBeInTheDocument();
     expect(phoneInput()).toHaveAttribute("aria-invalid", "true");
     expect(sent).toHaveLength(0);
   });
@@ -247,9 +243,9 @@ describe("NotifyForm: results from the API", () => {
 
     await submit({ email: "you@company.com", phone: "98765 43210" });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Something went wrong on our side. Try again in a moment.",
-    );
+    expect(
+      await screen.findByText("Something went wrong on our side. Try again in a moment."),
+    ).toBeInTheDocument();
     expect(emailInput().value).toBe("you@company.com");
     expect(phoneInput().value).toBe("98765 43210");
     expect(screen.queryByText(/on the list/i)).toBeNull();
@@ -261,9 +257,9 @@ describe("NotifyForm: results from the API", () => {
 
     await submit({ email: "you@company.com" });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Check the highlighted fields and try again.",
-    );
+    expect(
+      await screen.findByText("Check the highlighted fields and try again."),
+    ).toBeInTheDocument();
   });
 
   it("disables the button and says so while the request is in flight", async () => {
@@ -284,9 +280,7 @@ describe("NotifyForm: results from the API", () => {
 it("clears the error as soon as the visitor edits the email field", async () => {
   await renderForm();
   await submit({ email: "bad" });
-  expect(await screen.findByRole("status")).toHaveTextContent(
-    "Please enter a valid email address.",
-  );
+  expect(await screen.findByText("Please enter a valid email address.")).toBeInTheDocument();
 
   fireEvent.change(emailInput(), { target: { value: "bad@" } });
 

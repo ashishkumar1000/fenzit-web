@@ -130,6 +130,78 @@
   color: var(--color-success);
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.optional {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-pill);
+}
+
+.inputWrap {
+  position: relative;
+  display: block;
+}
+
+.inputIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-4);
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.inputWithIcon {
+  padding-left: calc(var(--space-4) + 18px + var(--space-3));
+}
+
+.selectWrap {
+  position: relative;
+  display: block;
+}
+
+.selectWithFlag {
+  padding-left: calc(var(--space-4) + 20px + var(--space-2));
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.status {
+  display: inline-flex;
+  flex: 1 1 240px;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.statusIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .note {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
@@ -142,10 +214,6 @@
 @media (min-width: 600px) {
   .fields {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .submit {
-    align-self: flex-start;
   }
 
   .phoneRow {
