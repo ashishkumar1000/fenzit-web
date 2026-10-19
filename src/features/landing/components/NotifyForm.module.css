@@ -1,13 +1,31 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  max-width: 480px;
+  gap: var(--space-4);
+  max-width: 640px;
 }
 
-.email {
-  flex: 1;
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
   min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-body);
+}
+
+.input {
+  width: 100%;
   min-height: var(--touch-comfort);
   padding: 0 var(--space-4);
   /* 16px or more: iOS Safari zooms in on any focused input with smaller text. */
@@ -19,12 +37,16 @@
   border-radius: var(--radius-md);
 }
 
-.email:focus-visible {
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:focus-visible {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }
 
-.email[aria-invalid="true"] {
+.input[aria-invalid="true"] {
   border-color: var(--color-danger);
 }
 
@@ -57,6 +79,11 @@
   outline-offset: 2px;
 }
 
+.submit:disabled {
+  cursor: progress;
+  background: var(--color-primary-hover);
+}
+
 .icon {
   width: 18px;
   height: 18px;
@@ -72,6 +99,31 @@
   color: var(--color-status-done-fg);
 }
 
+.greeting {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.greetingTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.reference {
+  font-size: var(--font-size-base);
+  color: var(--color-text-body);
+}
+
+.referenceNumber {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
 .confirmIcon {
   width: 18px;
   height: 18px;
@@ -79,7 +131,6 @@
 }
 
 .note {
-  margin-top: var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
@@ -89,12 +140,36 @@
 }
 
 @media (min-width: 600px) {
-  .form {
-    flex-direction: row;
+  .fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .email,
   .submit {
-    width: auto;
+    align-self: flex-start;
   }
+
+  .phoneRow {
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  }
+}
+
+.phoneRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.dialField,
+.numberField {
+  display: block;
+  min-width: 0;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "./router";
@@ -12,16 +12,31 @@ function renderAt(path: string): void {
   render(<RouterProvider router={router} />);
 }
 
+// The home page waits for its country-code loader. Failing the request at once
+// makes the loader fall back to India, so the tests never wait on the network.
+const originalFetch = globalThis.fetch;
+beforeAll(() => {
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    throw new TypeError(`offline in tests: ${String(input)}`);
+  }) as unknown as typeof fetch;
+});
+
+afterAll(() => {
+  globalThis.fetch = originalFetch;
+});
+
 afterEach(() => {
   setOnline(true);
   cleanup();
 });
 
 describe("router", () => {
-  it("renders the home page at /", () => {
+  it("renders the home page at /", async () => {
     renderAt("/");
 
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /run your field team/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
   });
 
@@ -34,7 +49,7 @@ describe("router", () => {
     },
   );
 
-  it("links from the not-found page back to the home page", () => {
+  it("links from the not-found page back to the home page", async () => {
     renderAt("/missing");
 
     const link = screen.getByRole("link", { name: "Go to home" });
@@ -42,8 +57,10 @@ describe("router", () => {
 
     fireEvent.click(link);
 
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /run your field team/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
-    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
   it("shows the offline banner on every route, not only the home page", () => {

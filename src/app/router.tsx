@@ -1,4 +1,6 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
+import { countryCodesLoader } from "../features/landing/countryCodes";
+import { earlyAccessAction } from "../features/landing/earlyAccessAction";
 import { HomePage } from "../pages/HomePage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { RootLayout } from "./RootLayout";
@@ -8,7 +10,7 @@ export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
-      { path: "/", element: <HomePage /> },
+      { path: "/", element: <HomePage />, loader: countryCodesLoader, action: earlyAccessAction },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
