@@ -1,4 +1,7 @@
 import { Container } from "../../../components/ui/Container";
+import logo from "../../../assets/brand/logo.png";
+import logo2x from "../../../assets/brand/logo-2x.png";
+import logo3x from "../../../assets/brand/logo-3x.png";
 import styles from "./Header.module.css";
 
 // Links to the sections on this page. The header stays on screen while the visitor scrolls.
@@ -25,8 +28,8 @@ export function Header() {
               {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
               <img
                 className={styles.mark}
-                src="/brand/logo.png"
-                srcSet="/brand/logo.png 1x, /brand/logo-2x.png 2x, /brand/logo-3x.png 3x"
+                src={logo}
+                srcSet={`${logo} 1x, ${logo2x} 2x, ${logo3x} 3x`}
                 width={36}
                 height={36}
                 alt=""
