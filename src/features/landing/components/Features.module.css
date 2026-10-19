@@ -1,16 +1,31 @@
 .section {
   padding: var(--space-8) 0;
+  scroll-margin-top: var(--space-16);
 }
 
 .list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
   list-style: none;
 }
 
-.item {
-  padding: var(--space-5) 0;
-  border-top: 1px solid var(--color-border-subtle);
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .title {
@@ -20,8 +35,157 @@
 }
 
 .text {
-  margin-top: var(--space-1);
   color: var(--color-text-body);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+}
+
+.neutral {
+  color: var(--color-status-neutral-fg);
+  background: var(--color-status-neutral-bg);
+  border-color: var(--color-status-neutral-border);
+}
+
+.progress {
+  color: var(--color-status-progress-fg);
+  background: var(--color-status-progress-bg);
+  border-color: var(--color-status-progress-border);
+}
+
+.done {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border-color: var(--color-status-done-border);
+}
+
+/* Example data. Flat, and hidden from screen readers. */
+.preview {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding: var(--space-3);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.previewHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.previewLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.previewValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.previewCurrent {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-status-progress-fg);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+
+.proofRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-2);
+}
+
+.photoFrame {
+  display: block;
+  min-height: var(--touch-large);
+  overflow: hidden;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.signoff {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--color-surface-card);
+  border-radius: var(--radius-md);
+}
+
+.customerRow {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.directions {
+  justify-self: start;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+/* The attendance preview fills the card's spare height, so there is no gap above it. */
+.previewFill {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  min-height: calc(var(--space-20) * 2);
+  padding: 0;
+  overflow: hidden;
+}
+
+.mapLabel {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  margin: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
 }
 
 .more {
@@ -47,11 +211,11 @@
   }
 
   .list {
-    grid-template-columns: 1fr 1fr;
-    column-gap: var(--space-10);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
   }
 
-  .item {
-    padding: var(--space-6) 0;
+  .card {
+    padding: var(--space-6);
   }
 }

@@ -1,25 +1,55 @@
 import { Container } from "../../../components/ui/Container";
 import styles from "./Header.module.css";
 
+// Links to the sections on this page. The header stays on screen while the visitor scrolls.
+const LINKS = [
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#features", label: "Features" },
+  { href: "#trust", label: "Your data" },
+  { href: "#faq", label: "Questions" },
+] as const;
+
 export function Header() {
   return (
-    <header className={styles.header}>
-      <Container>
-        <div className={styles.bar}>
-          <div className={styles.logo}>
-            {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
-            <img
-              className={styles.mark}
-              src="/brand/logo.png"
-              srcSet="/brand/logo.png 1x, /brand/logo-2x.png 2x, /brand/logo-3x.png 3x"
-              width={36}
-              height={36}
-              alt=""
-            />
-            <span>Fenzit</span>
+    <>
+      <div className={styles.strip}>
+        <p className={styles.stripText}>Early access is open for field service teams.</p>
+        <a className={styles.stripLink} href="#early-access">
+          Join early access
+        </a>
+      </div>
+      <header className={styles.header}>
+        <Container>
+          <div className={styles.bar}>
+            <div className={styles.logo}>
+              {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
+              <img
+                className={styles.mark}
+                src="/brand/logo.png"
+                srcSet="/brand/logo.png 1x, /brand/logo-2x.png 2x, /brand/logo-3x.png 3x"
+                width={36}
+                height={36}
+                alt=""
+              />
+              <span>Fenzit</span>
+            </div>
+            <nav aria-label="Page sections" className={styles.nav}>
+              <ul className={styles.links}>
+                {LINKS.map((link) => (
+                  <li key={link.href}>
+                    <a className={styles.navLink} href={link.href}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <a className={styles.cta} href="#early-access">
+              Join early access
+            </a>
           </div>
-        </div>
-      </Container>
-    </header>
+        </Container>
+      </header>
+    </>
   );
 }

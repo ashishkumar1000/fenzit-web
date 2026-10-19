@@ -29,7 +29,7 @@ const POINTS: TrustPoint[] = [
 
 export function Trust() {
   return (
-    <section className={styles.section} aria-labelledby="trust-title">
+    <section id="trust" className={styles.section} aria-labelledby="trust-title">
       <Container>
         <SectionHeading id="trust-title" title="Your business, kept separate" />
         <ul className={styles.list}>

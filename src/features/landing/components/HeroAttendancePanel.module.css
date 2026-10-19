@@ -1,0 +1,132 @@
+.glyph {
+  width: 22px;
+  height: 22px;
+}
+
+.fence {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.fenceArt {
+  width: 100%;
+  aspect-ratio: 8 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.fenceCaption {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.liveDot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-status-done-solid);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.meta {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.gps {
+  justify-self: start;
+  max-width: 100%;
+  padding: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border-radius: var(--radius-sm);
+}
+
+.action {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-status-progress-border);
+  border-radius: var(--radius-md);
+}
+
+.actionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.progressTrack {
+  flex: 1 1 auto;
+  height: var(--space-2);
+  overflow: hidden;
+  background: var(--color-status-neutral-border);
+  border-radius: var(--radius-pill);
+}
+
+.progressFill {
+  display: block;
+  width: 96.8%;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.progressValue {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.pending {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-scheduled-fg);
+}

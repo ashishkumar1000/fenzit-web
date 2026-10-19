@@ -1,0 +1,192 @@
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.skyFill {
+  fill: var(--color-primary-soft);
+}
+
+.sunFill {
+  fill: var(--color-status-scheduled-solid);
+  opacity: 0.6;
+}
+
+.hillBack {
+  fill: var(--color-primary);
+  opacity: 0.25;
+}
+
+.hillFront {
+  fill: var(--color-primary);
+  opacity: 0.45;
+}
+
+.signature {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.signatureRule {
+  stroke: var(--color-border-default);
+  stroke-dasharray: 4 4;
+}
+
+.signatureInk {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.routeLine {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+.pinStart {
+  fill: var(--color-primary-soft);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.pinEnd {
+  fill: var(--color-primary);
+}
+
+.pinCore {
+  fill: var(--color-surface-card);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.street {
+  fill: none;
+  stroke: var(--color-surface-card);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.fenceRing {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.fenceFill {
+  fill: var(--color-primary-soft);
+}
+
+.pin {
+  fill: var(--color-primary);
+  stroke: var(--color-surface-card);
+  stroke-width: 2;
+}
+
+.checkBadge {
+  fill: var(--color-status-done-solid);
+  stroke: var(--color-surface-card);
+  stroke-width: 2;
+}
+
+.checkMark {
+  fill: none;
+  stroke: var(--color-on-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.track {
+  stroke: var(--color-border-default);
+  stroke-width: 3;
+}
+
+.trackDone {
+  stroke: var(--color-status-done-solid);
+  stroke-width: 3;
+}
+
+.dotDone {
+  fill: var(--color-status-done-solid);
+}
+
+.dotCurrent {
+  fill: var(--color-surface-card);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.dotTodo {
+  fill: var(--color-surface-card);
+  stroke: var(--color-border-default);
+  stroke-width: 2;
+}
+
+.fence {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fenceMap {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mapGround {
+  fill: var(--color-surface-sunken);
+  stroke: var(--color-border-subtle);
+}
+
+.dotGrid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.gridDot {
+  fill: var(--color-border-default);
+  opacity: 0.6;
+}
+
+.bars {
+  display: block;
+  width: 100%;
+  height: 56px;
+}
+
+.bar {
+  fill: var(--color-primary-soft);
+  stroke: var(--color-status-progress-border);
+}
+
+.barCurrent {
+  fill: var(--color-primary);
+}

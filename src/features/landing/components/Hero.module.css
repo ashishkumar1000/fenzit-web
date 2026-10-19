@@ -15,22 +15,6 @@
   align-content: start;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-status-done-fg);
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-success);
-}
-
 .title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extra);
@@ -61,11 +45,25 @@
   }
 
   .hero {
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: var(--space-12);
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-10);
   }
 
   .title {
     font-size: var(--font-size-4xl);
+  }
+
+  /* Centred copy above the full-width preview, so the space above it is even. */
+  .copy {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .sub {
+    margin-inline: auto;
+  }
+
+  .actions {
+    justify-content: center;
   }
 }

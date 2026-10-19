@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-width: 640px;
 }
 
 .fields {
@@ -135,6 +134,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  /* Same height with or without the Optional tag, so the two inputs line up. */
+  min-height: 1.5rem;
 }
 
 .optional {
@@ -166,13 +167,52 @@
   padding-left: calc(var(--space-4) + 18px + var(--space-3));
 }
 
-.selectWrap {
+/* The select and its sizer share one grid cell, so the cell is as wide as the chosen country. */
+.selectSizer {
   position: relative;
-  display: block;
+  display: inline-grid;
+  align-items: center;
 }
 
-.selectWithFlag {
-  padding-left: calc(var(--space-4) + 20px + var(--space-2));
+.dialSelect,
+.sizer {
+  grid-area: 1 / 1;
+  min-height: 100%;
+  padding: 0 var(--space-8) 0 calc(var(--space-4) + 20px + var(--space-2));
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+}
+
+.dialSelect {
+  /* Width 1px and min-width 100% keeps the widest option from setting the width. */
+  width: 1px;
+  min-width: 100%;
+  /* No native arrow: its reserved space clipped the country name. The chevron is drawn below. */
+  appearance: none;
+  color: var(--color-text-strong);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.dialChevron {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.dialSelect:focus {
+  outline: none;
+}
+
+.sizer {
+  visibility: hidden;
 }
 
 .hint {
@@ -211,26 +251,61 @@
   color: var(--color-danger);
 }
 
+/* One bordered box for the country code and the number, so they read as one field. */
+.phoneBox {
+  display: flex;
+  min-height: var(--touch-comfort);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.phoneBox:focus-within {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.phoneBoxInvalid {
+  border-color: var(--color-danger);
+}
+
+.dialField {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  border-right: 1px solid var(--color-border-default);
+}
+
+.numberField {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.numberInput {
+  width: 100%;
+  min-height: 100%;
+  padding: 0 var(--space-4);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  color: var(--color-text-strong);
+  background: transparent;
+  border: none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.numberInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.numberInput:focus {
+  outline: none;
+}
+
 @media (min-width: 600px) {
   .fields {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-
-  .phoneRow {
-    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
-  }
-}
-
-.phoneRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-2);
-}
-
-.dialField,
-.numberField {
-  display: block;
-  min-width: 0;
 }
 
 .visuallyHidden {

@@ -1,5 +1,7 @@
 .section {
   padding: var(--space-8) 0;
+  scroll-margin-top: var(--space-16);
+  background: var(--color-surface-sunken);
 }
 
 @media (min-width: 768px) {

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
-import { ArrowRight, BellRing, CircleCheck, Lock, Mail } from "lucide-react";
+import { ArrowRight, BellRing, ChevronDown, CircleCheck, Lock, Mail } from "lucide-react";
 import { EMAIL_MAX_LENGTH } from "../../../utils/contactValidation";
-import { type CountryCodesData, DEFAULT_DIAL_CODE } from "../countryCodes";
+import { type CountryCode, type CountryCodesData, DEFAULT_DIAL_CODE } from "../countryCodes";
 import type { EarlyAccessResult } from "../earlyAccessAction";
 import { CountryFlag } from "./CountryFlag";
 import styles from "./NotifyForm.module.css";
+
+function countryLabel(country: CountryCode): string {
+  return `${country.countryName} (${country.dialCode})`;
+}
 
 /** The early-access sign-up form. It posts to the home route's action, which calls fenzit-be. */
 export function NotifyForm() {
@@ -51,9 +55,11 @@ export function NotifyForm() {
     >
       <div className={styles.fields}>
         <div className={styles.field}>
-          <label htmlFor="notify-email" className={styles.label}>
-            Email address
-          </label>
+          <span className={styles.labelRow}>
+            <label htmlFor="notify-email" className={styles.label}>
+              Email address
+            </label>
+          </span>
           <span className={styles.inputWrap}>
             <Mail className={styles.inputIcon} aria-hidden="true" focusable="false" />
             <input
@@ -78,31 +84,45 @@ export function NotifyForm() {
             <span className={styles.label}>Phone number</span>
             <span className={styles.optional}>Optional</span>
           </span>
-          <div className={styles.phoneRow}>
-            <label className={styles.dialField}>
-              <span className={styles.visuallyHidden}>Country code</span>
-              <span className={styles.selectWrap}>
+          <div
+            className={
+              errorField === "phone"
+                ? `${styles.phoneBox} ${styles.phoneBoxInvalid}`
+                : styles.phoneBox
+            }
+          >
+            <span className={styles.dialField}>
+              <label htmlFor="notify-dial" className={styles.visuallyHidden}>
+                Country code
+              </label>
+              <span className={styles.selectSizer}>
                 <CountryFlag iso2={selectedCountry?.iso2} />
                 <select
+                  id="notify-dial"
                   name="dialCode"
-                  className={`${styles.input} ${styles.selectWithFlag}`}
+                  className={styles.dialSelect}
                   value={dialCode}
                   onChange={(event) => setDialCode(event.target.value)}
                 >
                   {countryCodes.map((country) => (
                     <option key={`${country.iso2}-${country.dialCode}`} value={country.dialCode}>
-                      {`${country.countryName} (${country.dialCode})`}
+                      {countryLabel(country)}
                     </option>
                   ))}
                 </select>
+                {/* Same text as the chosen option, so the select is only as wide as its choice. */}
+                <span className={styles.sizer} aria-hidden="true">
+                  {selectedCountry ? countryLabel(selectedCountry) : dialCode}
+                </span>
+                <ChevronDown className={styles.dialChevron} aria-hidden="true" focusable="false" />
               </span>
-            </label>
+            </span>
             <label className={styles.numberField}>
               <span className={styles.visuallyHidden}>Phone number without country code</span>
               <input
                 type="tel"
                 name="phone"
-                className={styles.input}
+                className={styles.numberInput}
                 placeholder="Phone number"
                 inputMode="tel"
                 autoComplete="tel-national"

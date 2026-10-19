@@ -1,0 +1,196 @@
+.glyph {
+  width: 22px;
+  height: 22px;
+}
+
+.queue {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.labels {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.labelDone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-status-done-fg);
+}
+
+.labelProgress {
+  color: var(--color-status-progress-fg);
+  text-align: center;
+}
+
+.labelMuted {
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.labelIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.track {
+  display: flex;
+  height: var(--space-2);
+  overflow: hidden;
+  background: var(--color-status-neutral-border);
+  border-radius: var(--radius-pill);
+}
+
+.segDone {
+  flex: 1 1 0;
+  background: var(--color-status-done-solid);
+}
+
+.segProgress {
+  flex: 1 1 0;
+  background: var(--color-status-progress-solid);
+}
+
+.segTodo {
+  flex: 1 1 0;
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.card,
+.cardActive {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.cardActive {
+  border-color: var(--color-status-progress-border);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.jobTitle {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+}
+
+.dot_done {
+  background: var(--color-status-done-solid);
+}
+
+.dot_progress {
+  background: var(--color-status-progress-solid);
+}
+
+.dot_scheduled {
+  background: var(--color-status-scheduled-solid);
+}
+
+.pillIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.meta {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.cardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-xs);
+}
+
+.assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-pill);
+}
+
+.textDone {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-done-fg);
+}
+
+.textProgress {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-progress-fg);
+}
+
+.textMuted {
+  color: var(--color-text-muted);
+}
+
+.route {
+  display: grid;
+  align-items: end;
+  flex: 1 1 auto;
+}

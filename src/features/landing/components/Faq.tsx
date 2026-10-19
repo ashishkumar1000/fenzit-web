@@ -44,7 +44,7 @@ const ITEMS: FaqItem[] = [
 // expected behaviour for free.
 export function Faq() {
   return (
-    <section className={styles.section} aria-labelledby="faq-title">
+    <section id="faq" className={styles.section} aria-labelledby="faq-title">
       <Container>
         <SectionHeading id="faq-title" title="Questions" />
         <div className={styles.list}>

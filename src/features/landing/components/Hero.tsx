@@ -1,6 +1,6 @@
 import { Container } from "../../../components/ui/Container";
 import { LinkButton } from "../../../components/ui/LinkButton";
-import { JobsPreview } from "./JobsPreview";
+import { HeroPreview } from "./HeroPreview";
 import styles from "./Hero.module.css";
 
 export function Hero() {
@@ -9,10 +9,6 @@ export function Hero() {
       <Container>
         <div className={styles.hero}>
           <div className={styles.copy}>
-            <p className={styles.eyebrow}>
-              <span className={styles.dot} aria-hidden="true" />
-              Early access
-            </p>
             <h1 id="hero-title" className={styles.title}>
               Run your jobs, attendance and leave{" "}
               <span className={styles.accent}>in one place.</span>
@@ -30,7 +26,7 @@ export function Hero() {
               </LinkButton>
             </div>
           </div>
-          <JobsPreview />
+          <HeroPreview />
         </div>
       </Container>
     </section>
