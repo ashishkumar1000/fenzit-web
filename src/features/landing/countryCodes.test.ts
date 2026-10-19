@@ -50,19 +50,17 @@ describe("countryCodesLoader", () => {
       ),
     );
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([
-      { dialCode: "+44", countryName: "United Kingdom", iso2: "GB" },
-    ]);
+    expect(countryCodes).toEqual([{ dialCode: "+44", countryName: "United Kingdom", iso2: "GB" }]);
   });
 
   it("falls back to India when the request fails", async () => {
     stubFetch(() => Promise.reject(new TypeError("network down")));
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
+    expect(countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
   });
 
   it("falls back to India when the server answers with an error", async () => {
@@ -74,9 +72,9 @@ describe("countryCodesLoader", () => {
       ),
     );
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
+    expect(countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
   });
 
   it("falls back to India when the list is empty, so the dropdown is never blank", async () => {
@@ -86,9 +84,9 @@ describe("countryCodesLoader", () => {
       ),
     );
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
+    expect(countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
   });
 
   it("gives up after the timeout and passes an abort signal", async () => {
@@ -118,11 +116,9 @@ describe("countryCodesLoader", () => {
       ),
     );
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([
-      { dialCode: "+1", countryName: "United States", iso2: "US" },
-    ]);
+    expect(countryCodes).toEqual([{ dialCode: "+1", countryName: "United States", iso2: "US" }]);
   });
 
   it("falls back to India when every row is unusable", async () => {
@@ -135,8 +131,22 @@ describe("countryCodesLoader", () => {
       ),
     );
 
-    const data = await countryCodesLoader();
+    const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(data.countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
+    expect(countryCodes).toEqual([{ dialCode: "+91", countryName: "India", iso2: "IN" }]);
+  });
+});
+
+describe("countryCodesLoader: does not hold up the page", () => {
+  it("returns at once while the list request is still pending", async () => {
+    stubFetch(() => new Promise<Response>(() => {}));
+
+    const data = countryCodesLoader();
+    const state = await Promise.race([
+      data.countryCodes.then(() => "settled"),
+      Promise.resolve("still pending"),
+    ]);
+
+    expect(state).toBe("still pending");
   });
 });

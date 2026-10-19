@@ -82,9 +82,10 @@ export function HeroJobsPanel() {
             <p className={styles.meta}>{job.meta}</p>
           </li>
         ))}
-        <div className={styles.route}>
+        {/* Decorative map line. It sits in the list only for layout, so screen readers skip it. */}
+        <li className={styles.route} aria-hidden="true">
           <RouteArt />
-        </div>
+        </li>
       </ul>
     </HeroPanel>
   );

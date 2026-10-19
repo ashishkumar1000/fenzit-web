@@ -8,3 +8,4 @@ index.html
 wrangler.jsonc
 src/theme/
 src/styles/tokens.css
+dist-server

@@ -9,17 +9,18 @@ export type CountryCode = {
 };
 
 export type CountryCodesData = {
-  countryCodes: CountryCode[];
+  /** Streamed: the page renders with the fallback list, then the full list replaces it. */
+  countryCodes: Promise<CountryCode[]>;
 };
 
 /** The dropdown starts on India. Any visitor can pick another country. */
 export const DEFAULT_DIAL_CODE = "+91";
 
-/** The home page waits for this list, so give up quickly and use the fallback. */
+/** The list loads in the background. A slow request gives up after this and uses the fallback. */
 export const COUNTRY_CODES_TIMEOUT_MS = 3000;
 
-// Used when the list cannot load. The form still works, with India as the only choice.
-const FALLBACK_COUNTRY_CODES: CountryCode[] = [
+// Used when the list cannot load, and first while it loads. The form still works, with India as the only choice.
+export const FALLBACK_COUNTRY_CODES: CountryCode[] = [
   { dialCode: "+91", countryName: "India", iso2: "IN" },
 ];
 
@@ -38,17 +39,22 @@ function isCountryCode(value: unknown): value is CountryCode {
   );
 }
 
-/**
- * Route loader for the home page. A failed or slow reference list must not
- * hold up the page, so after COUNTRY_CODES_TIMEOUT_MS it falls back to India
- * alone. Rows the form cannot use are dropped.
- */
-export async function countryCodesLoader(): Promise<CountryCodesData> {
+async function loadCountryCodes(): Promise<CountryCode[]> {
   try {
     const countryCodes = await fetchCountryCodes(AbortSignal.timeout(COUNTRY_CODES_TIMEOUT_MS));
     const usable = countryCodes.filter(isCountryCode);
-    return { countryCodes: usable.length > 0 ? usable : FALLBACK_COUNTRY_CODES };
+    return usable.length > 0 ? usable : FALLBACK_COUNTRY_CODES;
   } catch {
-    return { countryCodes: FALLBACK_COUNTRY_CODES };
+    return FALLBACK_COUNTRY_CODES;
   }
+}
+
+/**
+ * Route loader for the home page. It does not wait for the list: the promise is
+ * handed to the page at once, so the hero paints while the request runs. A slow
+ * or failed list falls back to India alone after COUNTRY_CODES_TIMEOUT_MS, and
+ * rows the form cannot use are dropped.
+ */
+export function countryCodesLoader(): CountryCodesData {
+  return { countryCodes: loadCountryCodes() };
 }

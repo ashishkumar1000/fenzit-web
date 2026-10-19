@@ -16,3 +16,6 @@ pnpm-lock.yaml
 .DS_Store
 .idea/
 .vscode/
+
+# Server build output for pre-rendering. Not shipped.
+dist-server/

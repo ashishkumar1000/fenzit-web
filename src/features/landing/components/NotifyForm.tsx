@@ -1,8 +1,13 @@
-import { useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
+import { Suspense, useState } from "react";
+import { Await, useFetcher, useLoaderData } from "react-router";
 import { ArrowRight, BellRing, ChevronDown, CircleCheck, Lock, Mail } from "lucide-react";
 import { EMAIL_MAX_LENGTH } from "../../../utils/contactValidation";
-import { type CountryCode, type CountryCodesData, DEFAULT_DIAL_CODE } from "../countryCodes";
+import {
+  type CountryCode,
+  type CountryCodesData,
+  DEFAULT_DIAL_CODE,
+  FALLBACK_COUNTRY_CODES,
+} from "../countryCodes";
 import type { EarlyAccessResult } from "../earlyAccessAction";
 import { CountryFlag } from "./CountryFlag";
 import styles from "./NotifyForm.module.css";
@@ -20,7 +25,40 @@ export function NotifyForm() {
   // An error belongs to the input it was shown for. Editing a field clears it until the next submit.
   const [editedSinceSubmit, setEditedSinceSubmit] = useState(false);
   const [dialCode, setDialCode] = useState<string>(DEFAULT_DIAL_CODE);
-  const selectedCountry = countryCodes.find((country) => country.dialCode === dialCode);
+
+  // The country code field. It renders with India alone while the full list loads, then
+  // with the full list. The same markup is used for both, so the layout does not jump.
+  const renderDialField = (countries: CountryCode[]) => {
+    const selectedCountry = countries.find((country) => country.dialCode === dialCode);
+    return (
+      <span className={styles.dialField}>
+        <label htmlFor="notify-dial" className={styles.visuallyHidden}>
+          Country code
+        </label>
+        <span className={styles.selectSizer}>
+          <CountryFlag iso2={selectedCountry?.iso2} />
+          <select
+            id="notify-dial"
+            name="dialCode"
+            className={styles.dialSelect}
+            value={dialCode}
+            onChange={(event) => setDialCode(event.target.value)}
+          >
+            {countries.map((country) => (
+              <option key={`${country.iso2}-${country.dialCode}`} value={country.dialCode}>
+                {countryLabel(country)}
+              </option>
+            ))}
+          </select>
+          {/* Same text as the chosen option, so the select is only as wide as its choice. */}
+          <span className={styles.sizer} aria-hidden="true">
+            {selectedCountry ? countryLabel(selectedCountry) : dialCode}
+          </span>
+          <ChevronDown className={styles.dialChevron} aria-hidden="true" focusable="false" />
+        </span>
+      </span>
+    );
+  };
 
   if (result?.ok) {
     return (
@@ -91,32 +129,9 @@ export function NotifyForm() {
                 : styles.phoneBox
             }
           >
-            <span className={styles.dialField}>
-              <label htmlFor="notify-dial" className={styles.visuallyHidden}>
-                Country code
-              </label>
-              <span className={styles.selectSizer}>
-                <CountryFlag iso2={selectedCountry?.iso2} />
-                <select
-                  id="notify-dial"
-                  name="dialCode"
-                  className={styles.dialSelect}
-                  value={dialCode}
-                  onChange={(event) => setDialCode(event.target.value)}
-                >
-                  {countryCodes.map((country) => (
-                    <option key={`${country.iso2}-${country.dialCode}`} value={country.dialCode}>
-                      {countryLabel(country)}
-                    </option>
-                  ))}
-                </select>
-                {/* Same text as the chosen option, so the select is only as wide as its choice. */}
-                <span className={styles.sizer} aria-hidden="true">
-                  {selectedCountry ? countryLabel(selectedCountry) : dialCode}
-                </span>
-                <ChevronDown className={styles.dialChevron} aria-hidden="true" focusable="false" />
-              </span>
-            </span>
+            <Suspense fallback={renderDialField(FALLBACK_COUNTRY_CODES)}>
+              <Await resolve={countryCodes}>{renderDialField}</Await>
+            </Suspense>
             <label className={styles.numberField}>
               <span className={styles.visuallyHidden}>Phone number without country code</span>
               <input

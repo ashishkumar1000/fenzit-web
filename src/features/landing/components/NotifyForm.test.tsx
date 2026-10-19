@@ -60,7 +60,7 @@ async function renderForm(countries: CountryCode[] = COUNTRIES) {
       {
         path: "/",
         element: <NotifyForm />,
-        loader: () => ({ countryCodes: countries }),
+        loader: () => ({ countryCodes: Promise.resolve(countries) }),
         action: earlyAccessAction,
       },
     ],
@@ -68,6 +68,8 @@ async function renderForm(countries: CountryCode[] = COUNTRIES) {
   );
   render(<RouterProvider router={router} />);
   await screen.findByLabelText("Email address");
+  // The list streams in after the form paints. Wait until every country is in the select.
+  await waitFor(() => expect(countrySelect().options.length).toBe(countries.length));
 }
 
 function emailInput(): HTMLInputElement {
@@ -288,4 +290,34 @@ it("clears the error as soon as the visitor edits the email field", async () => 
   expect(screen.getByRole("status")).toHaveTextContent(
     "We'll only email you about early access. No spam.",
   );
+});
+
+describe("NotifyForm: list loads after the form paints", () => {
+  it("shows India alone while the full list is pending, then swaps in the full list", async () => {
+    let resolveList: (list: CountryCode[]) => void = () => {};
+    const pending = new Promise<CountryCode[]>((resolve) => {
+      resolveList = resolve;
+    });
+    const router = createMemoryRouter(
+      [
+        {
+          path: "/",
+          element: <NotifyForm />,
+          loader: () => ({ countryCodes: pending }),
+          action: earlyAccessAction,
+        },
+      ],
+      { initialEntries: ["/"] },
+    );
+    render(<RouterProvider router={router} />);
+    await screen.findByLabelText("Email address");
+
+    expect(countrySelect().options.length).toBe(1);
+    expect(countrySelect().value).toBe("+91");
+
+    resolveList(COUNTRIES);
+
+    await waitFor(() => expect(countrySelect().options.length).toBe(COUNTRIES.length));
+    expect(countrySelect().value).toBe("+91");
+  });
 });

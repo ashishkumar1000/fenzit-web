@@ -1,21 +1,21 @@
-import { createBrowserRouter, type RouteObject } from "react-router";
+import { createBrowserRouter, type HydrationState } from "react-router";
 import { countryCodesLoader } from "../features/landing/countryCodes";
-import { earlyAccessAction } from "../features/landing/earlyAccessAction";
-import { FeaturesPage } from "../pages/FeaturesPage";
-import { HomePage } from "../pages/HomePage";
-import { NotFoundPage } from "../pages/NotFoundPage";
-import { RootLayout } from "./RootLayout";
+import { routes } from "./routes";
 
-/** Every route in the app. Exported so tests can build a memory router from the same table. */
-export const routes: RouteObject[] = [
-  {
-    element: <RootLayout />,
-    children: [
-      { path: "/", element: <HomePage />, loader: countryCodesLoader, action: earlyAccessAction },
-      { path: "/features", element: <FeaturesPage /> },
-      { path: "*", element: <NotFoundPage /> },
-    ],
-  },
-];
+export { routes };
 
-export const router = createBrowserRouter(routes);
+/**
+ * The home page's loader already ran on the server, so the browser starts from its list
+ * instead of loading again. Without this the first render would be empty until the loader
+ * returns, which would not match the pre-rendered HTML.
+ */
+const HOME_ROUTE_ID = "home";
+
+function hydrationFor(pathname: string): HydrationState | undefined {
+  if (pathname !== "/") return undefined;
+  return { loaderData: { [HOME_ROUTE_ID]: countryCodesLoader() } };
+}
+
+export const router = createBrowserRouter(routes, {
+  hydrationData: hydrationFor(window.location.pathname),
+});

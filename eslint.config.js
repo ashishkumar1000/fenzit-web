@@ -19,7 +19,7 @@ const SHARED_FILES = [
 const FEATURE_AND_PAGE_FILES = ["src/features/**/*.{ts,tsx}", "src/pages/**/*.{ts,tsx}"];
 
 export default tseslint.config(
-  { ignores: ["dist", ".wrangler", "coverage"] },
+  { ignores: ["dist", "dist-server", ".wrangler", "coverage"] },
   {
     files: ["**/*.{ts,tsx}"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
