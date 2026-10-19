@@ -1,7 +1,7 @@
 {
   "source": "fenzit-app/src/theme",
   "files": {
-    "colors.ts": "0bc4bf2bf4dd2f307608c19c7c5415f6bd5868768b3074a1707d902ece5ad2df",
+    "colors.ts": "7b9659c28c0de48841a8286ffb2b7cc471fa86113fe8155a0f9484b12a107c1a",
     "colors.test.ts": "9415ad9049f3c69c790393b48942631e18c1fd19aa0def2517c52516a886b501",
     "spacing.ts": "04c0041b63a0d53a1f11096f9437de4baff431b5bea21dff973bf4404db1cd48",
     "radius.ts": "c9bb925af61f3b9de761d02333724c6f6bd44df1b6f7365d2b5a956f92509ae1",
