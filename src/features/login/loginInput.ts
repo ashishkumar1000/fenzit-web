@@ -10,7 +10,10 @@ export const LOGIN_COUNTRY_CODES: CountryCode[] = [
 ];
 
 export const INDIA_ONLY_MESSAGE = "Only Indian mobile numbers can sign in by phone. Use +91.";
-const PHONE_HINT = "Type the number without the country code. Do not add a 0 or 00 at the start.";
+const PHONE_HINT =
+  "Type the 10-digit mobile number without the country code, starting with 6 to 9. Do not add a 0 or 00 at the start.";
+/** An Indian mobile number: 10 digits, starting with 6, 7, 8 or 9. Matches fenzit-be SendOtpDto. */
+const INDIAN_MOBILE = /^[6-9]\d{9}$/;
 
 export type Identifier =
   | { kind: "empty" }
@@ -48,7 +51,7 @@ export function classifyIdentifier(raw: string): Identifier {
     national = cleaned.slice(2);
   }
 
-  if (!/^\d{10}$/.test(national)) {
+  if (!INDIAN_MOBILE.test(national)) {
     return { kind: "invalid", message: PHONE_HINT };
   }
   return {

@@ -46,7 +46,10 @@ async function loadCountryCodes(): Promise<CountryCode[]> {
   try {
     const countryCodes = await fetchCountryCodes(AbortSignal.timeout(COUNTRY_CODES_TIMEOUT_MS));
     const usable = countryCodes.filter(isCountryCode);
-    return usable.length > 0 ? usable : FALLBACK_COUNTRY_CODES;
+    if (usable.length === 0) return FALLBACK_COUNTRY_CODES;
+    // The form starts on DEFAULT_DIAL_CODE, so the list must offer it, or the select and the form disagree.
+    const hasDefault = usable.some((country) => country.dialCode === DEFAULT_DIAL_CODE);
+    return hasDefault ? usable : [...FALLBACK_COUNTRY_CODES, ...usable];
   } catch {
     return FALLBACK_COUNTRY_CODES;
   }

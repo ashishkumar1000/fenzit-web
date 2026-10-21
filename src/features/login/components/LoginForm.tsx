@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { DialCodeSelect } from "../../../components/ui/DialCodeSelect";
 import { TextInput } from "../../../components/ui/TextInput";
 import { EMAIL_MAX_LENGTH } from "../../../utils/contactValidation";
 import type { LoginActionResult, LoginError } from "../loginAction";
-import { classifyIdentifier, LOGIN_COUNTRY_CODES, LOGIN_DIAL_CODE } from "../loginInput";
+import {
+  classifyIdentifier,
+  INDIA_ONLY_MESSAGE,
+  LOGIN_COUNTRY_CODES,
+  LOGIN_DIAL_CODE,
+} from "../loginInput";
 import styles from "./LoginForm.module.css";
+
+const NOT_READY_ID = "login-not-ready";
 
 /** Returns the message for one field, or undefined when the error is for another field. */
 function errorFor(error: LoginError | undefined, field: LoginError["field"]): string | undefined {
@@ -23,32 +31,47 @@ export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  // The password is hidden until the owner asks to see it.
+  const [showPassword, setShowPassword] = useState(false);
   const [dialCode, setDialCode] = useState<string>(LOGIN_DIAL_CODE);
+  // The value the last submit was sent for. A result from that submit shows only while the field still holds it.
+  const [submittedFor, setSubmittedFor] = useState<string | null>(null);
 
   const busy = fetcher.state !== "idle";
   const result = fetcher.data;
-
-  // Until the value is recognised, nothing below the field shows. An "@" means email. A value
-  // that starts with a digit or "+" is a phone number, and it gets the country code choice.
+  const trimmed = identifier.trim();
+  // The same cleaning classifyIdentifier applies, so "+ 91" is read as "+91".
+  const compact = trimmed.replace(/[\s\-().]/g, "");
   const parsed = classifyIdentifier(identifier);
   const isEmail = identifier.includes("@");
-  const phoneLike = !isEmail && /^[(+\d]/.test(identifier.trim());
+  const phoneLike = !isEmail && /^[(+\d]/.test(trimmed);
+  // The country choice shows for a number. It hides once the typed value starts with +91, so the code is not shown twice.
+  const showDialCode = phoneLike && !compact.startsWith(LOGIN_DIAL_CODE);
   const digitCount = identifier.replace(/\D/g, "").length;
-  // A problem is shown only once the input is long enough to be judged, so typing does not nag.
-  const emailProblem = isEmail && parsed.kind === "invalid" ? parsed.message : undefined;
+  // An email problem shows once the domain has a dot, so typing "a@" does not nag.
+  const emailProblem =
+    isEmail && parsed.kind === "invalid" && /@[^@]*\./.test(identifier)
+      ? parsed.message
+      : undefined;
+  // A phone problem shows once the input has 10 digits, so a number still being typed is not judged.
   const phoneProblem =
     phoneLike && parsed.kind === "invalid" && digitCount >= 10 ? parsed.message : undefined;
-  // The button is enabled once the input is complete: a recognised phone number, or an email with a password.
   const ready = parsed.kind === "phone" || (parsed.kind === "email" && password.trim() !== "");
-  // A disabled button says what is missing. Problems with the typed value are shown by their field.
-  const notReadyReason =
-    identifier.trim() === "" || ready || emailProblem || phoneProblem
-      ? undefined
-      : isEmail
-        ? "Enter your password."
-        : phoneLike
-          ? "Enter all 10 digits of the mobile number."
-          : undefined;
+
+  // A disabled button says what is missing. A problem with the typed value is shown by its field instead.
+  const notReadyReason = (): string | undefined => {
+    if (trimmed === "" || ready || emailProblem || phoneProblem) return undefined;
+    if (isEmail) {
+      return parsed.kind === "invalid" ? "Enter a valid email address." : "Enter your password.";
+    }
+    if (phoneLike) {
+      return compact.startsWith("+") && !compact.startsWith(LOGIN_DIAL_CODE)
+        ? INDIA_ONLY_MESSAGE
+        : "Enter all 10 digits of the mobile number.";
+    }
+    return "Enter your phone number or email.";
+  };
+  const reason = notReadyReason();
 
   if (result?.step === "code") {
     const error = result.error;
@@ -83,7 +106,6 @@ export function LoginForm() {
         <div className={styles.secondaryActions}>
           <fetcher.Form method="post" noValidate>
             <input type="hidden" name="identifier" value={identifier} />
-            <input type="hidden" name="dialCode" value={dialCode} />
             <Button type="submit" variant="secondary" disabled={busy}>
               Send new code
             </Button>
@@ -103,9 +125,14 @@ export function LoginForm() {
     );
   }
 
-  const error = result?.error;
+  const error = submittedFor === identifier ? result?.error : undefined;
   return (
-    <fetcher.Form method="post" className={styles.form} noValidate>
+    <fetcher.Form
+      method="post"
+      className={styles.form}
+      noValidate
+      onSubmit={() => setSubmittedFor(identifier)}
+    >
       <TextInput
         id="login-identifier"
         name="identifier"
@@ -117,7 +144,7 @@ export function LoginForm() {
         maxLength={EMAIL_MAX_LENGTH}
         placeholder="e.g. mona@gmail.com or 98765 43210"
         prefix={
-          phoneLike ? (
+          showDialCode ? (
             <DialCodeSelect
               id="login-dial"
               name="dialCode"
@@ -136,13 +163,29 @@ export function LoginForm() {
         <TextInput
           id="login-password"
           name="password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           label="Password"
           value={password}
           onChange={setPassword}
           autoComplete="current-password"
           error={errorFor(error, "password")}
           disabled={busy}
+          trailing={
+            <button
+              type="button"
+              className={styles.passwordToggle}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((shown) => !shown)}
+              disabled={busy}
+            >
+              {showPassword ? (
+                <EyeOff size={20} strokeWidth={2} aria-hidden="true" />
+              ) : (
+                <Eye size={20} strokeWidth={2} aria-hidden="true" />
+              )}
+            </button>
+          }
         />
       ) : null}
       {error?.field === "form" ? (
@@ -150,10 +193,18 @@ export function LoginForm() {
           {error.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={busy || !ready}>
+      <Button
+        type="submit"
+        disabled={busy || !ready}
+        describedBy={reason ? NOT_READY_ID : undefined}
+      >
         {busy ? "Logging in…" : "Login"}
       </Button>
-      {notReadyReason ? <p className={styles.notReadyReason}>{notReadyReason}</p> : null}
+      {reason ? (
+        <p id={NOT_READY_ID} className={styles.notReadyReason}>
+          {reason}
+        </p>
+      ) : null}
     </fetcher.Form>
   );
 }

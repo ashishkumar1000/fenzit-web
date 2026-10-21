@@ -6,6 +6,8 @@ type ButtonProps = {
   variant?: "primary" | "secondary";
   disabled?: boolean;
   onClick?: () => void;
+  /** The id of text that says why the button is disabled, so screen readers hear it. */
+  describedBy?: string;
   children: ReactNode;
 };
 
@@ -15,6 +17,7 @@ export function Button({
   variant = "primary",
   disabled = false,
   onClick,
+  describedBy,
   children,
 }: ButtonProps) {
   const variantClass = variant === "primary" ? styles.primary : styles.secondary;
@@ -24,6 +27,7 @@ export function Button({
       className={`${styles.base} ${variantClass}`}
       disabled={disabled}
       onClick={onClick}
+      aria-describedby={describedBy}
     >
       {children}
     </button>

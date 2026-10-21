@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Info, type LucideIcon } from "lucide-react";
+import { Info } from "lucide-react";
 import styles from "./TextInput.module.css";
 
 type TextInputProps = {
@@ -12,10 +12,10 @@ type TextInputProps = {
   inputMode?: "text" | "tel" | "numeric" | "email";
   autoComplete?: string;
   placeholder?: string;
-  /** A small icon drawn inside the field, at its left edge. Decorative only. */
-  icon?: LucideIcon;
   /** Content drawn inside the field before the text, such as a country code choice. */
   prefix?: ReactNode;
+  /** Content drawn inside the field after the text, at its right edge, such as a show/hide button. */
+  trailing?: ReactNode;
   hint?: string;
   error?: string;
   disabled?: boolean;
@@ -36,8 +36,8 @@ export function TextInput({
   inputMode,
   autoComplete,
   placeholder,
-  icon: Icon,
   prefix,
+  trailing,
   hint,
   error,
   disabled = false,
@@ -53,20 +53,17 @@ export function TextInput({
         {label}
       </label>
       <div className={prefix ? `${styles.control} ${styles.boxed}` : styles.control}>
-        {Icon ? (
-          <Icon className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
-        ) : null}
         {prefix}
         <input
           id={id}
           name={name}
-          className={
-            prefix
-              ? `${styles.input} ${styles.inBox}`
-              : Icon
-                ? `${styles.input} ${styles.withIcon}`
-                : styles.input
-          }
+          className={[
+            prefix ? styles.inBox : null,
+            trailing ? styles.withTrailing : null,
+            styles.input,
+          ]
+            .filter((name) => name !== null)
+            .join(" ")}
           type={type}
           inputMode={inputMode}
           autoComplete={autoComplete}
@@ -78,6 +75,7 @@ export function TextInput({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy === "" ? undefined : describedBy}
         />
+        {trailing ? <span className={styles.trailing}>{trailing}</span> : null}
       </div>
       {hint ? (
         <p id={`${id}-hint`} className={styles.hint}>

@@ -16,13 +16,6 @@
   align-items: center;
 }
 
-.icon {
-  position: absolute;
-  left: var(--space-4);
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-
 .input {
   width: 100%;
   min-height: var(--touch-comfort);
@@ -34,11 +27,6 @@
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-}
-
-/* Room for the leading icon: the icon sits at --space-4, so the text starts after it. */
-.withIcon {
-  padding-left: calc(var(--space-4) + 18px + var(--space-3));
 }
 
 .input::placeholder {
@@ -107,4 +95,18 @@
 
 .inBox:focus-visible {
   outline: none;
+}
+
+/* Room for the trailing control, so the typed text never runs under it. Last, so it overrides the padding above. */
+.withTrailing {
+  padding-right: var(--touch-comfort);
+}
+
+/* Sits inside the field at its right edge, centred on the input height. */
+.trailing {
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  display: flex;
+  transform: translateY(-50%);
 }

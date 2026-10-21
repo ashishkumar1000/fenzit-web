@@ -13,6 +13,30 @@
   color: var(--color-danger);
 }
 
+.passwordToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-comfort);
+  height: var(--touch-comfort);
+  padding: 0;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.passwordToggle:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
+.passwordToggle:disabled {
+  cursor: default;
+  color: var(--color-text-disabled);
+}
+
 .notReadyReason {
   margin: 0;
   font-size: var(--font-size-sm);

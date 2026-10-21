@@ -37,7 +37,31 @@ describe("countryCodesLoader", () => {
     expect(requestedUrls).toEqual(["https://api.test.example/api/v1/country-codes GET"]);
   });
 
-  it("returns the countries the API sends", async () => {
+  it("returns the countries the API sends, when India is among them", async () => {
+    stubFetch(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify([
+            { dialCode: "+91", countryName: "India", iso2: "IN" },
+            { dialCode: "+44", countryName: "United Kingdom", iso2: "GB" },
+          ]),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const countryCodes = await countryCodesLoader().countryCodes;
+
+    expect(countryCodes).toEqual([
+      { dialCode: "+91", countryName: "India", iso2: "IN" },
+      { dialCode: "+44", countryName: "United Kingdom", iso2: "GB" },
+    ]);
+  });
+
+  it("adds India first when the API list leaves it out, because the form starts on +91", async () => {
     stubFetch(() =>
       Promise.resolve(
         new Response(
@@ -52,7 +76,10 @@ describe("countryCodesLoader", () => {
 
     const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(countryCodes).toEqual([{ dialCode: "+44", countryName: "United Kingdom", iso2: "GB" }]);
+    expect(countryCodes).toEqual([
+      { dialCode: "+91", countryName: "India", iso2: "IN" },
+      { dialCode: "+44", countryName: "United Kingdom", iso2: "GB" },
+    ]);
   });
 
   it("falls back to India when the request fails", async () => {
@@ -118,7 +145,10 @@ describe("countryCodesLoader", () => {
 
     const countryCodes = await countryCodesLoader().countryCodes;
 
-    expect(countryCodes).toEqual([{ dialCode: "+1", countryName: "United States", iso2: "US" }]);
+    expect(countryCodes).toEqual([
+      { dialCode: "+91", countryName: "India", iso2: "IN" },
+      { dialCode: "+1", countryName: "United States", iso2: "US" },
+    ]);
   });
 
   it("falls back to India when every row is unusable", async () => {

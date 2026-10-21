@@ -2,12 +2,7 @@ import { redirect, type ActionFunctionArgs } from "react-router";
 import { ApiError } from "../../services/api";
 import { messageForError } from "../../utils/errorMessages";
 import { emailLogin, sendOtp, verifyOtp, type LoginResponse } from "./loginApi";
-import {
-  classifyIdentifier,
-  formatPhoneLabel,
-  INDIA_ONLY_MESSAGE,
-  LOGIN_DIAL_CODE,
-} from "./loginInput";
+import { classifyIdentifier, formatPhoneLabel, LOGIN_DIAL_CODE } from "./loginInput";
 import { writeSession } from "../../services/session";
 
 export type LoginField = "identifier" | "password" | "code" | "form";
@@ -61,11 +56,7 @@ async function signIn(form: FormData): Promise<LoginActionResult | Response> {
     return emailSignIn(identifier.email, password);
   }
 
-  // The country code field posts its choice. Only +91 is accepted here, and fenzit-be checks it again.
-  if (String(form.get("dialCode") ?? "") !== LOGIN_DIAL_CODE) {
-    return signInError({ field: "identifier", message: INDIA_ONLY_MESSAGE });
-  }
-
+  // classifyIdentifier only ever returns +91, and fenzit-be refuses any other code, so no dial code is read from the form.
   try {
     const sent = await sendOtp(identifier.dialCode, identifier.phoneNumber);
     return { step: "code", otpSessionId: sent.otp_session_id, phoneLabel: identifier.label };
