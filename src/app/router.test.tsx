@@ -48,14 +48,14 @@ describe("router", () => {
     (path) => {
       renderAt(path);
 
-      expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "This page is not here." })).toBeInTheDocument();
     },
   );
 
   it("links from the not-found page back to the home page", async () => {
     renderAt("/missing");
 
-    const link = screen.getByRole("link", { name: "Go to home" });
+    const link = screen.getByRole("link", { name: "Go home" });
     expect(link).toHaveAttribute("href", "/");
 
     fireEvent.click(link);
@@ -81,7 +81,7 @@ describe("router", () => {
     renderAt("/missing");
     expect(screen.getByText(/you are offline/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: "Go to home" }));
+    fireEvent.click(screen.getByRole("link", { name: "Go home" }));
 
     expect(screen.getByText(/you are offline/i)).toBeInTheDocument();
   });

@@ -1,15 +1,26 @@
-import { Link } from "react-router";
+import { LinkButton } from "../components/ui/LinkButton";
+import { NotFoundArt } from "../features/not-found/components/NotFoundArt";
 import styles from "./NotFoundPage.module.css";
 
+/** Shown for any address the app does not recognise. Client-only: it is not pre-rendered. */
 export function NotFoundPage() {
   return (
-    <main className={styles.page}>
-      <h1 className={styles.title}>Page not found</h1>
-      <p>
-        <Link className={styles.link} to="/">
-          Go to home
-        </Link>
-      </p>
-    </main>
+    <div className={styles.page}>
+      <title>Page not found · Fenzit</title>
+      <main className={styles.main}>
+        <div className={styles.visual}>
+          <NotFoundArt />
+        </div>
+        <div className={styles.panel}>
+          <h1 className={styles.heading}>This page is not here.</h1>
+          <p className={styles.body}>
+            The link may be wrong or old. Go home to find what you need.
+          </p>
+          <LinkButton to="/" variant="primary">
+            Go home
+          </LinkButton>
+        </div>
+      </main>
+    </div>
   );
 }

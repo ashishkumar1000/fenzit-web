@@ -1,19 +1,41 @@
-/* Added with CSS Modules. The page had no styles before; this only sets the
- * layout width and spacing, and keeps the same text colour and size. */
+/* The illustration sits above the message, in one centred column at every width. */
 .page {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 56px 24px;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-.title {
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 800;
+.main {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--layout-gutter-mobile)
+    calc(var(--space-10) + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.visual {
+  width: 100%;
+  max-width: var(--layout-content-max);
+  padding: var(--space-6) var(--space-5);
+}
+
+.panel {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--layout-content-max);
+}
+
+.heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
-  margin-bottom: 16px;
+  line-height: 1.2;
 }
 
-.link {
-  color: var(--blue-900);
-  font-weight: 600;
+.body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  max-width: 36ch;
 }

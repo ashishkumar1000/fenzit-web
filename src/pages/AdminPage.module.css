@@ -35,6 +35,5 @@
   place-items: center;
   width: 100%;
   padding: var(--space-6) var(--space-5);
-  background: linear-gradient(90deg, var(--color-surface-page), var(--color-primary-soft));
   border-radius: var(--radius-lg);
 }
