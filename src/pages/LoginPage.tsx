@@ -1,4 +1,4 @@
-import { Container } from "../components/ui/Container";
+import { LoginArt } from "../features/login/components/LoginArt";
 import { LoginForm } from "../features/login/components/LoginForm";
 import styles from "./LoginPage.module.css";
 
@@ -7,15 +7,15 @@ export function LoginPage() {
   return (
     <div className={styles.page}>
       <title>Log in · Fenzit</title>
-      <Container>
-        <main className={styles.main}>
-          <a className={styles.back} href="/">
-            Back to the home page
-          </a>
+      <main className={styles.main}>
+        <div className={styles.panel}>
           <h1 className={styles.heading}>Log in to Fenzit</h1>
           <LoginForm />
-        </main>
-      </Container>
+        </div>
+        <div className={styles.visual}>
+          <LoginArt />
+        </div>
+      </main>
     </div>
   );
 }

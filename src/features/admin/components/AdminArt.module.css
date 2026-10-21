@@ -1,0 +1,30 @@
+/* One colour: the primary blue. Lines and solid parts use it; cut-outs use the pale tint of the same hue. */
+.art {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.solid {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.tint {
+  fill: var(--color-primary-soft);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.thin {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+}

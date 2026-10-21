@@ -1,31 +1,33 @@
+/* Phones: the illustrated panel sits above the heading and form, in one centred column. */
 .page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: var(--space-8);
 }
 
 .main {
   display: grid;
-  gap: var(--space-5);
+  justify-items: center;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--layout-gutter-mobile)
+    calc(var(--space-10) + env(safe-area-inset-bottom));
+}
+
+.visual {
+  order: -1;
+  display: grid;
+  place-items: center;
+  width: 100%;
   max-width: var(--layout-content-max);
-  margin-inline: auto;
-  padding-bottom: calc(var(--space-10) + env(safe-area-inset-bottom));
+  padding: var(--space-6) var(--space-5);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-lg);
 }
 
-.back {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-min);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-link);
-}
-
-.back:focus-visible {
-  outline: 2px solid var(--color-border-focus);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
+.panel {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--layout-content-max);
 }
 
 .heading {
@@ -33,4 +35,31 @@
   font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
   color: var(--color-text-strong);
+}
+
+/* Wide screens: the form on the left and the scene filling the right half of the screen, edge to edge. */
+@media (min-width: 960px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    justify-items: stretch;
+    gap: 0;
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .panel {
+    align-self: center;
+    justify-self: center;
+    max-width: 400px;
+    padding: var(--space-10) var(--space-6);
+  }
+
+  .visual {
+    order: 0;
+    min-height: 100dvh;
+    max-width: none;
+    padding: var(--space-10);
+    border-radius: 0;
+  }
 }

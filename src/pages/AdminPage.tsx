@@ -2,6 +2,7 @@ import { useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
 import type { adminLoader } from "../features/admin/adminLoader";
+import { AdminArt } from "../features/admin/components/AdminArt";
 import { clearSession } from "../services/session";
 import styles from "./AdminPage.module.css";
 
@@ -35,6 +36,9 @@ export function AdminPage() {
       <title>Company admin · Fenzit</title>
       <Container>
         <main className={styles.main}>
+          <div className={styles.visual}>
+            <AdminArt />
+          </div>
           <h1 className={styles.heading}>Company admin</h1>
 
           {data.status === "failed" ? (

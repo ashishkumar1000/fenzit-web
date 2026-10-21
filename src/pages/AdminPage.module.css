@@ -29,3 +29,12 @@
   font-size: var(--font-size-base);
   color: var(--color-danger);
 }
+
+.visual {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: var(--space-6) var(--space-5);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-lg);
+}

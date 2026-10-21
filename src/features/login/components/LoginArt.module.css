@@ -1,0 +1,76 @@
+/* One colour: the primary blue. Lines and solid parts use it; cut-outs use the pale tint of the same hue. */
+.art {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+/* Solid shapes */
+.solid {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* Cut-outs: the pale tint, outlined in the primary colour */
+.tint {
+  fill: var(--color-primary-soft);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.thin {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.route {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 10;
+}
+
+.tick {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shackle {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.arm {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+.legs {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+/* Wide screens: the scene fills the panel. */
+@media (min-width: 960px) {
+  .art {
+    max-width: none;
+  }
+}
