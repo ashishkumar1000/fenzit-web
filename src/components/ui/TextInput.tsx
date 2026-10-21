@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { Info, type LucideIcon } from "lucide-react";
 import styles from "./TextInput.module.css";
 
 type TextInputProps = {
@@ -9,6 +11,11 @@ type TextInputProps = {
   type?: "text" | "password" | "email" | "tel";
   inputMode?: "text" | "tel" | "numeric" | "email";
   autoComplete?: string;
+  placeholder?: string;
+  /** A small icon drawn inside the field, at its left edge. Decorative only. */
+  icon?: LucideIcon;
+  /** Content drawn inside the field before the text, such as a country code choice. */
+  prefix?: ReactNode;
   hint?: string;
   error?: string;
   disabled?: boolean;
@@ -28,6 +35,9 @@ export function TextInput({
   type = "text",
   inputMode,
   autoComplete,
+  placeholder,
+  icon: Icon,
+  prefix,
   hint,
   error,
   disabled = false,
@@ -42,23 +52,37 @@ export function TextInput({
       <label className={styles.label} htmlFor={id}>
         {label}
       </label>
-      <input
-        id={id}
-        name={name}
-        className={styles.input}
-        type={type}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        disabled={disabled}
-        maxLength={maxLength}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy === "" ? undefined : describedBy}
-      />
+      <div className={prefix ? `${styles.control} ${styles.boxed}` : styles.control}>
+        {Icon ? (
+          <Icon className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+        ) : null}
+        {prefix}
+        <input
+          id={id}
+          name={name}
+          className={
+            prefix
+              ? `${styles.input} ${styles.inBox}`
+              : Icon
+                ? `${styles.input} ${styles.withIcon}`
+                : styles.input
+          }
+          type={type}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          disabled={disabled}
+          maxLength={maxLength}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy === "" ? undefined : describedBy}
+        />
+      </div>
       {hint ? (
         <p id={`${id}-hint`} className={styles.hint}>
-          {hint}
+          <Info className={styles.hintIcon} size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{hint}</span>
         </p>
       ) : null}
       {error ? (

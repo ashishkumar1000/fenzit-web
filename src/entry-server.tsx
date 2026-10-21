@@ -1,7 +1,7 @@
 import type { LoaderFunction, RouteObject } from "react-router";
 import { renderToString } from "react-dom/server";
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router";
-import type { CountryCode, CountryCodesData } from "./features/landing/countryCodes";
+import type { CountryCode, CountryCodesData } from "./services/countryCodes";
 import { routes } from "./app/routes";
 
 // The build has no network to the API, so this list never settles on the server. The form then

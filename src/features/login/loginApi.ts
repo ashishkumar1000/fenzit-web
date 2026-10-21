@@ -1,5 +1,4 @@
 import { apiFetch } from "../../services/api";
-import { LOGIN_DIAL_CODE } from "./loginInput";
 
 /** The identity the BE returns on a successful sign-in. Only the token is kept in the browser. */
 export type LoginResponse = {
@@ -21,11 +20,11 @@ export type OtpSendResponse = {
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
 /** POST /api/v1/auth/otp/send. Public. The BE never returns the code. */
-export function sendOtp(phoneNumber: string): Promise<OtpSendResponse> {
+export function sendOtp(dialCode: string, phoneNumber: string): Promise<OtpSendResponse> {
   return apiFetch<OtpSendResponse>("/api/v1/auth/otp/send", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ countryCode: LOGIN_DIAL_CODE, phoneNumber }),
+    body: JSON.stringify({ countryCode: dialCode, phoneNumber }),
   });
 }
 

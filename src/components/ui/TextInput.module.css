@@ -10,6 +10,19 @@
   color: var(--color-text-body);
 }
 
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
 .input {
   width: 100%;
   min-height: var(--touch-comfort);
@@ -21,6 +34,11 @@
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
+}
+
+/* Room for the leading icon: the icon sits at --space-4, so the text starts after it. */
+.withIcon {
+  padding-left: calc(var(--space-4) + 18px + var(--space-3));
 }
 
 .input::placeholder {
@@ -42,11 +60,51 @@
 }
 
 .hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.hintIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .error {
   font-size: var(--font-size-sm);
   color: var(--color-danger);
+}
+
+/* With a prefix, one box holds the prefix and the text. The border moves from the input to the box. */
+.boxed {
+  min-height: var(--touch-comfort);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.boxed:focus-within {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* The box greys out with its input, so a busy form does not look ready. */
+.boxed:has(:disabled) {
+  background: var(--color-surface-sunken);
+}
+
+.inBox {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: calc(var(--touch-comfort) - 2px);
+  padding: 0 var(--space-4);
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+.inBox:focus-visible {
+  outline: none;
 }

@@ -1,0 +1,64 @@
+.dialField {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  border-right: 1px solid var(--color-border-default);
+}
+
+/* The select and its sizer share one grid cell, so the cell is as wide as the chosen country. */
+.selectSizer {
+  position: relative;
+  display: inline-grid;
+  align-items: center;
+}
+
+.dialSelect,
+.sizer {
+  grid-area: 1 / 1;
+  min-height: 100%;
+  padding: 0 var(--space-8) 0 calc(var(--space-4) + 20px + var(--space-2));
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+}
+
+.dialSelect {
+  /* Width 1px and min-width 100% keeps the widest option from setting the width. */
+  width: 1px;
+  min-width: 100%;
+  /* No native arrow: its reserved space clipped the country name. The chevron is drawn below. */
+  appearance: none;
+  color: var(--color-text-strong);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* No ring here: the box around the select shows focus (see TextInput's .boxed:focus-within). */
+.dialSelect:focus-visible {
+  outline: none;
+}
+
+.sizer {
+  visibility: hidden;
+}
+
+.dialChevron {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

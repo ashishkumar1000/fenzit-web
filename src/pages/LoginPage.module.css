@@ -19,7 +19,7 @@
   width: 100%;
   max-width: var(--layout-content-max);
   padding: var(--space-6) var(--space-5);
-  background: var(--color-primary-soft);
+  background: linear-gradient(90deg, var(--color-surface-page), var(--color-primary-soft));
   border-radius: var(--radius-lg);
 }
 
@@ -30,11 +30,17 @@
   max-width: var(--layout-content-max);
 }
 
+/* Hidden on phones. On wide screens it sits centred above the heading. */
+.logo {
+  display: none;
+}
+
 .heading {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
   color: var(--color-text-strong);
+  text-align: center;
 }
 
 /* Wide screens: the form on the left and the scene filling the right half of the screen, edge to edge. */
@@ -46,6 +52,14 @@
     gap: 0;
     min-height: 100dvh;
     padding: 0;
+  }
+
+  .logo {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin-inline: auto;
+    object-fit: contain;
   }
 
   .panel {

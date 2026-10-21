@@ -1,5 +1,5 @@
 import { createBrowserRouter, type HydrationState } from "react-router";
-import { countryCodesLoader } from "../features/landing/countryCodes";
+import { countryCodesLoader } from "../services/countryCodes";
 import { routes } from "./routes";
 
 export { routes };

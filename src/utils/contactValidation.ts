@@ -1,6 +1,9 @@
 // One @, no spaces. Dots may separate labels but never start, end, or double up,
 // so "a@b..c" and ".a@b.com" are rejected. RFC 5321 caps an address at 254 characters.
-export const EMAIL_PATTERN = /^[^\s@.]+(\.[^\s@.]+)*@[^\s@.]+(\.[^\s@.]+)+$/;
+// Letters, digits and . _ % + - in the name; letters, digits and hyphens in each domain label;
+// a top-level domain of two or more letters. Commas and other symbols are refused.
+export const EMAIL_PATTERN =
+  /^[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@[A-Za-z0-9]+(-[A-Za-z0-9]+)*(\.[A-Za-z0-9]+(-[A-Za-z0-9]+)*)*\.[A-Za-z]{2,}$/;
 export const EMAIL_MAX_LENGTH = 254;
 
 export type PhoneCheck = { kind: "none" } | { kind: "valid"; phone: string } | { kind: "invalid" };

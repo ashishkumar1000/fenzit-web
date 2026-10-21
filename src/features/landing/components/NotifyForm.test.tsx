@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import type { CountryCode } from "../countryCodes";
+import type { CountryCode } from "../../../services/countryCodes";
 import { earlyAccessAction } from "../earlyAccessAction";
 import { NotifyForm } from "./NotifyForm";
 

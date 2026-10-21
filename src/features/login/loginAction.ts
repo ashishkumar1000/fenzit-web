@@ -2,7 +2,12 @@ import { redirect, type ActionFunctionArgs } from "react-router";
 import { ApiError } from "../../services/api";
 import { messageForError } from "../../utils/errorMessages";
 import { emailLogin, sendOtp, verifyOtp, type LoginResponse } from "./loginApi";
-import { classifyIdentifier, formatPhoneLabel } from "./loginInput";
+import {
+  classifyIdentifier,
+  formatPhoneLabel,
+  INDIA_ONLY_MESSAGE,
+  LOGIN_DIAL_CODE,
+} from "./loginInput";
 import { writeSession } from "../../services/session";
 
 export type LoginField = "identifier" | "password" | "code" | "form";
@@ -56,8 +61,13 @@ async function signIn(form: FormData): Promise<LoginActionResult | Response> {
     return emailSignIn(identifier.email, password);
   }
 
+  // The country code field posts its choice. Only +91 is accepted here, and fenzit-be checks it again.
+  if (String(form.get("dialCode") ?? "") !== LOGIN_DIAL_CODE) {
+    return signInError({ field: "identifier", message: INDIA_ONLY_MESSAGE });
+  }
+
   try {
-    const sent = await sendOtp(identifier.phoneNumber);
+    const sent = await sendOtp(identifier.dialCode, identifier.phoneNumber);
     return { step: "code", otpSessionId: sent.otp_session_id, phoneLabel: identifier.label };
   } catch (error) {
     return signInError({ field: "identifier", message: messageForError(error) });
@@ -79,7 +89,7 @@ async function emailSignIn(email: string, password: string): Promise<LoginAction
 
 async function verifyCode(form: FormData): Promise<LoginActionResult | Response> {
   const otpSessionId = String(form.get("otpSessionId") ?? "");
-  const phoneLabel = String(form.get("phoneLabel") ?? formatPhoneLabel(""));
+  const phoneLabel = String(form.get("phoneLabel") ?? formatPhoneLabel(LOGIN_DIAL_CODE, ""));
   const code = String(form.get("otpCode") ?? "").trim();
   const codeStep = (error?: LoginError): LoginActionResult => ({
     step: "code",

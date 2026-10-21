@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router";
-import { countryCodesLoader } from "../features/landing/countryCodes";
+import { countryCodesLoader } from "../services/countryCodes";
 import { earlyAccessAction } from "../features/landing/earlyAccessAction";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
@@ -20,6 +20,9 @@ export const routes: RouteObject[] = [
         element: <HomePage />,
         loader: countryCodesLoader,
         action: earlyAccessAction,
+        // The country list does not change after a submit. Reloading it would replace the
+        // full list with the India fallback while the new request runs.
+        shouldRevalidate: () => false,
       },
       { path: "/features", element: <FeaturesPage /> },
       // Client-only pages, loaded on first visit. They depend on the saved sign-in, so they are

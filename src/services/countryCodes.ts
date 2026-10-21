@@ -1,4 +1,4 @@
-import { apiFetch } from "../../services/api";
+import { apiFetch } from "./api";
 
 export type CountryCode = {
   /** International dial code with the plus sign, for example +91. */
@@ -29,13 +29,16 @@ export function fetchCountryCodes(signal?: AbortSignal): Promise<CountryCode[]> 
   return apiFetch<CountryCode[]>("/api/v1/country-codes", { signal });
 }
 
+/** A row is used only when its codes have the expected shape. These values reach the form, so they are checked. */
 function isCountryCode(value: unknown): value is CountryCode {
   if (typeof value !== "object" || value === null) return false;
   const row = value as Record<string, unknown>;
   return (
     typeof row.dialCode === "string" &&
+    /^\+\d{1,4}$/.test(row.dialCode) &&
     typeof row.countryName === "string" &&
-    typeof row.iso2 === "string"
+    typeof row.iso2 === "string" &&
+    /^[A-Z]{2}$/.test(row.iso2)
   );
 }
 

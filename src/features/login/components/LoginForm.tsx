@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "../../../components/ui/Button";
+import { DialCodeSelect } from "../../../components/ui/DialCodeSelect";
 import { TextInput } from "../../../components/ui/TextInput";
+import { EMAIL_MAX_LENGTH } from "../../../utils/contactValidation";
 import type { LoginActionResult, LoginError } from "../loginAction";
+import { classifyIdentifier, LOGIN_COUNTRY_CODES, LOGIN_DIAL_CODE } from "../loginInput";
 import styles from "./LoginForm.module.css";
 
 /** Returns the message for one field, or undefined when the error is for another field. */
@@ -11,20 +14,41 @@ function errorFor(error: LoginError | undefined, field: LoginError["field"]): st
 }
 
 /**
- * The login form. One field takes a phone number or an email. An email shows a
- * password field and logs in at once. A phone number gets a 4-digit code first,
- * and this form shows the code step until the owner logs in or changes number.
+ * The login form. One field takes a phone number or an email. A phone number shows a country
+ * code choice beside it. An email shows a password field. A phone number gets a 4-digit code
+ * first, and this form shows the code step until the owner logs in or changes number.
  */
 export function LoginForm() {
   const fetcher = useFetcher<LoginActionResult>();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [dialCode, setDialCode] = useState<string>(LOGIN_DIAL_CODE);
 
   const busy = fetcher.state !== "idle";
   const result = fetcher.data;
-  // An "@" anywhere means the email path, so the password field appears as the owner types the address.
+
+  // Until the value is recognised, nothing below the field shows. An "@" means email. A value
+  // that starts with a digit or "+" is a phone number, and it gets the country code choice.
+  const parsed = classifyIdentifier(identifier);
   const isEmail = identifier.includes("@");
+  const phoneLike = !isEmail && /^[(+\d]/.test(identifier.trim());
+  const digitCount = identifier.replace(/\D/g, "").length;
+  // A problem is shown only once the input is long enough to be judged, so typing does not nag.
+  const emailProblem = isEmail && parsed.kind === "invalid" ? parsed.message : undefined;
+  const phoneProblem =
+    phoneLike && parsed.kind === "invalid" && digitCount >= 10 ? parsed.message : undefined;
+  // The button is enabled once the input is complete: a recognised phone number, or an email with a password.
+  const ready = parsed.kind === "phone" || (parsed.kind === "email" && password.trim() !== "");
+  // A disabled button says what is missing. Problems with the typed value are shown by their field.
+  const notReadyReason =
+    identifier.trim() === "" || ready || emailProblem || phoneProblem
+      ? undefined
+      : isEmail
+        ? "Enter your password."
+        : phoneLike
+          ? "Enter all 10 digits of the mobile number."
+          : undefined;
 
   if (result?.step === "code") {
     const error = result.error;
@@ -53,12 +77,13 @@ export function LoginForm() {
             </p>
           ) : null}
           <Button type="submit" disabled={busy}>
-            {busy ? "Logging in…" : "Log in"}
+            {busy ? "Logging in…" : "Login"}
           </Button>
         </fetcher.Form>
         <div className={styles.secondaryActions}>
           <fetcher.Form method="post" noValidate>
             <input type="hidden" name="identifier" value={identifier} />
+            <input type="hidden" name="dialCode" value={dialCode} />
             <Button type="submit" variant="secondary" disabled={busy}>
               Send new code
             </Button>
@@ -89,8 +114,22 @@ export function LoginForm() {
         onChange={setIdentifier}
         inputMode="text"
         autoComplete="username"
+        maxLength={EMAIL_MAX_LENGTH}
+        placeholder="e.g. mona@gmail.com or 98765 43210"
+        prefix={
+          phoneLike ? (
+            <DialCodeSelect
+              id="login-dial"
+              name="dialCode"
+              countries={LOGIN_COUNTRY_CODES}
+              value={dialCode}
+              onChange={setDialCode}
+              disabled={busy}
+            />
+          ) : undefined
+        }
         hint="Use the phone number or the email linked to your account."
-        error={errorFor(error, "identifier")}
+        error={errorFor(error, "identifier") ?? emailProblem ?? phoneProblem}
         disabled={busy}
       />
       {isEmail ? (
@@ -111,9 +150,10 @@ export function LoginForm() {
           {error.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={busy}>
-        {busy ? (isEmail ? "Logging in…" : "Sending code…") : isEmail ? "Log in" : "Send code"}
+      <Button type="submit" disabled={busy || !ready}>
+        {busy ? "Logging in…" : "Login"}
       </Button>
+      {notReadyReason ? <p className={styles.notReadyReason}>{notReadyReason}</p> : null}
     </fetcher.Form>
   );
 }

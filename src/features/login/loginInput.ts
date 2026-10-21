@@ -1,21 +1,27 @@
-import { checkPhone, EMAIL_MAX_LENGTH, EMAIL_PATTERN } from "../../utils/contactValidation";
+import type { CountryCode } from "../../services/countryCodes";
+import { EMAIL_MAX_LENGTH, EMAIL_PATTERN } from "../../utils/contactValidation";
 
-/** Phone sign-in is India-only for now, the same default as the early-access form. */
+/** The only country code sign-in by phone supports. fenzit-be refuses any other. */
 export const LOGIN_DIAL_CODE = "+91";
+
+/** The one choice the country code field shows on the login page. */
+export const LOGIN_COUNTRY_CODES: CountryCode[] = [
+  { dialCode: LOGIN_DIAL_CODE, countryName: "India", iso2: "IN" },
+];
+
+export const INDIA_ONLY_MESSAGE = "Only Indian mobile numbers can sign in by phone. Use +91.";
+const PHONE_HINT = "Type the number without the country code. Do not add a 0 or 00 at the start.";
 
 export type Identifier =
   | { kind: "empty" }
   | { kind: "invalid"; message: string }
   | { kind: "email"; email: string }
-  | { kind: "phone"; phoneNumber: string; label: string };
-
-const PHONE_HINT =
-  "Type the 10-digit mobile number, with or without +91. Do not add a 0 or 00 at the start.";
+  | { kind: "phone"; dialCode: string; phoneNumber: string; label: string };
 
 /**
- * Decides which sign-in path the typed value takes. A value with "@" is an
- * email. Anything else is a phone number, checked with the same rule as the
- * early-access form. Returns the digits the BE expects.
+ * Decides which sign-in path the typed value takes. A value with "@" is an email. Anything else
+ * is an Indian mobile number: 10 digits, with an optional +91 or 91 in front. Returns the digits
+ * the BE expects.
  */
 export function classifyIdentifier(raw: string): Identifier {
   const value = raw.trim();
@@ -31,27 +37,31 @@ export function classifyIdentifier(raw: string): Identifier {
 
   const cleaned = value.replace(/[\s\-().]/g, "");
   let national = cleaned;
-  if (cleaned.startsWith("+91")) {
-    national = cleaned.slice(3);
-  } else if (cleaned.startsWith("+")) {
-    return { kind: "invalid", message: PHONE_HINT };
+  if (cleaned.startsWith("+")) {
+    // A full number with +91 is accepted, so pasting "+91 98765 43210" still works.
+    if (!cleaned.startsWith(LOGIN_DIAL_CODE)) {
+      return { kind: "invalid", message: INDIA_ONLY_MESSAGE };
+    }
+    national = cleaned.slice(LOGIN_DIAL_CODE.length);
+  } else if (/^91\d{10}$/.test(cleaned)) {
+    // "91" then 10 digits is a full Indian number typed without the plus sign.
+    national = cleaned.slice(2);
   }
 
-  const check = checkPhone(LOGIN_DIAL_CODE, national);
-  if (check.kind !== "valid") {
+  if (!/^\d{10}$/.test(national)) {
     return { kind: "invalid", message: PHONE_HINT };
   }
-  const phoneNumber = check.phone.slice(LOGIN_DIAL_CODE.length);
-  // Indian mobile numbers are 10 digits. The shared early-access rule is looser, so this path checks the length itself.
-  if (phoneNumber.length !== 10) {
-    return { kind: "invalid", message: PHONE_HINT };
-  }
-  return { kind: "phone", phoneNumber, label: formatPhoneLabel(phoneNumber) };
+  return {
+    kind: "phone",
+    dialCode: LOGIN_DIAL_CODE,
+    phoneNumber: national,
+    label: formatPhoneLabel(LOGIN_DIAL_CODE, national),
+  };
 }
 
 /** "+91 98765 43210" for the code step, so the owner can check the number. */
-export function formatPhoneLabel(phoneNumber: string): string {
+export function formatPhoneLabel(dialCode: string, phoneNumber: string): string {
   const digits =
     phoneNumber.length === 10 ? `${phoneNumber.slice(0, 5)} ${phoneNumber.slice(5)}` : phoneNumber;
-  return `${LOGIN_DIAL_CODE} ${digits}`;
+  return `${dialCode} ${digits}`;
 }
