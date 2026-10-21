@@ -47,6 +47,9 @@ export function Header() {
                 ))}
               </ul>
             </nav>
+            <a className={styles.login} href="/login">
+              Log in
+            </a>
             <a className={styles.cta} href="#early-access">
               Join early access
             </a>

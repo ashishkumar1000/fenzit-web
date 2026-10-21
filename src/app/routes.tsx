@@ -22,6 +22,32 @@ export const routes: RouteObject[] = [
         action: earlyAccessAction,
       },
       { path: "/features", element: <FeaturesPage /> },
+      // Client-only pages, loaded on first visit. They depend on the saved sign-in, so they are
+      // not pre-rendered. Their code is split out of the landing page's bundle.
+      {
+        path: "/login",
+        lazy: async () => {
+          const [{ LoginPage }, { loginAction }] = await Promise.all([
+            import("../pages/LoginPage"),
+            import("../features/login/loginAction"),
+          ]);
+          return { Component: LoginPage, action: loginAction };
+        },
+      },
+      {
+        path: "/admin",
+        lazy: async () => {
+          const [{ AdminPage, AdminChecking }, { adminLoader }] = await Promise.all([
+            import("../pages/AdminPage"),
+            import("../features/admin/adminLoader"),
+          ]);
+          return {
+            Component: AdminPage,
+            loader: adminLoader,
+            HydrateFallback: AdminChecking,
+          };
+        },
+      },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

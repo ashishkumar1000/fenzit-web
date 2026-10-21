@@ -1,0 +1,20 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.codeIntro {
+  font-size: var(--font-size-base);
+  color: var(--color-text-body);
+}
+
+.formError {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.secondaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

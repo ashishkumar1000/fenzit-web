@@ -13,6 +13,9 @@ const PAGES: { url: string; file: string }[] = [
   { url: "/features", file: join("features", "index.html") },
 ];
 
+// Pages that depend on the saved sign-in. They are not pre-rendered (see src/app/routes.tsx).
+const CLIENT_ONLY_PATHS = ["login", "admin"];
+
 const EMPTY_ROOT = '<div id="root"></div>';
 const DIST = "dist";
 
@@ -28,6 +31,15 @@ if (!template.includes(EMPTY_ROOT)) {
 
 await writeFile(join(DIST, "404.html"), template);
 console.log(`wrote the empty app shell -> ${join(DIST, "404.html")}`);
+
+// Client-only pages: a direct visit gets the empty shell with a 200, so the page renders from
+// its own URL and the status is not a 404. The router then draws the page after the scripts load.
+for (const path of CLIENT_ONLY_PATHS) {
+  const target = join(DIST, path, "index.html");
+  await mkdir(dirname(target), { recursive: true });
+  await writeFile(target, template);
+  console.log(`wrote the client-only shell -> ${target}`);
+}
 
 for (const page of PAGES) {
   const html = await renderPage(page.url);
