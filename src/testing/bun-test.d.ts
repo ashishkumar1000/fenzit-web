@@ -7,8 +7,11 @@ declare module "bun:test" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Matchers<T = unknown> {
     toBeInTheDocument(): void;
+    toBeDisabled(): void;
+    toBeEnabled(): void;
     toHaveAttribute(name: string, value?: unknown): void;
     toHaveTextContent(text: string | RegExp, options?: { normalizeWhitespace: boolean }): void;
+    toHaveValue(value: string | number | string[]): void;
   }
 }
 
