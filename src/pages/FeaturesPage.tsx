@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { FEATURES_PAGE } from "../app/pageMeta";
 import { Container } from "../components/ui/Container";
 import { SectionHeading } from "../components/ui/SectionHeading";
 import { Footer } from "../features/landing/components/Footer";
@@ -64,6 +65,7 @@ const NOT_YET: string[] = [
 export function FeaturesPage() {
   return (
     <div className={styles.page}>
+      <title>{FEATURES_PAGE.title}</title>
       <Header />
       <main className={styles.main}>
         <section className={styles.section} aria-labelledby="features-page-title">

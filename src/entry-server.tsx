@@ -30,6 +30,13 @@ export async function renderPage(url: string): Promise<string> {
   if (context instanceof Response) {
     throw new Error(`Pre-render of ${url} returned a response, not a page.`);
   }
+  // The catch-all route exists for the browser's 404 page, which ships as the empty shell. A
+  // pre-render that lands there means the prerendered page list and the route table disagree.
+  if (context.matches.some((match) => match.route.path === "*")) {
+    throw new Error(
+      `Pre-render of ${url} hit the not-found route. Check the prerendered page list.`,
+    );
+  }
   const router = createStaticRouter(handler.dataRoutes, context);
   return renderToString(<StaticRouterProvider router={router} context={context} />);
 }

@@ -1,3 +1,4 @@
+import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { LinkButton } from "../components/ui/LinkButton";
 import { NotFoundArt } from "../features/not-found/components/NotFoundArt";
 import styles from "./NotFoundPage.module.css";
@@ -6,7 +7,7 @@ import styles from "./NotFoundPage.module.css";
 export function NotFoundPage() {
   return (
     <div className={styles.page}>
-      <title>Page not found · Fenzit</title>
+      <title>{CLIENT_ONLY_TITLES["404"]}</title>
       <main className={styles.main}>
         <div className={styles.visual}>
           <NotFoundArt />

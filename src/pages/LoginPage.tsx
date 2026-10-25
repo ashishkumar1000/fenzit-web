@@ -1,6 +1,7 @@
 import logo from "../assets/brand/logo.png";
 import logo2x from "../assets/brand/logo-2x.png";
 import logo3x from "../assets/brand/logo-3x.png";
+import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { LoginArt } from "../features/login/components/LoginArt";
 import { LoginForm } from "../features/login/components/LoginForm";
 import styles from "./LoginPage.module.css";
@@ -9,7 +10,7 @@ import styles from "./LoginPage.module.css";
 export function LoginPage() {
   return (
     <div className={styles.page}>
-      <title>Log in · Fenzit</title>
+      <title>{CLIENT_ONLY_TITLES["/login"]}</title>
       <main className={styles.main}>
         <div className={styles.panel}>
           {/* Brand mark, shown on wide screens only. Decorative: the heading names the brand. */}

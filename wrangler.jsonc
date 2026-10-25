@@ -1,7 +1,7 @@
 {
-  // Cloudflare Workers with Static Assets: serves the Vite build as a SPA.
-  // Unknown paths get the empty app shell (dist/404.html) with a 404 status, so React Router
-  // renders the not-found page without the home page markup.
+  // Cloudflare Workers with Static Assets: serves the prerendered pages, the client-only shells
+  // and the app shell (dist/404.html). Unknown paths get the shell with a 404 status, so React
+  // Router renders the not-found page without the home page markup.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fenzit-web",
   "compatibility_date": "2026-10-01",
@@ -10,6 +10,9 @@
   ],
   "assets": {
     "directory": "./dist",
+    // Links point at /features and /login without a trailing slash, so that form is canonical
+    // and /features/ 307-redirects to /features (one URL per page for search engines).
+    "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page"
   }
 }

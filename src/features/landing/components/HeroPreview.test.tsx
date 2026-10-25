@@ -8,8 +8,15 @@ describe("HeroPreview", () => {
   it("shows the jobs panel and the attendance and leave panel side by side", () => {
     render(<HeroPreview />);
 
-    expect(screen.getByRole("heading", { name: "Jobs" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Attendance and leave" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Jobs" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Attendance and leave" })).toBeInTheDocument();
+  });
+
+  it("keeps the mockup titles out of the page heading outline", () => {
+    render(<HeroPreview />);
+
+    expect(screen.queryByRole("heading", { name: "Jobs" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Attendance and leave" })).not.toBeInTheDocument();
   });
 
   it("shows every job with the status word the app uses", () => {

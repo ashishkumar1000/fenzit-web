@@ -1,4 +1,5 @@
 import { useLoaderData, useNavigate, useRevalidator } from "react-router";
+import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
 import type { adminLoader } from "../features/admin/adminLoader";
@@ -33,7 +34,7 @@ export function AdminPage() {
 
   return (
     <div className={styles.page}>
-      <title>Company admin · Fenzit</title>
+      <title>{CLIENT_ONLY_TITLES["/admin"]}</title>
       <Container>
         <main className={styles.main}>
           <div className={styles.visual}>

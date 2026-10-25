@@ -49,7 +49,9 @@ export function HeroPanel({ title, icon, pill, children }: HeroPanelProps) {
     <article className={styles.panel} aria-label={title}>
       <header className={styles.header}>
         <span className={styles.iconChip}>{icon}</span>
-        <h2 className={styles.title}>{title}</h2>
+        {/* A paragraph, not a heading: these panels are a decorative mockup, and two more h2s
+            here would sit in the page outline between the hero h1 and the first real section. */}
+        <p className={styles.title}>{title}</p>
         {pill}
       </header>
       {children}

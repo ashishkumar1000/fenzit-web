@@ -35,3 +35,19 @@ The workflow runs in the `Fenzit-web` GitHub environment and needs two secrets t
 
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
+
+## SEO
+
+- `bun run build` prerenders `/` and `/features` and rewrites each page's head for its own URL
+  (title, description, canonical, Open Graph, Twitter) in `scripts/prerender.ts`, with the page
+  metadata in `src/app/pageMeta.ts`. `/login`, `/admin` and the 404 shell ship `noindex`.
+- The build also writes `dist/sitemap.xml` from the same page list; `public/robots.txt` points at
+  it. A new public page goes in `src/app/pageMeta.ts` and `PRERENDERED_PAGES` in
+  `scripts/prerender.ts`.
+- `public/og-image.png` (1200×630) is the share card for every page; `public/logo.png` is the
+  stable favicon and JSON-LD logo.
+- Canonical host is the apex, `fenzit.com`. `www.fenzit.com` has no DNS record yet: add it in the
+  Cloudflare dashboard (proxied record + a redirect rule to the apex, or a `www` custom domain
+  redirect) so www links do not die.
+- To measure: verify a Google Search Console **Domain property** with a DNS TXT record, import it
+  into Bing Webmaster Tools, then submit `https://fenzit.com/sitemap.xml` in both.

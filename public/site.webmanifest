@@ -1,0 +1,16 @@
+{
+  "name": "Fenzit",
+  "short_name": "Fenzit",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#F9FAFB",
+  "theme_color": "#1868db",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "360x360",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
