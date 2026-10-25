@@ -46,8 +46,8 @@ The workflow runs in the `Fenzit-web` GitHub environment and needs two secrets t
   `scripts/prerender.ts`.
 - `public/og-image.png` (1200×630) is the share card for every page; `public/logo.png` is the
   stable favicon and JSON-LD logo.
-- Canonical host is the apex, `fenzit.com`. `www.fenzit.com` has no DNS record yet: add it in the
-  Cloudflare dashboard (proxied record + a redirect rule to the apex, or a `www` custom domain
-  redirect) so www links do not die.
+- Canonical host is the apex, `fenzit.com`. `www.fenzit.com` is a proxied CNAME to the apex plus a
+  zone-level 301 redirect rule (applied via the Cloudflare API, 2026-10-25), so www links land on
+  the apex with path and query intact.
 - To measure: verify a Google Search Console **Domain property** with a DNS TXT record, import it
   into Bing Webmaster Tools, then submit `https://fenzit.com/sitemap.xml` in both.
