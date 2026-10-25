@@ -125,6 +125,38 @@ if (!template.includes(EMPTY_ROOT)) {
   throw new Error(`index.html has no ${EMPTY_ROOT} to fill. Check the template.`);
 }
 
+// Parses one JSON block out of the template by its script type. The structured-data graph and
+// the hover-prerender rule are copied verbatim into every page, so a bad edit would ship
+// silently on all of them; parsing here fails the build instead.
+function jsonBlock(type: string): unknown {
+  const open = `<script type="${type}">`;
+  const start = template.indexOf(open);
+  if (start === -1) throw new Error(`prerender: the built index.html has no ${type} block.`);
+  const end = template.indexOf("</script>", start);
+  if (end === -1) throw new Error(`prerender: the ${type} block is never closed.`);
+  try {
+    return JSON.parse(template.slice(start + open.length, end));
+  } catch (error) {
+    throw new Error(`prerender: the ${type} block is not valid JSON: ${String(error)}`, {
+      cause: error,
+    });
+  }
+}
+
+const graph = jsonBlock("application/ld+json") as { "@graph"?: unknown[] };
+if (!Array.isArray(graph["@graph"]) || graph["@graph"].length === 0) {
+  throw new Error("prerender: the ld+json block has an empty @graph. Check the template.");
+}
+
+const rules = jsonBlock("speculationrules") as {
+  prerender?: { where?: { href_matches?: string } }[];
+};
+if (!(rules.prerender ?? []).some((rule) => rule.where?.href_matches === FEATURES_PAGE.path)) {
+  throw new Error(
+    `prerender: the speculationrules block never prerenders ${FEATURES_PAGE.path}. Keep its href_matches on the route.`,
+  );
+}
+
 const notFoundTitle = CLIENT_ONLY_TITLES["404"];
 if (!notFoundTitle) throw new Error("pageMeta is missing the 404 title.");
 const notFoundShell = withHead(
