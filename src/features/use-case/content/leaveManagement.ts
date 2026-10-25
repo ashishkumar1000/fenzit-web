@@ -8,7 +8,7 @@ export const LEAVE_MANAGEMENT_CONTENT: UseCaseContent = {
   art: LeaveManagementArt,
   shortLabel: "Leave management",
   heading: "Leave requests and approvals on your phone, without the chits and calls",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Employees apply for leave from their phones, you approve from yours, and every request lands in the record next to attendance.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Employees apply for leave from their phones, you approve from yours, and every request lands in the record next to attendance.",
   problemHeading: "Leave decided on calls and sticky notes never becomes a record",
   problem: [
     "Leave is asked on a phone call or a sticky note, and the request itself gets lost on the way.",

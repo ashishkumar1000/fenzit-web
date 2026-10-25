@@ -57,4 +57,19 @@ describe("use-case registry", () => {
       }
     }
   });
+
+  it("carries no region markers in any page copy", () => {
+    // Fenzit is built for everyone: a revert to "Indian teams" or similar must fail here, not
+    // ship. The sign-in flow's honest +91 constraint lives in the login feature, not copy.
+    for (const content of ALL_USE_CASE_CONTENT) {
+      const copy = [
+        content.heading,
+        content.lead,
+        ...content.problem,
+        ...content.steps.map((step) => `${step.title} ${step.text}`),
+        ...content.faq.map((item) => `${item.question} ${item.answer}`),
+      ].join(" ");
+      expect(/india/i.test(copy)).toBe(false);
+    }
+  });
 });

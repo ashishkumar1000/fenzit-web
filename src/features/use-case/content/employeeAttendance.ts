@@ -8,7 +8,7 @@ export const EMPLOYEE_ATTENDANCE_CONTENT: UseCaseContent = {
   art: EmployeeAttendanceArt,
   shortLabel: "Attendance app",
   heading: "Attendance on every employee's phone, without the register",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Employees check in from their own phones, the check-in is verified against your office location, and you see who is in today on yours.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Employees check in from their own phones, the check-in is verified against your office location, and you see who is in today on yours.",
   problemHeading: "The register can't keep up with a team on the move",
   problem: [
     "Attendance lives in a paper register, and someone has to compile the totals at month end.",

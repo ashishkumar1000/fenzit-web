@@ -8,7 +8,7 @@ export const COLLECTION_CONTENT: UseCaseContent = {
   art: CollectionArt,
   shortLabel: "Collection agents",
   heading: "Track collection agents with proof of every visit",
-  lead: "Fenzit is built for Indian collection and field teams. Each visit becomes a job with an address, you see live status, and location is recorded at the visit itself.",
+  lead: "Fenzit is built for collection and field teams. Each visit becomes a job with an address, you see live status, and location is recorded at the visit itself.",
   problemHeading: "Field visits you have to take on trust",
   problem: [
     "Did the agent actually visit? Today you have only their word for it.",

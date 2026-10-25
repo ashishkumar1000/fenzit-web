@@ -8,7 +8,7 @@ export const FACILITY_MANAGEMENT_CONTENT: UseCaseContent = {
   art: FacilityManagementArt,
   shortLabel: "Facility teams",
   heading: "Run site teams across buildings, from the morning check-in to the last round",
-  lead: "Fenzit is a phone-first app for Indian facility management companies. Mark every building as a site, see who has checked in where, and follow each supervisor's round as it happens.",
+  lead: "Fenzit is a phone-first app for facility management companies. Mark every building as a site, see who has checked in where, and follow each supervisor's round as it happens.",
   problemHeading: "Attendance sheets and phone calls can't show you the day across your buildings",
   problem: [
     "Attendance sheets are collected from each building by hand, and the picture comes together a day late.",

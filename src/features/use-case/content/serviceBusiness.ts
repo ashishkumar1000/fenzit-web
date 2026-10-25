@@ -8,7 +8,7 @@ export const SERVICE_BUSINESS_CONTENT: UseCaseContent = {
   art: ServiceBusinessArt,
   shortLabel: "Service businesses",
   heading: "Run jobs, attendance and leave from one app",
-  lead: "Fenzit is a phone-first app for Indian service businesses — repairs, cleaning, installation and similar work. Assign jobs to your team, see who has checked in, approve leave, and close the week with reports, all from your phone.",
+  lead: "Fenzit is a phone-first app for service businesses — repairs, cleaning, installation and similar work. Assign jobs to your team, see who has checked in, approve leave, and close the week with reports, all from your phone.",
   problemHeading: "Jobs in one place, attendance in another, and leave on phone calls",
   problem: [
     "Jobs are noted in one place, attendance is marked in another, and leave is settled over phone calls.",

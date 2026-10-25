@@ -8,7 +8,7 @@ export const GEOFENCING_CONTENT: UseCaseContent = {
   art: GeofencingArt,
   shortLabel: "Geofencing",
   heading: "Check-ins you can trust, verified against your office location",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Mark your office on the map once, and your team checks in from their own phones — each check-in is verified against the office location. No hardware to buy.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Mark your office on the map once, and your team checks in from their own phones — each check-in is verified against the office location. No hardware to buy.",
   problemHeading: "The register and WhatsApp can't tell you who really came in",
   problem: [
     "Attendance runs on trust: you see a name marked present, and that is all you ever see.",

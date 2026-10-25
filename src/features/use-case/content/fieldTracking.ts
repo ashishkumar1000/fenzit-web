@@ -8,7 +8,7 @@ export const FIELD_TRACKING_CONTENT: UseCaseContent = {
   art: JobTrackingArt,
   shortLabel: "Field job tracking",
   heading: "Track every field job live, from dispatch to done",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Create jobs, send them to employees with clear steps, and watch each job's status change live on your phone.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Create jobs, send them to employees with clear steps, and watch each job's status change live on your phone.",
   problemHeading: "The register and WhatsApp can't tell you where a job stands",
   problem: [
     "Jobs are written in a register or typed out on WhatsApp, and details get lost on the way.",

@@ -8,7 +8,7 @@ export const TECHNICIAN_TRACKING_CONTENT: UseCaseContent = {
   art: TechnicianTrackingArt,
   shortLabel: "Technicians",
   heading: "Assign every job to the right technician and follow it to the signed proof",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Create each service or repair job with the skill it needs, send it to a technician's phone, and get live status, photos and the customer's signature back as proof of the work.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Create each service or repair job with the skill it needs, send it to a technician's phone, and get live status, photos and the customer's signature back as proof of the work.",
   problemHeading: "Phone calls cannot run technicians spread across the city",
   problem: [
     "Jobs reach your technicians as phone calls, and the fault changes with every retelling.",

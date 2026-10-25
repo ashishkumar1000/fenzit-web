@@ -8,7 +8,7 @@ export const APPLIANCE_REPAIR_CONTENT: UseCaseContent = {
   art: ApplianceRepairArt,
   shortLabel: "Appliance repair",
   heading: "Run every appliance repair visit, from the first call to the signed proof",
-  lead: "Fenzit is a phone-first app for Indian field-service businesses. Book a washing machine or fridge repair as a job, send it to the right technician's phone, and get photos and the customer's signature back as proof of the repair.",
+  lead: "Fenzit is a phone-first app for field-service businesses. Book a washing machine or fridge repair as a job, send it to the right technician's phone, and get photos and the customer's signature back as proof of the repair.",
   problemHeading: "Calls and WhatsApp cannot tell you which repair is done",
   problem: [
     "Repair requests arrive by call, by WhatsApp and from memory, and the machine's fault gets retold differently every time.",

@@ -32,7 +32,7 @@ export const ATTENDANCE_PAGE: PageMeta = {
 
 export const FIELD_TRACKING_PAGE: PageMeta = {
   path: "/field-job-tracking",
-  title: "Field job tracking software for Indian teams — Fenzit",
+  title: "Field job tracking software for small teams — Fenzit",
   description:
     "Create field jobs with clear steps, send them to employees, and track live status. Location recorded at the steps that need it, with photos, signatures and PDF reports.",
 };
@@ -48,14 +48,14 @@ export const PLUMBER_PAGE: PageMeta = {
   path: "/plumber-software",
   title: "Plumber dispatch software and job tracking — Fenzit",
   description:
-    "Create plumber jobs, assign by skill, and see live status. Plumbers add photos and the customer's signature from the site. A phone-first app for Indian plumbing teams.",
+    "Create plumber jobs, assign by skill, and see live status. Plumbers add photos and the customer's signature from the site. A phone-first app for plumbing teams.",
 };
 
 export const DELIVERY_PAGE: PageMeta = {
   path: "/delivery-tracking",
   title: "Local delivery tracking for small business — Fenzit",
   description:
-    "Create deliveries as jobs, see live status, and get photo and signature proof of delivery from your riders. Built for small Indian delivery teams.",
+    "Create deliveries as jobs, see live status, and get photo and signature proof of delivery from your riders. Built for small delivery teams.",
 };
 
 export const COLLECTION_PAGE: PageMeta = {
@@ -90,7 +90,7 @@ export const TECHNICIAN_TRACKING_PAGE: PageMeta = {
   path: "/technician-tracking-software",
   title: "Technician tracking software for field jobs — Fenzit",
   description:
-    "Assign service jobs to technicians and follow live status, location and photo proof from the site. A phone-first app for Indian field teams.",
+    "Assign service jobs to technicians and follow live status, location and photo proof from the site. A phone-first app for field teams.",
 };
 
 export const SERVICE_BUSINESS_PAGE: PageMeta = {
@@ -146,7 +146,7 @@ export const PEST_CONTROL_PAGE: PageMeta = {
   path: "/pest-control-software",
   title: "Pest control business software for visits — Fenzit",
   description:
-    "Assign pest control visits, track treatment status live, and get photo proof from every site. Built for small Indian pest control teams.",
+    "Assign pest control visits, track treatment status live, and get photo proof from every site. Built for small pest control teams.",
 };
 
 export const SALON_AT_HOME_PAGE: PageMeta = {

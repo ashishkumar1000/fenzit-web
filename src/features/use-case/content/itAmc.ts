@@ -8,7 +8,7 @@ export const IT_AMC_CONTENT: UseCaseContent = {
   art: ItAmcArt,
   shortLabel: "IT AMC teams",
   heading: "Keep every AMC visit on schedule, with a signed report to prove it",
-  lead: "Fenzit is a phone-first app for Indian IT and computer service teams. Plan this month's AMC visits, send each round to your engineers, and close every visit with photos and the client's signature.",
+  lead: "Fenzit is a phone-first app for IT and computer service teams. Plan this month's AMC visits, send each round to your engineers, and close every visit with photos and the client's signature.",
   problemHeading: "The AMC diary keeps slipping, and no visit leaves proof",
   problem: [
     "AMC dates sit in a diary or an Excel sheet, and a visit slips past without anyone noticing.",
