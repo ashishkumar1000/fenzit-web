@@ -31,7 +31,7 @@
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: var(--leading-tight);
 }
 
 .body {

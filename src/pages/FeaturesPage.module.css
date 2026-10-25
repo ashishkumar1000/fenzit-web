@@ -27,7 +27,8 @@
 }
 
 .title {
-  margin-top: var(--space-4);
+  /* The 44px back link carries dead space above its label; this keeps the visual gap even. */
+  margin-top: var(--space-2);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extra);
   line-height: var(--leading-tight);

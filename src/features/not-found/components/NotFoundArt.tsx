@@ -8,7 +8,7 @@ import styles from "./NotFoundArt.module.css";
  */
 export function NotFoundArt() {
   return (
-    <svg className={styles.art} viewBox="0 0 440 360" aria-hidden="true" focusable="false">
+    <svg className={styles.art} viewBox="75.5 0 363 360" aria-hidden="true" focusable="false">
       <defs>
         <filter id="not-found-art-sketch" x="-5%" y="-5%" width="110%" height="110%">
           <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="11" />

@@ -18,7 +18,7 @@ const STEPS = [
     number: "02",
     label: "By skill",
     labelTone: "progress",
-    title: "Assign by skill",
+    title: "Assign to an employee",
     text: "Jobs go to employees who have that skill.",
   },
   {
@@ -57,7 +57,7 @@ export function HowItWorks() {
                     <span className={styles.previewValue}>Sharma Traders Pvt. Ltd.</span>
                     <span className={styles.chip}>
                       <Zap className={styles.chipIcon} focusable="false" />
-                      HVAC skill
+                      AC Repair skill
                     </span>
                   </div>
                 )}
@@ -66,7 +66,7 @@ export function HowItWorks() {
                     <span className={styles.avatar}>RK</span>
                     <span className={styles.person}>
                       <span className={styles.previewValue}>Ravi Kumar</span>
-                      <span className={styles.previewLabel}>HVAC skill</span>
+                      <span className={styles.previewLabel}>AC Repair skill</span>
                     </span>
                     <span className={`${styles.pill} ${styles.progress}`}>Assigned</span>
                   </div>

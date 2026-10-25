@@ -1,6 +1,45 @@
 .section {
+  position: relative;
   padding: var(--space-8) 0;
   background: var(--color-surface-sunken);
+}
+
+.content {
+  position: relative;
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: var(--color-text-strong);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    currentColor var(--space-10),
+    currentColor calc(100% - var(--space-10)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    currentColor var(--space-10),
+    currentColor calc(100% - var(--space-10)),
+    transparent
+  );
+}
+
+.patternDot {
+  fill: var(--color-border-subtle);
+}
+
+.patternPlus {
+  fill: none;
+  stroke: var(--color-border-subtle);
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 .grid {
@@ -11,33 +50,35 @@
 
 .card {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   align-content: start;
-  padding: var(--space-6);
-  background: var(--color-surface-card);
+  padding: var(--space-5);
+  background: var(--color-surface-card-glass);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
-.iconWrap {
-  display: grid;
-  place-items: center;
-  width: var(--touch-large);
-  height: var(--touch-large);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  border-radius: var(--radius-md);
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.icon {
-  width: 22px;
-  height: 22px;
+.iconWrap {
+  display: grid;
+  /* Left-aligned so both marks sit on the card's tick column; the fixed width
+     keeps the two cards' titles on one x. */
+  justify-items: start;
+  width: 28px;
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
 .cardTitle {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
+  line-height: var(--leading-snug);
   color: var(--color-text-strong);
 }
 
@@ -58,6 +99,8 @@
   flex-shrink: 0;
   width: 18px;
   height: 18px;
+  /* Centre the tick on the text's first line (line-height 1.55 x 1rem). */
+  margin-block-start: calc((1.55 * 1rem - 18px) / 2);
   color: var(--color-success);
 }
 
@@ -69,5 +112,9 @@
   .grid {
     grid-template-columns: 1fr 1fr;
     gap: var(--space-6);
+  }
+
+  .card {
+    padding: var(--space-6);
   }
 }

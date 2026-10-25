@@ -100,6 +100,8 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   line-height: var(--leading-snug);
+  /* Two-line reserve so the city chips of all nine cards share one row. */
+  min-height: calc(2 * var(--font-size-sm) * var(--leading-snug));
   color: var(--color-text-strong);
   text-align: center;
 }

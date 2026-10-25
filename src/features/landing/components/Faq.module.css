@@ -21,7 +21,7 @@
 
 .summary {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
   min-height: var(--touch-comfort);
@@ -47,6 +47,8 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+  /* Centre on the question's first line, however far the question wraps. */
+  margin-block-start: calc((1.55 * 1rem - 20px) / 2);
   color: var(--color-text-muted);
   transition: transform var(--motion-duration-base) var(--motion-ease-standard);
 }

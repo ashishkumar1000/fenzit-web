@@ -1,5 +1,5 @@
 .section {
-  padding: var(--space-6) 0;
+  padding: var(--space-8) 0;
   scroll-margin-top: var(--space-16);
   background: var(--color-surface-sunken);
 }
@@ -168,11 +168,17 @@
   color: var(--color-success);
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .section {
-    padding: var(--space-8) 0;
+    padding: var(--space-10) 0;
   }
 
+  .card {
+    padding: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
   .list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-6);
@@ -182,7 +188,7 @@
   .card:not(:last-child)::after {
     content: "";
     position: absolute;
-    top: calc(var(--touch-large) / 2 + var(--space-5));
+    top: calc(var(--touch-large) / 2 + var(--space-6));
     right: calc(-1 * var(--space-6));
     width: var(--space-6);
     height: 2px;
