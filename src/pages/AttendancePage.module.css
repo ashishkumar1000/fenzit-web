@@ -10,22 +10,6 @@
   padding: var(--space-8) 0;
 }
 
-.back {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-min);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-link);
-  text-decoration: underline;
-  text-underline-offset: var(--space-1);
-}
-
-.back:focus-visible {
-  outline: 2px solid var(--color-ring-focus);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
-}
-
 .heroGrid {
   display: grid;
   gap: var(--space-6);

@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { Container } from "../../../components/ui/Container";
 import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
@@ -25,7 +26,8 @@ export function Header() {
       <header className={styles.header}>
         <Container>
           <div className={styles.bar}>
-            <div className={styles.logo}>
+            {/* The brand is the home link, on every page. */}
+            <Link to="/" className={styles.logo}>
               {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
               <img
                 className={styles.mark}
@@ -36,7 +38,7 @@ export function Header() {
                 alt=""
               />
               <span>Fenzit</span>
-            </div>
+            </Link>
             <nav aria-label="Page sections" className={styles.nav}>
               <ul className={styles.links}>
                 {LINKS.map((link) => (

@@ -60,9 +60,6 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
       <main className={styles.main}>
         <section className={styles.hero} aria-labelledby="use-case-title">
           <Container>
-            <Link className={styles.back} to="/">
-              Back to home
-            </Link>
             <div className={styles.heroGrid}>
               <div>
                 <h1 id="use-case-title" className={styles.title}>

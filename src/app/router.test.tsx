@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { ATTENDANCE_PAGE, PUBLIC_PAGES } from "./pageMeta";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
@@ -21,9 +21,12 @@ function setOnline(value: boolean): void {
   Object.defineProperty(navigator, "onLine", { value, configurable: true });
 }
 
-function renderAt(path: string): void {
+type TestRouter = ReturnType<typeof createMemoryRouter>;
+
+function renderAt(path: string): TestRouter {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(<RouterProvider router={router} />);
+  return router;
 }
 
 // The home page waits for its country-code loader. Failing the request at once
@@ -111,6 +114,13 @@ describe("router", () => {
     },
   );
 
+  it("makes the header's brand a link back to the home page", () => {
+    renderAt("/attendance");
+
+    const brand = screen.getByRole("link", { name: "Fenzit" });
+    expect(brand).toHaveAttribute("href", "/");
+  });
+
   it("points the header's section links at the home page, so they work from any page", () => {
     renderAt("/attendance");
 
@@ -119,6 +129,51 @@ describe("router", () => {
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
     expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#trust", "/#faq"]);
+  });
+
+  it("scrolls to the top when a link moves to another page", async () => {
+    renderAt("/attendance");
+
+    const originalScrollTo = window.scrollTo;
+    const calls: Array<[number, number]> = [];
+    window.scrollTo = ((x: number, y: number) => {
+      calls.push([x, y]);
+    }) as typeof window.scrollTo;
+    try {
+      fireEvent.click(screen.getByRole("link", { name: "AC service" }));
+      await screen.findByRole("heading", { level: 1, name: /AC service software/i });
+    } finally {
+      window.scrollTo = originalScrollTo;
+    }
+
+    expect(calls).toContainEqual([0, 0]);
+  });
+
+  it("restores the scroll position when navigating back", async () => {
+    const router = renderAt("/attendance");
+
+    const originalScrollTo = window.scrollTo;
+    const calls: Array<[number, number]> = [];
+    window.scrollTo = ((x: number, y: number) => {
+      calls.push([x, y]);
+    }) as typeof window.scrollTo;
+    // ScrollRestoration reads window.scrollY to save the position when a page is left.
+    Object.defineProperty(window, "scrollY", { value: 240, configurable: true });
+    try {
+      fireEvent.click(screen.getByRole("link", { name: "AC service" }));
+      await screen.findByRole("heading", { level: 1, name: /AC service software/i });
+      await act(async () => {
+        await router.navigate(-1);
+      });
+      await screen.findByRole("heading", { level: 1, name: /without the register/i });
+    } finally {
+      window.scrollTo = originalScrollTo;
+      Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+    }
+
+    // The push to the AC page opened at the top; coming back restored where /attendance was.
+    expect(calls).toContainEqual([0, 0]);
+    expect(calls).toContainEqual([0, 240]);
   });
 
   it("links from the not-found page back to the home page", async () => {

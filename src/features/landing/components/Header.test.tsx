@@ -1,14 +1,24 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { Header } from "./Header";
 
 afterEach(cleanup);
+
+// The brand is a router Link, so the header renders inside a memory router in every test.
+function renderHeader() {
+  return render(
+    <MemoryRouter>
+      <Header />
+    </MemoryRouter>,
+  );
+}
 
 describe("Header", () => {
   // The anchors are qualified with the home path: the header renders on every page, and a bare
   // "#how-it-works" would jump nowhere outside home.
   it("links each section name to its anchor on the home page", () => {
-    render(<Header />);
+    renderHeader();
 
     expect(screen.getByRole("link", { name: "How it works" }).getAttribute("href")).toBe(
       "/#how-it-works",
@@ -19,7 +29,7 @@ describe("Header", () => {
   });
 
   it("sends the strip link and the header button to the early-access form", () => {
-    render(<Header />);
+    renderHeader();
 
     const joinLinks = screen.getAllByRole("link", { name: "Join early access" });
     expect(joinLinks).toHaveLength(2);
@@ -29,8 +39,14 @@ describe("Header", () => {
   });
 
   it("keeps the page sections in one labelled navigation landmark", () => {
-    render(<Header />);
+    renderHeader();
 
     expect(screen.getByRole("navigation", { name: "Page sections" })).toBeInTheDocument();
+  });
+
+  it("makes the brand a link to the home page", () => {
+    renderHeader();
+
+    expect(screen.getByRole("link", { name: "Fenzit" }).getAttribute("href")).toBe("/");
   });
 });

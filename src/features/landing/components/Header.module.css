@@ -60,6 +60,7 @@
   font-weight: var(--font-weight-extra);
   letter-spacing: -0.02em;
   color: var(--color-text-strong);
+  text-decoration: none;
 }
 
 .mark {

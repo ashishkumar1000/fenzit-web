@@ -1,4 +1,3 @@
-import { Link } from "react-router";
 import { FEATURES_PAGE } from "../app/pageMeta";
 import { Container } from "../components/ui/Container";
 import { SectionHeading } from "../components/ui/SectionHeading";
@@ -70,9 +69,6 @@ export function FeaturesPage() {
       <main className={styles.main}>
         <section className={styles.section} aria-labelledby="features-page-title">
           <Container>
-            <Link className={styles.back} to="/">
-              Back to home
-            </Link>
             <h1 id="features-page-title" className={styles.title}>
               Everything Fenzit does today
             </h1>

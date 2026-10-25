@@ -82,9 +82,6 @@ export function AttendancePage() {
       <main className={styles.main}>
         <section className={styles.hero} aria-labelledby="attendance-title">
           <Container>
-            <Link className={styles.back} to="/">
-              Back to home
-            </Link>
             <div className={styles.heroGrid}>
               <div>
                 <h1 id="attendance-title" className={styles.title}>
