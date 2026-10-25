@@ -19,7 +19,7 @@ const STEPS = [
     label: "By skill",
     labelTone: "progress",
     title: "Assign by skill",
-    text: "Jobs go to technicians who have that skill.",
+    text: "Jobs go to employees who have that skill.",
   },
   {
     key: "done",

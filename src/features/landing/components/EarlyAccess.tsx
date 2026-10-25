@@ -7,7 +7,7 @@ import styles from "./EarlyAccess.module.css";
 // Only things the product does today. No offers or prices until the owner confirms them.
 const PERKS: string[] = [
   "You get a reference number when you join.",
-  "Built for owners and technicians.",
+  "Built for owners and employees.",
 ];
 
 export function EarlyAccess() {

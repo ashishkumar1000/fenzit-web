@@ -1,0 +1,158 @@
+.section {
+  padding: var(--space-8) 0;
+  background: var(--color-surface-card);
+  scroll-margin-top: var(--space-16);
+}
+
+.head {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  max-width: 640px;
+  margin: 0 auto var(--space-6);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-text-strong);
+}
+
+.lead {
+  font-size: var(--font-size-base);
+  color: var(--color-text-body);
+}
+
+.marquee {
+  overflow: hidden;
+  /* Room for the card shadows that would otherwise clip at the strip edges. */
+  padding-block: var(--space-2);
+  margin-block: calc(-1 * var(--space-2));
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    currentColor var(--space-8),
+    currentColor calc(100% - var(--space-8)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    currentColor var(--space-8),
+    currentColor calc(100% - var(--space-8)),
+    transparent
+  );
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: clients-slide 48s linear infinite;
+}
+
+/* Two identical sets make the loop seamless; the trailing padding keeps the
+   gap even where one set ends and the next begins. */
+.set {
+  display: flex;
+  gap: var(--space-6);
+  padding-inline-end: var(--space-6);
+  margin: 0;
+  list-style: none;
+}
+
+.marquee:hover .track {
+  animation-play-state: paused;
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  width: 184px;
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.mark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  color: var(--color-text-strong);
+  transition: color var(--motion-duration-slow) var(--motion-ease-standard);
+}
+
+.card:hover .mark {
+  color: var(--color-primary);
+}
+
+.name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-snug);
+  color: var(--color-text-strong);
+  text-align: center;
+}
+
+.city {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-lg);
+}
+
+@keyframes clients-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: var(--space-10) 0;
+  }
+
+  .title {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: hidden;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .track {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: var(--space-6);
+    animation: none;
+  }
+
+  .set {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: var(--space-6);
+    padding-inline-end: 0;
+  }
+
+  .set + .set {
+    display: none;
+  }
+}

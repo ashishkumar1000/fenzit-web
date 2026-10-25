@@ -1,4 +1,5 @@
 import { Audience } from "../features/landing/components/Audience";
+import { Clients } from "../features/landing/components/Clients";
 import { EarlyAccess } from "../features/landing/components/EarlyAccess";
 import { Faq } from "../features/landing/components/Faq";
 import { Features } from "../features/landing/components/Features";
@@ -15,6 +16,7 @@ export function HomePage() {
       <Header />
       <main className={styles.main}>
         <Hero />
+        <Clients />
         <Audience />
         <Features />
         <HowItWorks />

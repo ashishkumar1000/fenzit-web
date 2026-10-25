@@ -22,9 +22,9 @@ const GROUPS: AudienceGroup[] = [
     ],
   },
   {
-    key: "technicians",
+    key: "employees",
     icon: Wrench,
-    title: "For technicians",
+    title: "For employees",
     points: [
       "Check in and out, and see your own month.",
       "Apply for leave from your phone.",
@@ -39,7 +39,7 @@ export function Audience() {
       <Container>
         <SectionHeading
           id="audience-title"
-          title="Built for owners and technicians"
+          title="Built for owners and employees"
           lead="Owners set up jobs and attendance. Your team uses the app on their phones."
         />
         <div className={styles.grid}>

@@ -25,13 +25,13 @@ const ITEMS: FaqItem[] = [
   {
     key: "offline",
     question: "Does it work offline?",
-    answer: "Not yet. Technicians need a mobile connection to update a job.",
+    answer: "Not yet. Employees need a mobile connection to update a job.",
   },
   {
     key: "install",
-    question: "Do technicians need to install an app?",
+    question: "Do employees need to install an app?",
     answer:
-      "Yes. Technicians use the Fenzit mobile app. We will share how to get it when access opens.",
+      "Yes. Employees use the Fenzit mobile app. We will share how to get it when access opens.",
   },
   {
     key: "access",

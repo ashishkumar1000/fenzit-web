@@ -40,6 +40,9 @@ describe("router", () => {
         name: /run your jobs, attendance and leave/i,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trusted by growing businesses" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
   });
 

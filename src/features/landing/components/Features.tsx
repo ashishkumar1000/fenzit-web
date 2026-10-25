@@ -18,7 +18,7 @@ const BLOCKS = [
     title: "Photos and signatures",
     pill: "Proof of work",
     pillTone: "neutral",
-    text: "Technicians add photos and the customer's signature.",
+    text: "Employees add photos and the customer's signature.",
   },
   {
     key: "customers",

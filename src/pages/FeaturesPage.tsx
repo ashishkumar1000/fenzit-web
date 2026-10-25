@@ -17,11 +17,11 @@ const GROUPS: FeatureGroup[] = [
     key: "owners",
     title: "For owners",
     items: [
-      "Create a job from a skill, a customer and one or more technicians.",
+      "Create a job from a skill, a customer and one or more employees.",
       "See the job list and each job's details, with live status.",
       "Save customers, with address search and a map pin.",
       "Open directions to a customer's address in one tap.",
-      "Invite technicians and see their skills.",
+      "Invite employees and see their skills.",
       "Get live notifications, with a link to the job.",
       "Get PDF reports for jobs and attendance.",
       "Turn on attendance, with office locations, working hours, weekly offs and holidays.",
@@ -32,8 +32,8 @@ const GROUPS: FeatureGroup[] = [
     ],
   },
   {
-    key: "technicians",
-    title: "For technicians",
+    key: "employees",
+    title: "For employees",
     items: [
       "See today's jobs and the steps for each one.",
       "Record location at the steps that need it.",
@@ -54,7 +54,7 @@ const GROUPS: FeatureGroup[] = [
 ];
 
 const NOT_YET: string[] = [
-  "Working offline. Technicians need a mobile connection to update a job.",
+  "Working offline. Employees need a mobile connection to update a job.",
   "Invoices and payments.",
   "A customer portal.",
   "Accounting sync.",
