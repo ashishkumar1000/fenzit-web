@@ -15,16 +15,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  AC_SERVICE_PAGE,
-  ATTENDANCE_PAGE,
-  CLIENT_ONLY_TITLES,
-  COLLECTION_PAGE,
-  DELIVERY_PAGE,
-  FEATURES_PAGE,
-  FIELD_TRACKING_PAGE,
-  PLUMBER_PAGE,
-} from "../src/app/pageMeta";
+import { CLIENT_ONLY_TITLES, PUBLIC_PAGES } from "../src/app/pageMeta";
 import type { PageMeta } from "../src/app/pageMeta";
 import { buildHead, buildSitemap, validateTemplateBlocks } from "./lib/page-head";
 
@@ -32,19 +23,27 @@ import { buildHead, buildSitemap, validateTemplateBlocks } from "./lib/page-head
 // the template the others start from (meta: null); each other page names its own meta, and its
 // output file is derived from the path, so adding one here is the whole change.
 type PrerenderedPage = { path: string; meta: PageMeta | null; file: string };
-const metaPages: { meta: PageMeta; file: string }[] = [
-  { meta: FEATURES_PAGE, file: join(FEATURES_PAGE.path.slice(1), "index.html") },
-  { meta: ATTENDANCE_PAGE, file: join(ATTENDANCE_PAGE.path.slice(1), "index.html") },
-  { meta: FIELD_TRACKING_PAGE, file: join(FIELD_TRACKING_PAGE.path.slice(1), "index.html") },
-  { meta: AC_SERVICE_PAGE, file: join(AC_SERVICE_PAGE.path.slice(1), "index.html") },
-  { meta: PLUMBER_PAGE, file: join(PLUMBER_PAGE.path.slice(1), "index.html") },
-  { meta: DELIVERY_PAGE, file: join(DELIVERY_PAGE.path.slice(1), "index.html") },
-  { meta: COLLECTION_PAGE, file: join(COLLECTION_PAGE.path.slice(1), "index.html") },
-];
+const metaPages: { meta: PageMeta; file: string }[] = PUBLIC_PAGES.map((meta) => ({
+  meta,
+  file: join(meta.path.slice(1), "index.html"),
+}));
 const PRERENDERED_PAGES: PrerenderedPage[] = [
   { path: "/", meta: null, file: "index.html" },
   ...metaPages.map((page) => ({ path: page.meta.path, meta: page.meta, file: page.file })),
 ];
+
+// The page list is hand-edited data, and a bad entry would fail quietly: a missing slash
+// writes into the wrong dist directory, and a duplicate path would overwrite another page.
+// ("/" itself is the home entry above, whose head lives directly in index.html.)
+const prerenderPaths = PRERENDERED_PAGES.map((page) => page.path);
+if (new Set(prerenderPaths).size !== prerenderPaths.length) {
+  throw new Error("prerender: the page list has a duplicate path.");
+}
+for (const meta of PUBLIC_PAGES) {
+  if (!meta.path.startsWith("/") || meta.path === "/") {
+    throw new Error(`prerender: ${meta.path} is not a canonical path starting with a slash.`);
+  }
+}
 
 // Pages that depend on the saved sign-in. They are not pre-rendered (see src/app/routes.tsx).
 const CLIENT_ONLY_PATHS = ["login", "admin"];

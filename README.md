@@ -38,12 +38,15 @@ The workflow runs in the `Fenzit-web` GitHub environment and needs two secrets t
 
 ## SEO
 
-- `bun run build` prerenders `/` and `/features` and rewrites each page's head for its own URL
-  (title, description, canonical, Open Graph, Twitter) in `scripts/prerender.ts`, with the page
-  metadata in `src/app/pageMeta.ts`. `/login`, `/admin` and the 404 shell ship `noindex`.
-- The build also writes `dist/sitemap.xml` from the same page list; `public/robots.txt` points at
-  it. A new public page goes in `src/app/pageMeta.ts` and `PRERENDERED_PAGES` in
-  `scripts/prerender.ts`.
+- `bun run build` prerenders the home page and every entry of `PUBLIC_PAGES`
+  (`src/app/pageMeta.ts`) — 23 pages — and rewrites each page's head for its own URL (title,
+  description, canonical, Open Graph, Twitter) in `scripts/prerender.ts`. `/login`, `/admin`
+  and the 404 shell ship `noindex`.
+- The build also writes `dist/sitemap.xml` from the same list; `public/robots.txt` points at it.
+  A new page means: a `PageMeta` constant joined to `PUBLIC_PAGES`; for a use-case page also a
+  content file under `src/features/use-case/content/` joined to the registry there (the
+  registry drives the routes and each page's sibling links); and a `href_matches` entry in the
+  index.html speculationrules. Tests cross-check the lists, so a missed step fails the build.
 - `public/og-image.png` (1200×630) is the share card for every page; `public/logo.png` is the
   stable favicon and JSON-LD logo.
 - Canonical host is the apex, `fenzit.com`. `www.fenzit.com` is a proxied CNAME to the apex plus a

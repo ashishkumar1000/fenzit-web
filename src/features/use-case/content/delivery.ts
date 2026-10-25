@@ -6,6 +6,7 @@ import type { UseCaseContent } from "../components/UseCasePage";
 export const DELIVERY_CONTENT: UseCaseContent = {
   meta: DELIVERY_PAGE,
   art: DeliveryArt,
+  shortLabel: "Delivery",
   heading: "Track local deliveries with live status and proof of delivery",
   lead: "Fenzit turns each delivery into a job your riders update from their phone, so you see live status and photo and signature proof without calling anyone. Built for furniture stores, water can services, tiffin services and parcel teams.",
   problemHeading: "Running deliveries on calls and WhatsApp",
@@ -66,10 +67,5 @@ export const DELIVERY_CONTENT: UseCaseContent = {
       answer:
         "No. Fenzit does not plan routes or sequence stops. It is for small delivery teams that need each job tracked with live status and proof of delivery.",
     },
-  ],
-  siblings: [
-    { to: "/field-job-tracking", label: "Field job tracking" },
-    { to: "/collection-agent-tracking", label: "Collection agents" },
-    { to: "/attendance", label: "Attendance and leave" },
   ],
 };

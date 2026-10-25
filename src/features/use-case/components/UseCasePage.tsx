@@ -7,6 +7,7 @@ import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
 import { Footer } from "../../landing/components/Footer";
 import { Header } from "../../landing/components/Header";
+import { siblingsFor } from "../content/registry";
 import styles from "./UseCasePage.module.css";
 
 export type UseCaseStep = {
@@ -31,6 +32,8 @@ export type UseCaseContent = {
   meta: PageMeta;
   /** The hand-drawn scene for this business type. Decorative; the component hides it. */
   art: ComponentType;
+  /** The short label other pages use when they link here, e.g. "Cleaning teams". */
+  shortLabel: string;
   heading: string;
   lead: string;
   problemHeading: string;
@@ -38,7 +41,6 @@ export type UseCaseContent = {
   stepsHeading: string;
   steps: UseCaseStep[];
   faq: UseCaseFaq[];
-  siblings: UseCaseSibling[];
 };
 
 /**
@@ -48,6 +50,9 @@ export type UseCaseContent = {
  */
 export function UseCasePage({ content }: { content: UseCaseContent }) {
   const Art = content.art;
+  // Sibling links are derived from the registry, not stored in the content, so a new page
+  // joins the other pages' sibling lists the moment it lands in the registry.
+  const siblings = siblingsFor(content.meta.path);
   return (
     <div className={styles.page}>
       <title>{content.meta.title}</title>
@@ -130,7 +135,7 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
             </LinkButton>
             <p className={styles.ctaMore}>Fenzit also helps:</p>
             <ul className={styles.siblings}>
-              {content.siblings.map((sibling) => (
+              {siblings.map((sibling) => (
                 <li key={sibling.to}>
                   <Link className={styles.siblingLink} to={sibling.to}>
                     {sibling.label}

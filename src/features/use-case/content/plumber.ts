@@ -6,6 +6,7 @@ import type { UseCaseContent } from "../components/UseCasePage";
 export const PLUMBER_CONTENT: UseCaseContent = {
   meta: PLUMBER_PAGE,
   art: PlumberArt,
+  shortLabel: "Plumbers",
   heading: "Plumbing job management for teams of 2 to 20",
   lead: "Fenzit puts every plumbing job, from tank cleaning to bathroom fitting, in one list on your phone. You assign, your plumbers update from the site, and you see the status live.",
   problemHeading: "Why calls and a diary stop working",
@@ -66,10 +67,5 @@ export const PLUMBER_CONTENT: UseCaseContent = {
       answer:
         "Yes. Fenzit covers jobs, attendance and leave in one app, so you do not keep a separate register for your plumbers.",
     },
-  ],
-  siblings: [
-    { to: "/field-job-tracking", label: "Field job tracking" },
-    { to: "/ac-service-software", label: "AC service teams" },
-    { to: "/delivery-tracking", label: "Delivery teams" },
   ],
 };

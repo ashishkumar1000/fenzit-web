@@ -65,6 +65,141 @@ export const COLLECTION_PAGE: PageMeta = {
     "Track collection agents and field visits with Fenzit. Location recorded at each visit, photo proof, live status and PDF reports — with attendance in the same app.",
 };
 
+export const EMPLOYEE_ATTENDANCE_PAGE: PageMeta = {
+  path: "/employee-attendance-app",
+  title: "Employee attendance app for small teams — Fenzit",
+  description:
+    "GPS-verified attendance from employees' own phones: check-ins at office locations, a live daily view, working hours and monthly reports.",
+};
+
+export const GEOFENCING_PAGE: PageMeta = {
+  path: "/geofencing-attendance",
+  title: "Geofencing attendance app for teams — Fenzit",
+  description:
+    "Attendance with office geofencing: employees check in from their own phones, and Fenzit verifies the check-in against the office location. No hardware.",
+};
+
+export const LEAVE_MANAGEMENT_PAGE: PageMeta = {
+  path: "/leave-management-software",
+  title: "Leave management software for small teams — Fenzit",
+  description:
+    "Leave requests, approvals and a clear record in one place, next to attendance. Employees apply from their phones; you approve from yours.",
+};
+
+export const TECHNICIAN_TRACKING_PAGE: PageMeta = {
+  path: "/technician-tracking-software",
+  title: "Technician tracking software for field jobs — Fenzit",
+  description:
+    "Assign service jobs to technicians and follow live status, location and photo proof from the site. A phone-first app for Indian field teams.",
+};
+
+export const SERVICE_BUSINESS_PAGE: PageMeta = {
+  path: "/service-business-software",
+  title: "Service business software for field teams — Fenzit",
+  description:
+    "Run jobs, attendance and leave in one app for your service business. Assign work, verify check-ins, and file reports — from your phone.",
+};
+
+export const APPLIANCE_REPAIR_PAGE: PageMeta = {
+  path: "/appliance-repair-software",
+  title: "Home appliance repair job software — Fenzit",
+  description:
+    "Run appliance repair visits on the phone: assign jobs, follow live status, and get photos and signatures as proof of the finished repair.",
+};
+
+export const CCTV_PAGE: PageMeta = {
+  path: "/cctv-installation-software",
+  title: "CCTV installation job tracking software — Fenzit",
+  description:
+    "Manage CCTV installation and service jobs: assign your installers, follow live status, and get photos of the finished camera work from site.",
+};
+
+export const CLEANING_PAGE: PageMeta = {
+  path: "/cleaning-services-software",
+  title: "Cleaning business software for field teams — Fenzit",
+  description:
+    "Run daily cleaning visits from your phone: assign client jobs with checklists, get photo proof of finished rooms, live status and monthly reports.",
+};
+
+export const ELECTRICIAN_PAGE: PageMeta = {
+  path: "/electrician-software",
+  title: "Electrician job tracking software — Fenzit",
+  description:
+    "Create electrician jobs, assign by skill, and see live status from the site. Photos and the customer's signature come back with every job.",
+};
+
+export const FACILITY_MANAGEMENT_PAGE: PageMeta = {
+  path: "/facility-management-software",
+  title: "Facility management software for site teams — Fenzit",
+  description:
+    "Manage site teams across facilities: attendance with office locations, daily job rounds with photo proof, leave approvals and monthly reports.",
+};
+
+export const IT_AMC_PAGE: PageMeta = {
+  path: "/it-amc-software",
+  title: "IT AMC service job software — Fenzit",
+  description:
+    "Run IT and computer AMC visits on the phone: schedule engineers, track each service live, and file signed service reports for every client.",
+};
+
+export const PEST_CONTROL_PAGE: PageMeta = {
+  path: "/pest-control-software",
+  title: "Pest control business software for visits — Fenzit",
+  description:
+    "Assign pest control visits, track treatment status live, and get photo proof from every site. Built for small Indian pest control teams.",
+};
+
+export const SALON_AT_HOME_PAGE: PageMeta = {
+  path: "/salon-at-home-software",
+  title: "Salon at home business software — Fenzit",
+  description:
+    "Run salon at home visits: assign beauticians to bookings, follow live status, and get photos and signatures from every home visit.",
+};
+
+export const SOLAR_PAGE: PageMeta = {
+  path: "/solar-installation-software",
+  title: "Solar installation job tracking software — Fenzit",
+  description:
+    "Run solar site surveys and installations as tracked jobs: assign your crew, follow live status, and get photo reports from every rooftop.",
+};
+
+export const WATER_PURIFIER_PAGE: PageMeta = {
+  path: "/water-purifier-service-software",
+  title: "Water purifier service software — Fenzit",
+  description:
+    "Track every RO service visit: assign jobs by skill, see live status, and get photo proof and service reports. For water purifier and AMC teams.",
+};
+
+/**
+ * Every indexable page except the home page, whose head lives directly in index.html. The
+ * prerender script walks this list, so adding a page to the site means adding its meta here
+ * plus a route and content file.
+ */
+export const PUBLIC_PAGES: PageMeta[] = [
+  FEATURES_PAGE,
+  ATTENDANCE_PAGE,
+  EMPLOYEE_ATTENDANCE_PAGE,
+  GEOFENCING_PAGE,
+  LEAVE_MANAGEMENT_PAGE,
+  FIELD_TRACKING_PAGE,
+  TECHNICIAN_TRACKING_PAGE,
+  SERVICE_BUSINESS_PAGE,
+  AC_SERVICE_PAGE,
+  APPLIANCE_REPAIR_PAGE,
+  CCTV_PAGE,
+  CLEANING_PAGE,
+  COLLECTION_PAGE,
+  DELIVERY_PAGE,
+  ELECTRICIAN_PAGE,
+  FACILITY_MANAGEMENT_PAGE,
+  IT_AMC_PAGE,
+  PEST_CONTROL_PAGE,
+  PLUMBER_PAGE,
+  SALON_AT_HOME_PAGE,
+  SOLAR_PAGE,
+  WATER_PURIFIER_PAGE,
+];
+
 /**
  * The client-only pages are not pre-rendered, but their empty shells still ship a real head. They
  * are noindex, so only the title matters for the browser tab; the values match the <title> each

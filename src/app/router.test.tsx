@@ -1,45 +1,20 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import {
-  AC_SERVICE_PAGE,
-  ATTENDANCE_PAGE,
-  COLLECTION_PAGE,
-  DELIVERY_PAGE,
-  FIELD_TRACKING_PAGE,
-  PLUMBER_PAGE,
-} from "./pageMeta";
+import { ATTENDANCE_PAGE, PUBLIC_PAGES } from "./pageMeta";
+import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { routes } from "./router";
 
 // Every use-case page must render its own heading under its own address, and hoist its own
 // title — a miswired route or a copy-pasted content object shows up here as the wrong page.
+// The list is the registry itself, so a new page is covered the moment it joins.
 const USE_CASE_ROUTES = [
   { path: ATTENDANCE_PAGE.path, title: ATTENDANCE_PAGE.title, heading: /without the register/i },
-  {
-    path: FIELD_TRACKING_PAGE.path,
-    title: FIELD_TRACKING_PAGE.title,
-    heading: /track every field job live/i,
-  },
-  {
-    path: AC_SERVICE_PAGE.path,
-    title: AC_SERVICE_PAGE.title,
-    heading: /AC service software for installations/i,
-  },
-  {
-    path: PLUMBER_PAGE.path,
-    title: PLUMBER_PAGE.title,
-    heading: /plumbing job management/i,
-  },
-  {
-    path: DELIVERY_PAGE.path,
-    title: DELIVERY_PAGE.title,
-    heading: /track local deliveries/i,
-  },
-  {
-    path: COLLECTION_PAGE.path,
-    title: COLLECTION_PAGE.title,
-    heading: /proof of every visit/i,
-  },
+  ...ALL_USE_CASE_CONTENT.map((content) => ({
+    path: content.meta.path,
+    title: content.meta.title,
+    heading: content.heading,
+  })),
 ];
 
 function setOnline(value: boolean): void {
@@ -111,16 +86,30 @@ describe("router", () => {
     const hrefs = within(nav)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
-    expect(hrefs).toEqual([
-      "/features",
-      "/attendance",
-      "/field-job-tracking",
-      "/ac-service-software",
-      "/plumber-software",
-      "/delivery-tracking",
-      "/collection-agent-tracking",
-    ]);
+    // Derived from the meta list, so a page added there but forgotten in the footer fails here.
+    expect(hrefs).toEqual(PUBLIC_PAGES.map((page) => page.path));
   });
+
+  // The "Fenzit also helps" links are the site's SEO cross-links; these assertions keep a
+  // rotation bug or a copy-pasted label from shipping in the static HTML of all 20 pages.
+  it.each(ALL_USE_CASE_CONTENT.map((content) => ({ path: content.meta.path })))(
+    "renders four sibling links on $path, none pointing at the page itself",
+    ({ path }) => {
+      renderAt(path);
+
+      const cta = screen.getByRole("region", { name: "See it working for your team" });
+      const siblingLinks = within(within(cta).getByRole("list")).getAllByRole("link");
+      expect(siblingLinks).toHaveLength(4);
+      expect(new Set(siblingLinks.map((link) => link.getAttribute("href"))).size).toBe(4);
+      for (const link of siblingLinks) {
+        const target = ALL_USE_CASE_CONTENT.find(
+          (entry) => entry.meta.path === link.getAttribute("href"),
+        );
+        expect(target).toBeDefined();
+        expect(link).toHaveTextContent(target?.shortLabel ?? "");
+      }
+    },
+  );
 
   it("points the header's section links at the home page, so they work from any page", () => {
     renderAt("/attendance");

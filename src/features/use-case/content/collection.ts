@@ -6,6 +6,7 @@ import type { UseCaseContent } from "../components/UseCasePage";
 export const COLLECTION_CONTENT: UseCaseContent = {
   meta: COLLECTION_PAGE,
   art: CollectionArt,
+  shortLabel: "Collection agents",
   heading: "Track collection agents with proof of every visit",
   lead: "Fenzit is built for Indian collection and field teams. Each visit becomes a job with an address, you see live status, and location is recorded at the visit itself.",
   problemHeading: "Field visits you have to take on trust",
@@ -66,10 +67,5 @@ export const COLLECTION_CONTENT: UseCaseContent = {
       answer:
         "A smartphone and their phone number — sign-in is by OTP. Updates appear live, and each company sees only its own data.",
     },
-  ],
-  siblings: [
-    { to: "/field-job-tracking", label: "Field job tracking" },
-    { to: "/delivery-tracking", label: "Delivery teams" },
-    { to: "/attendance", label: "Attendance and leave" },
   ],
 };

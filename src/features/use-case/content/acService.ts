@@ -6,6 +6,7 @@ import type { UseCaseContent } from "../components/UseCasePage";
 export const AC_SERVICE_CONTENT: UseCaseContent = {
   meta: AC_SERVICE_PAGE,
   art: AcServiceArt,
+  shortLabel: "AC service",
   heading: "AC service software for installations, repairs and AMC visits",
   lead: "Create service jobs, assign technicians by skill, and watch each job move from scheduled to done. Technicians add photos and the customer's signature on their phones, and you keep the PDF reports.",
   problemHeading: "Running AC service from a diary breaks fast",
@@ -66,10 +67,5 @@ export const AC_SERVICE_CONTENT: UseCaseContent = {
       answer:
         "No. Fenzit covers the service work itself: jobs, attendance and leave. It does not make invoices or store AMC contracts.",
     },
-  ],
-  siblings: [
-    { to: "/field-job-tracking", label: "Field job tracking" },
-    { to: "/plumber-software", label: "Plumbers" },
-    { to: "/attendance", label: "Attendance and leave" },
   ],
 };
