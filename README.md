@@ -51,3 +51,6 @@ The workflow runs in the `Fenzit-web` GitHub environment and needs two secrets t
   the apex with path and query intact.
 - To measure: verify a Google Search Console **Domain property** with a DNS TXT record, import it
   into Bing Webmaster Tools, then submit `https://fenzit.com/sitemap.xml` in both.
+- Instant Bing indexing: `public/1ab029a21efacc61c5c73a8f5ca4726c.txt` is the IndexNow key. After
+  adding or changing pages, POST JSON to `https://api.indexnow.org/indexnow/` with
+  `{ host, key, keyLocation, urlList }` — a 202 means accepted.
