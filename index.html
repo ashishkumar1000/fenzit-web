@@ -85,12 +85,37 @@
     <link rel="preconnect" href="https://api.fenzit.com" crossorigin />
     <link rel="preload" href="./src/assets/web-fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- Prerender the features page on hover, so the navigation feels instant (Chrome, Edge). -->
+    <!-- Prerender public pages on hover, so navigation feels instant (Chrome, Edge). The prerender
+         script fails the build if a public route is missing from this list. -->
     <script type="speculationrules">
       {
         "prerender": [
           {
             "where": { "href_matches": "/features" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/attendance" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/field-job-tracking" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/ac-service-software" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/plumber-software" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/delivery-tracking" },
+            "eagerness": "moderate"
+          },
+          {
+            "where": { "href_matches": "/collection-agent-tracking" },
             "eagerness": "moderate"
           }
         ]

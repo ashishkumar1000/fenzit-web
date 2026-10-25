@@ -1,0 +1,72 @@
+/* One colour: the primary blue. Lines and solid parts use it; cut-outs use the pale tint of the same hue.
+   Shared by every use-case scene in UseCaseArt.tsx. */
+.art {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+/* Solid shapes */
+.solid {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* Cut-outs: the pale tint, outlined in the primary colour */
+.tint {
+  fill: var(--color-primary-soft);
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.thin {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* Ranges and routes: same ink, drawn broken so it reads as a path, not a wall. */
+.dashed {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 2 12;
+}
+
+/* Holes punched in solid shapes: the page colour, no stroke. */
+.cut {
+  fill: var(--color-surface-page);
+  stroke: none;
+}
+
+/* Cut-out lines drawn on solid shapes: the page colour as the stroke. */
+.cutLine {
+  fill: none;
+  stroke: var(--color-surface-page);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.textSmall {
+  fill: var(--color-primary);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: var(--font-weight-bold);
+  text-anchor: middle;
+}
+
+/* Wide screens: the scene fills the panel. */
+@media (min-width: 960px) {
+  .art {
+    max-width: none;
+  }
+}

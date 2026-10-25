@@ -1,7 +1,46 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
+import {
+  AC_SERVICE_PAGE,
+  ATTENDANCE_PAGE,
+  COLLECTION_PAGE,
+  DELIVERY_PAGE,
+  FIELD_TRACKING_PAGE,
+  PLUMBER_PAGE,
+} from "./pageMeta";
 import { routes } from "./router";
+
+// Every use-case page must render its own heading under its own address, and hoist its own
+// title — a miswired route or a copy-pasted content object shows up here as the wrong page.
+const USE_CASE_ROUTES = [
+  { path: ATTENDANCE_PAGE.path, title: ATTENDANCE_PAGE.title, heading: /without the register/i },
+  {
+    path: FIELD_TRACKING_PAGE.path,
+    title: FIELD_TRACKING_PAGE.title,
+    heading: /track every field job live/i,
+  },
+  {
+    path: AC_SERVICE_PAGE.path,
+    title: AC_SERVICE_PAGE.title,
+    heading: /AC service software for installations/i,
+  },
+  {
+    path: PLUMBER_PAGE.path,
+    title: PLUMBER_PAGE.title,
+    heading: /plumbing job management/i,
+  },
+  {
+    path: DELIVERY_PAGE.path,
+    title: DELIVERY_PAGE.title,
+    heading: /track local deliveries/i,
+  },
+  {
+    path: COLLECTION_PAGE.path,
+    title: COLLECTION_PAGE.title,
+    heading: /proof of every visit/i,
+  },
+];
 
 function setOnline(value: boolean): void {
   Object.defineProperty(navigator, "onLine", { value, configurable: true });
@@ -54,6 +93,44 @@ describe("router", () => {
       expect(screen.getByRole("heading", { name: "This page is not here." })).toBeInTheDocument();
     },
   );
+
+  it.each(USE_CASE_ROUTES)(
+    "renders $path with its own heading and document title",
+    ({ path, title, heading }) => {
+      renderAt(path);
+
+      expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+      expect(document.title).toBe(title);
+    },
+  );
+
+  it("lists every public page in the footer's site-pages nav", () => {
+    renderAt("/features");
+
+    const nav = screen.getByRole("navigation", { name: "Site pages" });
+    const hrefs = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    expect(hrefs).toEqual([
+      "/features",
+      "/attendance",
+      "/field-job-tracking",
+      "/ac-service-software",
+      "/plumber-software",
+      "/delivery-tracking",
+      "/collection-agent-tracking",
+    ]);
+  });
+
+  it("points the header's section links at the home page, so they work from any page", () => {
+    renderAt("/attendance");
+
+    const nav = screen.getByRole("navigation", { name: "Page sections" });
+    const hrefs = within(nav)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#trust", "/#faq"]);
+  });
 
   it("links from the not-found page back to the home page", async () => {
     renderAt("/missing");

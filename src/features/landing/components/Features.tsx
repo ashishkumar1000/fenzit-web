@@ -115,9 +115,17 @@ export function Features() {
             </li>
           ))}
         </ul>
-        <Link className={styles.more} to="/features">
-          See the full feature list
-        </Link>
+        <div className={styles.moreRow}>
+          <Link className={styles.more} to="/attendance">
+            See attendance and leave in detail
+          </Link>
+          <Link className={styles.more} to="/field-job-tracking">
+            Track field jobs live
+          </Link>
+          <Link className={styles.more} to="/features">
+            See the full feature list
+          </Link>
+        </div>
       </Container>
     </section>
   );

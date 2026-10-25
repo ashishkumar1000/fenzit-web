@@ -4,12 +4,13 @@ import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
 import styles from "./Header.module.css";
 
-// Links to the sections on this page. The header stays on screen while the visitor scrolls.
+// Links to the sections on the home page. Qualified with the path so they work from every page,
+// not only from home itself. The header stays on screen while the visitor scrolls.
 const LINKS = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#features", label: "Features" },
-  { href: "#trust", label: "Your data" },
-  { href: "#faq", label: "Questions" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#features", label: "Features" },
+  { href: "/#trust", label: "Your data" },
+  { href: "/#faq", label: "Questions" },
 ] as const;
 
 export function Header() {
@@ -17,7 +18,7 @@ export function Header() {
     <>
       <div className={styles.strip}>
         <p className={styles.stripText}>Early access is open for field service teams.</p>
-        <a className={styles.stripLink} href="#early-access">
+        <a className={styles.stripLink} href="/#early-access">
           Join early access
         </a>
       </div>
@@ -50,7 +51,7 @@ export function Header() {
             <a className={styles.login} href="/login">
               Log in
             </a>
-            <a className={styles.cta} href="#early-access">
+            <a className={styles.cta} href="/#early-access">
               Join early access
             </a>
           </div>
