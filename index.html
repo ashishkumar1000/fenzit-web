@@ -10,6 +10,8 @@
     <meta name="author" content="Fenzit" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#1868db" />
+    <!-- The site is light-only; say so, or browsers may auto-darken on system dark mode. -->
+    <meta name="color-scheme" content="light" />
     <link rel="canonical" href="https://fenzit.com/" />
 
     <!-- Open Graph (Facebook, LinkedIn, WhatsApp) -->
@@ -29,10 +31,12 @@
     <meta name="twitter:title" content="Fenzit — Jobs, Attendance and Leave Software" />
     <meta name="twitter:description" content="Assign jobs, dispatch your team, and track every task in real time. Launching 2026." />
     <meta name="twitter:image" content="https://fenzit.com/og-image.png" />
+    <meta name="twitter:image:alt" content="Fenzit — run your jobs, attendance and leave in one place" />
 
-    <!-- Favicon: the app's brand glyph, at a stable URL (public/logo.png, also the JSON-LD logo) -->
+    <!-- Favicon: a real .ico for blind requests, the brand glyph for everyone else -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/png" sizes="360x360" href="/logo.png" />
-    <link rel="apple-touch-icon" sizes="360x360" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Structured data -->
@@ -47,7 +51,14 @@
             "url": "https://fenzit.com/",
             "email": "hello@fenzit.com",
             "description": "Software to run field jobs, attendance and leave in one app. Use it for jobs, for attendance and leave, or for both.",
-            "logo": "https://fenzit.com/logo.png"
+            "logo": "https://fenzit.com/logo.png",
+            "areaServed": "IN",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "email": "hello@fenzit.com",
+              "availableLanguage": ["en", "hi"]
+            }
           },
           {
             "@type": "WebSite",
@@ -73,6 +84,18 @@
     <!-- The country list is fetched from the API origin as soon as the page loads. Connect early. -->
     <link rel="preconnect" href="https://api.fenzit.com" crossorigin />
     <link rel="preload" href="./src/assets/web-fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Prerender the features page on hover, so the navigation feels instant (Chrome, Edge). -->
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "where": { "href_matches": "/features" },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
