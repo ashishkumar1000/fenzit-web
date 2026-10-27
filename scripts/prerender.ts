@@ -46,7 +46,16 @@ for (const meta of PUBLIC_PAGES) {
 }
 
 // Pages that depend on the saved sign-in. They are not pre-rendered (see src/app/routes.tsx).
-const CLIENT_ONLY_PATHS = ["login", "admin"];
+// The console's child sections are separate URLs, so a refresh or deep link
+// gets their own shell with a 200 instead of the 404 page.
+const CLIENT_ONLY_PATHS = [
+  "login",
+  "admin",
+  "admin/inspect",
+  "admin/account",
+  "admin/company",
+  "admin/me",
+];
 
 const EMPTY_ROOT = '<div id="root"></div>';
 const DIST = "dist";
