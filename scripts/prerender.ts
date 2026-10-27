@@ -54,6 +54,11 @@ const CLIENT_ONLY_PATHS = [
   "admin/inspect",
   "admin/account",
   "admin/company",
+  "admin/company/customers",
+  "admin/company/employees",
+  "admin/company/jobs",
+  "admin/company/holidays",
+  "admin/company/attendance",
   "admin/me",
 ];
 
