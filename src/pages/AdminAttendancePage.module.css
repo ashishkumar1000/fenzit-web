@@ -1,0 +1,11 @@
+.failed {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}

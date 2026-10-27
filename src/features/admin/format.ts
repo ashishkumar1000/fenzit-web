@@ -35,3 +35,24 @@ export function fmtPhone(countryCode: string, phoneNumber: string): string {
   const grouped = digits.length === 10 ? `${digits.slice(0, 5)} ${digits.slice(5)}` : digits;
   return `+${countryCode.replace("+", "")} ${grouped}`;
 }
+
+/** Metres as a person reads them: whole metres below a kilometre, one decimal
+ *  in kilometres above. */
+export function fmtDistance(metres: number | null): string {
+  if (metres === null) return "—";
+  if (metres >= 1000) return `${(metres / 1000).toFixed(1)} km`;
+  return `${Math.round(metres)} m`;
+}
+
+/** Postgres daterange text (`{2026-10-23}` or `{2026-10-23,2026-10-25}`, with
+ *  any bracket style) as readable date(s). */
+export function fmtDateRange(text: string | null): string {
+  if (text === null) return "—";
+  const inner = text
+    .replace(/^[{[]/, "")
+    .replace(/[}\]]$/, "")
+    .trim();
+  if (inner === "") return "—";
+  const days = inner.split(",").map((part) => fmtDay(part.trim()));
+  return days.length >= 2 ? `${days[0]} – ${days[1]}` : days[0];
+}

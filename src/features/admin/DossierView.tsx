@@ -11,6 +11,7 @@ import {
   CompanySummarySection,
   InvitesSection,
   JobsSection,
+  LeaveEventsSection,
   LeaveSection,
   ModerationsSection,
   NotificationsSection,
@@ -73,6 +74,7 @@ export function DossierView({ d }: { d: LookupResponse }) {
         <JobsSection jobs={d.jobs} total={d.counts.jobs} />
         <AttendanceSection attendance={d.attendance} />
         <LeaveSection d={d} />
+        <LeaveEventsSection d={d} />
         <OfficesSection offices={d.offices} />
         <SkillsSection skills={d.skills} />
         <InvitesSection

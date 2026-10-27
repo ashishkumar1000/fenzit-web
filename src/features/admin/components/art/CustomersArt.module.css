@@ -1,0 +1,57 @@
+/* Decorative card backdrop: pure fills only, all colour via design tokens. The primary blue is
+   used as a wash (low fill-opacity) so the scene stays behind the card's text. */
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The disc that gathers the scene: a light wash of the primary blue. */
+.disc {
+  fill: var(--color-primary);
+  fill-opacity: 0.1;
+}
+
+/* Ground shadow under the shopfront. */
+.ground {
+  fill: var(--color-surface-sunken);
+}
+
+/* The shopfront body: the palest primary tint. */
+.storefront {
+  fill: var(--color-primary-soft);
+}
+
+/* Doorway cut into the arch. */
+.door {
+  fill: var(--color-surface-sunken);
+}
+
+/* Round window: a mint glow, like an "open" sign. */
+.window {
+  fill: var(--color-status-done-bg);
+}
+
+/* The scalloped awning: the strongest wash, so it leads the eye. */
+.awning {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+/* Heart floating beside the shop: a soft warm accent. */
+.heart {
+  fill: var(--color-status-scheduled-bg);
+}
+
+/* Floating dots: quiet blue notes. */
+.dotA {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+.dotB {
+  fill: var(--color-primary);
+  fill-opacity: 0.14;
+}

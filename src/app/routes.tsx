@@ -124,6 +124,71 @@ export const routes: RouteObject[] = [
               };
             },
           },
+          {
+            path: "company/customers",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminCustomersPage"),
+                import("../features/admin/adminBrowseLoaders"),
+              ]);
+              return {
+                Component: page.AdminCustomersPage,
+                loader: loaderModule.adminCustomersLoader,
+              };
+            },
+          },
+          {
+            path: "company/employees",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminEmployeesPage"),
+                import("../features/admin/adminBrowseLoaders"),
+              ]);
+              return {
+                Component: page.AdminEmployeesPage,
+                loader: loaderModule.adminEmployeesLoader,
+              };
+            },
+          },
+          {
+            path: "company/jobs",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminJobsPage"),
+                import("../features/admin/adminBrowseLoaders"),
+              ]);
+              return {
+                Component: page.AdminJobsPage,
+                loader: loaderModule.adminJobsLoader,
+              };
+            },
+          },
+          {
+            path: "company/holidays",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminHolidaysPage"),
+                import("../features/admin/adminBrowseLoaders"),
+              ]);
+              return {
+                Component: page.AdminHolidaysPage,
+                loader: loaderModule.adminHolidaysLoader,
+              };
+            },
+          },
+          {
+            path: "company/attendance",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminAttendancePage"),
+                import("../features/admin/adminBrowseLoaders"),
+              ]);
+              return {
+                Component: page.AdminAttendancePage,
+                loader: loaderModule.adminAttendanceLoader,
+              };
+            },
+          },
         ],
       },
       { path: "*", element: <NotFoundPage /> },

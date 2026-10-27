@@ -1,0 +1,61 @@
+/* Decorative background art for the team card. All color comes from design
+   tokens; soft/sunken fills sit between 0.5 and 1 opacity, the primary token
+   appears only as faint accents. */
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Faint primary circle behind the whole cluster (accent 1 of 2). */
+.halo {
+  fill: var(--color-primary);
+  fill-opacity: 0.12;
+}
+
+/* Rear figure: the largest, furthest back. */
+.bodyBack,
+.headBack {
+  fill: var(--color-primary-soft);
+  fill-opacity: 0.9;
+}
+
+/* Mid figure, sunken surface tint. */
+.bodyMid,
+.headMid {
+  fill: var(--color-surface-sunken);
+  fill-opacity: 0.85;
+}
+
+/* Front figure tinted with the "done" token. */
+.bodyDone,
+.headDone {
+  fill: var(--color-status-done-bg);
+  fill-opacity: 0.95;
+}
+
+/* Front figure tinted with the "scheduled" token. */
+.bodyAmber,
+.headAmber {
+  fill: var(--color-status-scheduled-bg);
+  fill-opacity: 1;
+}
+
+/* Small accents drifting above the cluster. */
+.doneDot {
+  fill: var(--color-status-done-bg);
+  fill-opacity: 0.9;
+}
+
+/* Primary accent 2 of 2. */
+.accentDot {
+  fill: var(--color-primary);
+  fill-opacity: 0.16;
+}
+
+.sparkle {
+  fill: var(--color-status-scheduled-bg);
+  fill-opacity: 1;
+}

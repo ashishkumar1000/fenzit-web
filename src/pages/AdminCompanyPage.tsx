@@ -1,19 +1,20 @@
 import { useLoaderData, useRevalidator } from "react-router";
 import type { adminCompanyLoader } from "../features/admin/adminCompanyLoader";
-import { humanize } from "../features/admin/status";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { StatTiles, type StatTile } from "../features/admin/components/StatTiles";
+import { LinkCard } from "../features/admin/components/LinkCard";
 import { DataTable, type TableCell } from "../features/admin/components/Table";
-import { fmtDay, fmtPhone, fmtWhen } from "../features/admin/format";
+import { AttendanceArt } from "../features/admin/components/art/AttendanceArt";
+import { CustomersArt } from "../features/admin/components/art/CustomersArt";
+import { HolidaysArt } from "../features/admin/components/art/HolidaysArt";
+import { JobsArt } from "../features/admin/components/art/JobsArt";
+import { TeamArt } from "../features/admin/components/art/TeamArt";
+import { fmtDay, fmtWhen } from "../features/admin/format";
 import styles from "./AdminCompanyPage.module.css";
 
-const ROLE_LABEL: Record<string, string> = {
-  company_admin: "Owner",
-  employee: "Employee",
-  viewer: "Viewer",
-};
-
-/** The owner's Company section: today's pulse, the roster, leave, audit. */
+/** The owner's overview: today's pulse, then cards that lead to the full
+ *  lists (customers, employees, jobs, holidays, attendance), with recent
+ *  leave and audit activity underneath. */
 export function AdminCompanyPage() {
   const data = useLoaderData<typeof adminCompanyLoader>();
   const revalidator = useRevalidator();
@@ -86,21 +87,39 @@ export function AdminCompanyPage() {
         </SectionCard>
       )}
 
-      {data.members.ok ? (
-        <SectionCard title="Team" meta={String(data.members.data.length)}>
-          <DataTable
-            columns={["Name", "Phone", "Code", "Role", "Status"]}
-            empty="Nobody on the team yet."
-            rows={data.members.data.map((m): TableCell[] => [
-              { text: m.name ?? "(no name)" },
-              { text: fmtPhone(m.countryCode, m.phoneNumber), quiet: true },
-              { text: m.employeeCode },
-              { text: ROLE_LABEL[m.role] ?? humanize(m.role) },
-              { text: m.status, status: true },
-            ])}
-          />
-        </SectionCard>
-      ) : null}
+      <div className={styles.cards}>
+        <LinkCard
+          to="/admin/company/customers"
+          label="Customers"
+          note="Everyone who buys from you"
+          art={<CustomersArt />}
+        />
+        <LinkCard
+          to="/admin/company/employees"
+          label="Employees"
+          note="Your full team"
+          count={data.members.ok ? data.members.data.length : undefined}
+          art={<TeamArt />}
+        />
+        <LinkCard
+          to="/admin/company/jobs"
+          label="Jobs"
+          note="Every job, newest first"
+          art={<JobsArt />}
+        />
+        <LinkCard
+          to="/admin/company/holidays"
+          label="Holidays"
+          note="Upcoming and past"
+          art={<HolidaysArt />}
+        />
+        <LinkCard
+          to="/admin/company/attendance"
+          label="Attendance"
+          note="This month, per employee"
+          art={<AttendanceArt />}
+        />
+      </div>
 
       <div className={styles.pair}>
         {data.leave.ok ? (

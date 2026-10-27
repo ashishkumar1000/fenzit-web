@@ -1,4 +1,6 @@
 import {
+  Link,
+  Navigate,
   NavLink,
   Outlet,
   useLoaderData,
@@ -12,7 +14,20 @@ import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
 import { sectionsFor } from "../features/admin/adminLoader";
 import type { adminLoader, ConsoleRole } from "../features/admin/adminLoader";
-import { ConsoleArt, GlyphInspect } from "../features/admin/components/glyphs";
+import {
+  ConsoleArt,
+  GlyphAccount,
+  GlyphAttendance,
+  GlyphCompany,
+  GlyphCustomers,
+  GlyphHolidays,
+  GlyphInspect,
+  GlyphJobs,
+  GlyphMe,
+} from "../features/admin/components/glyphs";
+import logo from "../assets/brand/logo.png";
+import logo2x from "../assets/brand/logo-2x.png";
+import logo3x from "../assets/brand/logo-3x.png";
 import { clearSession } from "../services/session";
 import styles from "./AdminPage.module.css";
 
@@ -29,14 +44,81 @@ export function AdminChecking() {
   );
 }
 
-const ROLE_LABEL: Record<ConsoleRole, string> = {
-  staff: "fenzit staff",
-  owner: "company owner",
-  member: "team member",
+const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
+  "/admin/inspect": GlyphInspect,
+  "/admin/account": GlyphAccount,
+  "/admin/company": GlyphCompany,
+  "/admin/company/customers": GlyphCustomers,
+  "/admin/company/employees": GlyphMe,
+  "/admin/company/jobs": GlyphJobs,
+  "/admin/company/holidays": GlyphHolidays,
+  "/admin/company/attendance": GlyphAttendance,
+  "/admin/me": GlyphMe,
 };
 
-/** The console layout: header, the sections this role has, then the section.
- *  A thin progress bar rides the header while any section's loader runs. */
+const ROLE_CAPTION: Record<ConsoleRole, string> = {
+  staff: "Fenzit staff",
+  owner: "Company owner",
+  member: "Team member",
+};
+
+function BrandMark() {
+  return (
+    <Link to="/" className={styles.brand} aria-label="Fenzit home">
+      {/* Same brand glyph as the mobile app; the wordmark beside it names it. */}
+      <img
+        className={styles.mark}
+        src={logo}
+        srcSet={`${logo} 1x, ${logo2x} 2x, ${logo3x} 3x`}
+        width={32}
+        height={32}
+        alt=""
+      />
+      <span className={styles.brandName}>Fenzit</span>
+    </Link>
+  );
+}
+
+function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
+  return (
+    <span className={styles.chip}>
+      <span className={styles.chipGlyph} aria-hidden="true">
+        <GlyphMe size={15} />
+      </span>
+      <span className={styles.chipText}>
+        <span className={styles.chipName}>{name ?? "(no name)"}</span>
+        {role !== undefined ? <span className={styles.chipRole}>{ROLE_CAPTION[role]}</span> : null}
+      </span>
+    </span>
+  );
+}
+
+function NavLinks({ role }: { role: ConsoleRole }) {
+  return (
+    <nav className={styles.nav} aria-label="Console sections">
+      {sectionsFor(role).map((section) => {
+        const Glyph = GLYPHS[section.to] ?? GlyphMe;
+        return (
+          <NavLink
+            key={section.to}
+            to={section.to}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+            }
+          >
+            <span className={styles.navGlyph} aria-hidden="true">
+              <Glyph size={18} />
+            </span>
+            {section.label}
+          </NavLink>
+        );
+      })}
+    </nav>
+  );
+}
+
+/** The console layout: the brand, this role's sections in a sidebar on wide
+ *  screens (top tabs on phones), then the section itself. */
 export function AdminLayout() {
   const data = useLoaderData<typeof adminLoader>();
   const revalidator = useRevalidator();
@@ -49,56 +131,46 @@ export function AdminLayout() {
     navigate("/", { replace: true });
   };
 
+  if (data.status === "failed") {
+    return (
+      <div className={styles.page}>
+        <Container>
+          <main className={styles.main}>
+            <h1 className={styles.heading}>Console</h1>
+            <p className={styles.error} role="alert">
+              We could not check your access. Check your connection and try again.
+            </p>
+            <Button onClick={() => revalidator.revalidate()} disabled={busy}>
+              {busy ? "Checking…" : "Try again"}
+            </Button>
+          </main>
+        </Container>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <title>{CLIENT_ONLY_TITLES["/admin"]}</title>
-      <Container>
+      <aside className={styles.sidebar}>
+        <BrandMark />
+        <NavLinks role={data.role} />
+        <div className={styles.sidebarFoot}>
+          <UserChip name={data.name} role={data.role} />
+          <Button variant="secondary" onClick={logOut}>
+            Log out
+          </Button>
+        </div>
+      </aside>
+      <div className={styles.content}>
+        <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
+          <span className={busy ? styles.progressFillActive : styles.progressFill} />
+        </div>
         <main className={styles.main}>
-          {data.status === "failed" ? (
-            <>
-              <h1 className={styles.heading}>Console</h1>
-              <p className={styles.error} role="alert">
-                We could not check your access. Check your connection and try again.
-              </p>
-              <Button onClick={() => revalidator.revalidate()} disabled={busy}>
-                {busy ? "Checking…" : "Try again"}
-              </Button>
-            </>
-          ) : (
-            <>
-              <header className={styles.top} aria-busy={busy}>
-                <div className={styles.who}>
-                  <p className={styles.eyebrow}>Fenzit console</p>
-                  <h1 className={styles.heading}>
-                    {data.name === null ? "Hello" : `Hello, ${data.name}`}
-                  </h1>
-                  <p className={styles.roleLine}>Signed in as {ROLE_LABEL[data.role]}</p>
-                </div>
-                <Button variant="secondary" onClick={logOut}>
-                  Log out
-                </Button>
-              </header>
-              <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
-                <span className={busy ? styles.progressFillActive : styles.progressFill} />
-              </div>
-              <nav className={styles.tabs} aria-label="Console sections">
-                {sectionsFor(data.role).map((section) => (
-                  <NavLink
-                    key={section.to}
-                    to={section.to}
-                    className={({ isActive }) =>
-                      isActive ? `${styles.tab} ${styles.tabActive}` : styles.tab
-                    }
-                  >
-                    {section.label}
-                  </NavLink>
-                ))}
-              </nav>
-              <Outlet />
-            </>
-          )}
+          <h1 className={styles.heading}>{data.name === null ? "Hello" : `Hello, ${data.name}`}</h1>
+          <Outlet />
         </main>
-      </Container>
+      </div>
     </div>
   );
 }
@@ -134,11 +206,16 @@ export function AdminHome() {
     return (
       <div className={styles.home}>
         <p className={styles.homeCopy}>
-          The Company section shows today's team pulse, your roster, leave requests and your
-          company's audit trail — your company only.
+          The Overview shows today's team pulse and your recent leave and audit activity. The
+          sidebar carries the full lists — customers, employees, jobs, holidays and attendance.
         </p>
       </div>
     );
+  }
+
+  // An employee's console IS the Me section — no welcome screen to click past.
+  if (data.role === "member") {
+    return <Navigate to="/admin/me" replace />;
   }
 
   return (

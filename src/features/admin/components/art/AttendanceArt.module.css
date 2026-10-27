@@ -1,0 +1,48 @@
+/* Decorative background art for the attendance card: a quarter-circle clock
+   face with two hands, and a heartbeat ribbon running beneath it. All color
+   comes from design tokens; the primary token appears only as faint fills
+   (0.10-0.18), soft tokens sit on top as solid cutouts. Pure fills, no
+   strokes and no outlines anywhere. */
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Quarter-circle clock face, the big soft shape anchoring the motif. */
+.disc {
+  fill: var(--color-primary);
+  fill-opacity: 0.12;
+}
+
+/* Quarter-hour notch cut into the clock's rim (solid cutout, no opacity). */
+.tick {
+  fill: var(--color-primary-soft);
+}
+
+/* Clock hands and the center pin; a step deeper than the face. */
+.handUp,
+.handTilt,
+.hub {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+/* Quiet warm accent drifting inside the clock face. */
+.dotAccent {
+  fill: var(--color-status-cancelled-bg);
+}
+
+/* Heartbeat ribbon: one thick rounded filled outline, drawn as a single
+   closed path with arc caps, so it needs no strokes. */
+.pulse {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+/* A "done" bead resting on the heartbeat line. */
+.dotDone {
+  fill: var(--color-status-done-bg);
+}

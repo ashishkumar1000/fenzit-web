@@ -148,8 +148,8 @@ describe("LoginForm: the code step", () => {
     fireEvent.click(loginButton());
 
     await screen.findByRole("heading", { name: "Hello, Ravi Kumar" });
-    // The landing is the owner console, not the refused render the heading shares.
-    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
+    // The landing is the owner console; the sidebar chip names the role.
+    expect(screen.getByText("Company owner")).toBeInTheDocument();
     expect(sentTo("/auth/otp/verify").at(-1)?.body).toMatchObject({
       otpSessionId: "sess-2",
       otpCode: "1234",
@@ -193,6 +193,6 @@ describe("LoginForm: the code step", () => {
     fireEvent.click(loginButton());
 
     expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
-    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
+    expect(screen.getByText("Company owner")).toBeInTheDocument();
   });
 });

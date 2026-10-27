@@ -31,8 +31,29 @@ export interface MeSummary {
   endTime: string | null;
   lateCutOffMinutes: number | null;
   weeklyOffDays: number[];
+  officeLatitude: number | null;
+  officeLongitude: number | null;
+  officeRadius: number | null;
   today: TodayFacts | null;
   todayRecord: TodayRecord | null;
+}
+
+export interface MeMonthSummary {
+  from: string;
+  to: string;
+  summary: {
+    daysWorked: number;
+    halfDays: number;
+    lateCount: number;
+    leave: number;
+    weeklyOffs: number;
+    holidays: number;
+    workedOnHoliday: number;
+    absent: number;
+    checkoutMissing: number;
+  };
+  weeklyOffs: number[];
+  upcomingHolidays: Array<{ id: string; date: string; name: string }>;
 }
 
 export interface JobRow {
@@ -46,6 +67,19 @@ export interface JobRow {
 
 export function fetchMySummary(token: string, signal?: AbortSignal): Promise<MeSummary> {
   return apiFetch<MeSummary>("/api/v1/attendance/me/summary", {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** This employee's own month summary (FR-26) — current month by default. */
+export function fetchMyMonthly(
+  token: string,
+  from: string,
+  to: string,
+  signal?: AbortSignal,
+): Promise<MeMonthSummary> {
+  return apiFetch<MeMonthSummary>(`/api/v1/attendance/me/monthly?from=${from}&to=${to}`, {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });

@@ -20,17 +20,10 @@ export function AdminInspectPage() {
   return (
     <div className={styles.stack}>
       <SearchForm
-        key={
-          data.state === "found" || data.state === "not-found" || data.state === "invalid"
-            ? data.phone
-            : "idle"
-        }
+        key={data.state === "found" || data.state === "not-found" ? data.phone : "idle"}
         action="/admin/inspect"
-        defaultValue={
-          data.state === "found" || data.state === "not-found" || data.state === "invalid"
-            ? data.phone
-            : ""
-        }
+        countries={data.countries}
+        defaultValue={data.state === "found" || data.state === "not-found" ? data.phone : ""}
         busy={busy}
       />
       {busy && hasQuery ? (
@@ -66,9 +59,9 @@ export function AdminInspectPage() {
           ) : null}
           {data.state === "invalid" ? (
             <div className={styles.notice} role="status">
-              <p className={styles.noticeTitle}>That is not an Indian mobile number</p>
+              <p className={styles.noticeTitle}>That number does not look right</p>
               <p className={styles.noticeCopy}>
-                Enter a 10-digit number, with an optional 91 or +91 in front.
+                Enter the full phone number, with the country code picked on the left.
               </p>
             </div>
           ) : null}

@@ -1,0 +1,65 @@
+/* Decorative job-board scene for the admin jobs card. Colours come only from
+   design tokens; the primary blue appears solely as quiet accents (0.10-0.18). */
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* The board itself: sunken grey panel behind everything. */
+.board {
+  fill: var(--color-surface-sunken);
+}
+
+/* Board title bar. */
+.boardBar {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+/* Queued card stacked behind the in-progress column. */
+.stackCard {
+  fill: var(--color-primary);
+  fill-opacity: 0.1;
+}
+
+/* In-progress kanban cards. */
+.cardProgress {
+  fill: var(--color-status-progress-bg);
+}
+
+/* Finished card. */
+.cardDone {
+  fill: var(--color-status-done-bg);
+}
+
+/* Check tick on the finished card. */
+.tick {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+/* Progress-dot trail, fading towards the empty slot. */
+.dotStrong {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}
+
+.dotMid {
+  fill: var(--color-primary);
+  fill-opacity: 0.13;
+}
+
+.dotFaint {
+  fill: var(--color-primary);
+  fill-opacity: 0.1;
+}
+
+/* Spark over the board's corner. */
+.spark {
+  fill: var(--color-primary);
+  fill-opacity: 0.18;
+}

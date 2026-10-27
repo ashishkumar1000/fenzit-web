@@ -67,6 +67,52 @@ export function GlyphMe({ size = 20 }: GlyphProps) {
   );
 }
 
+/** Two overlapping contact cards — the Customers section. */
+export function GlyphCustomers({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <rect x="3" y="7" width="13" height="12" rx="2.5" />
+      <path d="M8 21h11a2 2 0 0 0 2-2v-8" />
+      <circle cx="8" cy="12" r="1.7" />
+      <path d="M5.6 16.4c.5-1.5 4.3-1.5 4.8 0" />
+      <path d="M11.5 11h2.5M11.5 14.5h2" />
+    </svg>
+  );
+}
+
+/** A checklist board — the Jobs section. */
+export function GlyphJobs({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <rect x="4" y="3.5" width="16" height="17" rx="2.5" />
+      <path d="M8 8.2l1.6 1.6 3-3.2" />
+      <path d="M8 15h8M8 18h5" />
+    </svg>
+  );
+}
+
+/** A calendar page with a highlighted day — the Holidays section. */
+export function GlyphHolidays({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M8 3v4M16 3v4M3.5 9.5h17" />
+      <rect x="10.5" y="12.5" width="4" height="4" rx="1" />
+    </svg>
+  );
+}
+
+/** A clock with a pulse tail — the Attendance section. */
+export function GlyphAttendance({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M10.5 7.5v3.4l2.4 1.6" />
+      <path d="M14 17.5h2.5l1.5-2.5 1.8 4 1.7-3h1.5" />
+    </svg>
+  );
+}
+
 /** A plain magnifier — the search submit affordance. */
 export function GlyphSearch({ size = 18 }: GlyphProps) {
   return (

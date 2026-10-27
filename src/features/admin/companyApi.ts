@@ -87,3 +87,105 @@ export function fetchAudit(token: string, signal?: AbortSignal): Promise<AuditRo
     signal,
   });
 }
+
+/** ── The owner's full-list drill-downs (existing endpoints) ─────────── */
+
+export interface CustomerRow {
+  id: string;
+  name: string;
+  countryCode: string;
+  phoneNumber: string;
+  address: string | null;
+  jobCount: number;
+  lastJobDate: string | null;
+}
+
+export function fetchCustomers(
+  token: string,
+  cursor: string | null,
+  signal?: AbortSignal,
+): Promise<Page<CustomerRow>> {
+  const query = cursor === null ? "?limit=25" : `?limit=25&cursor=${encodeURIComponent(cursor)}`;
+  return apiFetch<Page<CustomerRow>>(`/api/v1/customers${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+export interface JobRow {
+  id: string;
+  jobNumber: string;
+  status: string;
+  priority: string | null;
+  scheduledStart: string | null;
+  currentStep: string | null;
+  skill: { id: string; name: string } | null;
+}
+
+/** The jobs list endpoint slices by timeline (today/upcoming/overdue/history)
+ *  and paginates within one — no single "all jobs" scope exists. The
+ *  drill-down therefore merges the first page of every scope and sorts by
+ *  schedule, newest first. */
+export async function fetchJobs(token: string, signal?: AbortSignal): Promise<JobRow[]> {
+  const scopes = ["today", "upcoming", "overdue", "history"] as const;
+  const pages = await Promise.all(
+    scopes.map((scope) =>
+      apiFetch<Page<JobRow>>(`/api/v1/jobs?scope=${scope}&limit=25`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal,
+      }),
+    ),
+  );
+  const seen = new Set<string>();
+  const merged: JobRow[] = [];
+  for (const page of pages) {
+    for (const job of page.data) {
+      if (seen.has(job.id)) continue;
+      seen.add(job.id);
+      merged.push(job);
+    }
+  }
+  return merged.sort((a, b) => ((b.scheduledStart ?? "") < (a.scheduledStart ?? "") ? -1 : 1));
+}
+
+export interface HolidayRow {
+  id: string;
+  date: string;
+  name: string;
+}
+
+export function fetchHolidays(token: string, signal?: AbortSignal): Promise<HolidayRow[]> {
+  return apiFetch<HolidayRow[]>("/api/v1/attendance/holidays", {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+export interface MonthlyEmployeeRow {
+  employeeId: string;
+  employeeName: string;
+  officeName: string | null;
+  summary: {
+    daysWorked: number;
+    halfDays: number;
+    lateCount: number;
+    leave: number;
+    weeklyOffs: number;
+    holidays: number;
+    workedOnHoliday: number;
+    absent: number;
+    checkoutMissing: number;
+  };
+}
+
+export function fetchMonthly(
+  token: string,
+  from: string,
+  to: string,
+  signal?: AbortSignal,
+): Promise<{ from: string; to: string; employees: MonthlyEmployeeRow[] }> {
+  return apiFetch<{ from: string; to: string; employees: MonthlyEmployeeRow[] }>(
+    `/api/v1/attendance/monthly?from=${from}&to=${to}`,
+    { headers: { Authorization: `Bearer ${token}` }, signal },
+  );
+}

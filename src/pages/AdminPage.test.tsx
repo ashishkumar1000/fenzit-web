@@ -30,7 +30,17 @@ beforeEach(() => {
       // Unqueued calls (a revalidation from a previous test that fired late)
       // get a harmless default, so they cannot poison this test's answers.
       return next === undefined
-        ? jsonResponse({ id: "late", role: null, name: null, platformAdmin: false })
+        ? jsonResponse({
+            id: "late",
+            role: null,
+            name: null,
+            platformAdmin: false,
+            email: null,
+            countryCode: "+91",
+            phoneNumber: "9000000000",
+            employeeCode: null,
+            status: null,
+          })
         : next();
     }
     // Anything else (section endpoints, the home page's country codes) fails,
@@ -114,8 +124,15 @@ describe("sectionsFor", () => {
     expect(sectionsFor("staff").map((s) => s.to)).toEqual(["/admin/inspect", "/admin/account"]);
   });
 
-  it("gives an owner only Company", () => {
-    expect(sectionsFor("owner").map((s) => s.to)).toEqual(["/admin/company"]);
+  it("gives an owner the overview plus the five browse lists", () => {
+    expect(sectionsFor("owner").map((s) => s.to)).toEqual([
+      "/admin/company",
+      "/admin/company/customers",
+      "/admin/company/employees",
+      "/admin/company/jobs",
+      "/admin/company/holidays",
+      "/admin/company/attendance",
+    ]);
   });
 
   it("gives a member only Me", () => {
@@ -192,8 +209,14 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
-    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Company" })).toBeInTheDocument();
+    // The role lives in the sidebar user chip now, not a sign-in line.
+    expect(screen.getByText("Company owner")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Customers" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
@@ -206,7 +229,7 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Hello" })).toBeInTheDocument();
-    expect(screen.getByText("Signed in as fenzit staff")).toBeInTheDocument();
+    expect(screen.getByText("Fenzit staff")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Inspect" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Account" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
@@ -220,7 +243,7 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
-    expect(screen.getByText("Signed in as team member")).toBeInTheDocument();
+    expect(screen.getByText("Team member")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Me" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
@@ -236,7 +259,9 @@ describe("Console: section gating", () => {
 
     renderAdmin("/admin/inspect");
 
-    expect(await screen.findByText(/The Me section shows your attendance/i)).toBeInTheDocument();
+    // The refusal lands on /admin, and the index forwards a member to Me —
+    // the Me section itself is on screen, not a welcome card to click.
+    expect(await screen.findByRole("heading", { name: "(no name)", level: 2 })).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("98765 43210")).toBeNull();
   });
 

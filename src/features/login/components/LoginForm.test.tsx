@@ -227,7 +227,7 @@ describe("LoginForm: the sign-in step", () => {
     release?.();
     await screen.findByRole("heading", { name: "Hello, Ravi Kumar" });
     // The sign-in really landed: the console greets the person by name and
-    // names their role (a company admin lands as the owner).
-    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
+    // the sidebar chip names their role (a company admin lands as the owner).
+    expect(screen.getByText("Company owner")).toBeInTheDocument();
   });
 });

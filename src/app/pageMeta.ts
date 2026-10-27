@@ -211,6 +211,11 @@ export const CLIENT_ONLY_TITLES: Record<string, string> = {
   "/admin/inspect": "Console · Fenzit",
   "/admin/account": "Console · Fenzit",
   "/admin/company": "Console · Fenzit",
+  "/admin/company/customers": "Console · Fenzit",
+  "/admin/company/employees": "Console · Fenzit",
+  "/admin/company/jobs": "Console · Fenzit",
+  "/admin/company/holidays": "Console · Fenzit",
+  "/admin/company/attendance": "Console · Fenzit",
   "/admin/me": "Console · Fenzit",
   "404": "Page not found · Fenzit",
 };

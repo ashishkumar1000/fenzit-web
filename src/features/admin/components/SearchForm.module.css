@@ -1,20 +1,25 @@
 .form {
   display: grid;
+  gap: var(--space-4);
+  max-width: 480px;
+}
+
+.row {
+  display: flex;
   gap: var(--space-3);
-  max-width: 420px;
+  align-items: flex-start;
+}
+
+.dial {
+  flex: 0 0 132px;
+  padding-top: var(--space-6);
 }
 
 .field {
+  flex: 1;
   min-width: 0;
 }
 
 .submit {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.icon {
-  color: var(--color-text-muted);
-  display: inline-flex;
 }

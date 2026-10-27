@@ -3,6 +3,8 @@ import { Container } from "../../../components/ui/Container";
 import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
+import { useSessionName } from "../../../hooks/useSessionName";
+import { clearSession } from "../../../services/session";
 import styles from "./Header.module.css";
 
 // Links to the sections on the home page. Qualified with the path so they work from every page,
@@ -15,6 +17,7 @@ const LINKS = [
 ] as const;
 
 export function Header() {
+  const sessionName = useSessionName();
   return (
     <>
       <div className={styles.strip}>
@@ -50,9 +53,22 @@ export function Header() {
                 ))}
               </ul>
             </nav>
-            <a className={styles.login} href="/login">
-              Log in
-            </a>
+            {sessionName === null ? (
+              <a className={styles.login} href="/login">
+                Log in
+              </a>
+            ) : (
+              <button
+                type="button"
+                className={styles.login}
+                onClick={() => {
+                  clearSession();
+                  window.location.reload();
+                }}
+              >
+                Log out
+              </button>
+            )}
             <a className={styles.cta} href="/#early-access">
               Join early access
             </a>

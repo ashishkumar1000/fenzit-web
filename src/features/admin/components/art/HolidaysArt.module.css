@@ -1,0 +1,44 @@
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.soft {
+  fill: var(--color-surface-sunken);
+  fill-opacity: 0.85;
+}
+
+.sheet {
+  fill: var(--color-primary-soft);
+  fill-opacity: 0.9;
+}
+
+.ring {
+  fill: var(--color-primary);
+  fill-opacity: 0.35;
+}
+
+.accentBand {
+  fill: var(--color-primary);
+  fill-opacity: 0.14;
+}
+
+.day {
+  fill: var(--color-primary);
+  fill-opacity: 0.2;
+}
+
+.dot {
+  fill: var(--color-surface-card);
+  fill-opacity: 0.9;
+}
+
+.confetti {
+  fill: var(--color-status-scheduled-bg);
+}
+
+.confettiDim {
+  fill: var(--color-status-done-bg);
+}

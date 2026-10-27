@@ -104,3 +104,12 @@
   cursor: pointer;
   text-decoration: underline;
 }
+
+.holidayRow {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

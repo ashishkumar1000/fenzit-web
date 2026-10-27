@@ -2,7 +2,15 @@ import { redirect, type LoaderFunctionArgs } from "react-router";
 import { clearSession } from "../../services/session";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
 import type { LeaveRow } from "./companyApi";
-import { fetchMyJobs, fetchMyLeave, fetchMySummary, type JobRow, type MeSummary } from "./meApi";
+import {
+  fetchMyJobs,
+  fetchMyLeave,
+  fetchMyMonthly,
+  fetchMySummary,
+  type JobRow,
+  type MeMonthSummary,
+  type MeSummary,
+} from "./meApi";
 import { settle, type Slice } from "./slice";
 
 /** The Me section's profile line — the caller's own /users/me row, which the
@@ -23,6 +31,7 @@ export type MeData =
       state: "ok";
       me: MeProfile;
       summary: Slice<MeSummary>;
+      month: Slice<MeMonthSummary>;
       leave: Slice<LeaveRow[]>;
       jobs: Slice<JobRow[]>;
     }
@@ -35,8 +44,11 @@ export type MeData =
 export async function adminMeLoader({ request }: LoaderFunctionArgs): Promise<MeData> {
   try {
     const { token, me } = await requireConsoleRole(request, ["member"]);
-    const [summary, leave, jobs] = await Promise.all([
+    const today = new Date().toLocaleDateString("en-CA");
+    const from = `${today.slice(0, 7)}-01`;
+    const [summary, month, leave, jobs] = await Promise.all([
       settle(() => fetchMySummary(token, request.signal)),
+      settle(() => fetchMyMonthly(token, from, today, request.signal)),
       settle(async () => (await fetchMyLeave(token, request.signal)).data),
       settle(async () => (await fetchMyJobs(token, request.signal)).data),
     ]);
@@ -45,13 +57,14 @@ export async function adminMeLoader({ request }: LoaderFunctionArgs): Promise<Me
       me: {
         name: me.name,
         email: me.email,
-        countryCode: me.countryCode,
-        phoneNumber: me.phoneNumber,
+        countryCode: me.countryCode ?? "+91",
+        phoneNumber: me.phoneNumber ?? "",
         employeeCode: me.employeeCode,
         role: me.role,
         status: me.status,
       },
       summary,
+      month,
       leave,
       jobs,
     };

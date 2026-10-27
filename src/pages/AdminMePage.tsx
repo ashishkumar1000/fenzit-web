@@ -5,7 +5,7 @@ import { humanize } from "../features/admin/status";
 import { GlyphMe } from "../features/admin/components/glyphs";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { DataTable, type TableCell } from "../features/admin/components/Table";
-import { fmtDay, fmtPhone, fmtWhen } from "../features/admin/format";
+import { fmtDay, fmtDistance, fmtPhone, fmtWhen } from "../features/admin/format";
 import styles from "./AdminMePage.module.css";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -70,12 +70,22 @@ export function AdminMePage() {
       {s ? (
         <SectionCard title="Attendance" meta={s.officeName ?? "no office"}>
           <div className={styles.factGrid}>
+            <Fact label="Office" value={s.officeName ?? "—"} />
             <Fact label="Shift" value={`${s.startTime ?? "—"} – ${s.endTime ?? "—"}`} />
             <Fact
               label="Late after"
               value={s.lateCutOffMinutes === null ? "—" : `${s.lateCutOffMinutes} min`}
             />
             <Fact label="Weekly off" value={weeklyOffLabel(s.weeklyOffDays)} />
+            <Fact label="Geofence" value={fmtDistance(s.officeRadius)} />
+            <Fact
+              label="Office pin"
+              value={
+                s.officeLatitude === null || s.officeLongitude === null
+                  ? "—"
+                  : `${s.officeLatitude.toFixed(4)}, ${s.officeLongitude.toFixed(4)}`
+              }
+            />
             {today ? (
               <Fact
                 label="Today"
@@ -114,6 +124,36 @@ export function AdminMePage() {
           </p>
         </SectionCard>
       )}
+
+      {data.month.ok ? (
+        <SectionCard
+          title="This month"
+          meta={`${fmtDay(data.month.data.from)} – ${fmtDay(data.month.data.to)}`}
+        >
+          <div className={styles.factGrid}>
+            <Fact label="Days worked" value={String(data.month.data.summary.daysWorked)} />
+            <Fact label="Half days" value={String(data.month.data.summary.halfDays)} />
+            <Fact label="Late" value={String(data.month.data.summary.lateCount)} />
+            <Fact label="Leave credit" value={String(data.month.data.summary.leave)} />
+            <Fact label="Weekly offs" value={String(data.month.data.summary.weeklyOffs)} />
+            <Fact label="Holidays" value={String(data.month.data.summary.holidays)} />
+            <Fact label="Absent" value={String(data.month.data.summary.absent)} />
+            {data.month.data.summary.checkoutMissing > 0 ? (
+              <Fact
+                label="Missing check-out"
+                value={String(data.month.data.summary.checkoutMissing)}
+              />
+            ) : null}
+          </div>
+          {data.month.data.upcomingHolidays.length > 0 ? (
+            <div className={styles.holidayRow}>
+              {data.month.data.upcomingHolidays.map((h) => (
+                <Badge key={h.id} label={`${fmtDay(h.date)} · ${h.name}`} tone="neutral" />
+              ))}
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
 
       <div className={styles.pair}>
         {data.leave.ok ? (

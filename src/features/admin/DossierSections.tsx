@@ -8,14 +8,13 @@ import type {
   DossierInvite,
   DossierJob,
   DossierLeaveDay,
-  DossierLeaveEvent,
   DossierMembership,
   DossierNotification,
   DossierOffice,
   DossierReport,
   LookupResponse,
 } from "./dossier-types";
-import { fmtDay, fmtWhen } from "./format";
+import { fmtDateRange, fmtDay, fmtDistance, fmtWhen } from "./format";
 import styles from "./DossierSections.module.css";
 
 /** One dossier dataset per card. Every card states what it shows, its true
@@ -114,8 +113,8 @@ export function AttendanceSection({ attendance }: { attendance: DossierAttendanc
           { text: fmtDay(r.workDate) },
           { text: fmtWhen(r.checkin), quiet: true },
           { text: fmtWhen(r.checkout), quiet: true },
-          { text: r.checkinDistance === null ? "—" : `${r.checkinDistance} m` },
-          { text: r.checkoutDistance === null ? "—" : `${r.checkoutDistance} m` },
+          { text: fmtDistance(r.checkinDistance) },
+          { text: fmtDistance(r.checkoutDistance) },
           { text: r.mocked ? "mocked" : "ok", status: true },
         ])}
       />
@@ -128,7 +127,7 @@ export function AttendanceSection({ attendance }: { attendance: DossierAttendanc
               { text: humanize(a.kind) },
               { text: a.outcome, status: true },
               { text: a.provider ?? "—" },
-              { text: a.distance === null ? "—" : `${a.distance} m` },
+              { text: fmtDistance(a.distance) },
               { text: fmtWhen(a.createdAt), quiet: true },
             ])}
           />
@@ -157,15 +156,13 @@ export function LeaveSection({ d }: { d: LookupResponse }) {
         ])}
       />
       {d.leaveDays.length > 0 ? (
-        <span className={styles.chips}>
-          {d.leaveDays.map((day) => (
-            <LeaveDayChip key={day.date} day={day} />
-          ))}
-        </span>
-      ) : null}
-      {d.leaveEvents.length > 0 ? (
         <div className={styles.stack}>
-          <LeaveEventsTable events={d.leaveEvents} />
+          <p className={styles.caption}>Graded leave days</p>
+          <span className={styles.chips}>
+            {d.leaveDays.map((day) => (
+              <LeaveDayChip key={day.date} day={day} />
+            ))}
+          </span>
         </div>
       ) : null}
     </SectionCard>
@@ -176,18 +173,21 @@ function LeaveDayChip({ day }: { day: DossierLeaveDay }) {
   return <Badge label={`${fmtDay(day.date)} · ${humanize(day.state)}`} tone="neutral" />;
 }
 
-function LeaveEventsTable({ events }: { events: DossierLeaveEvent[] }) {
+/** The leave timeline as its own card — applying, cancelling, revoking. */
+export function LeaveEventsSection({ d }: { d: LookupResponse }) {
   return (
-    <DataTable
-      columns={["Event", "Actor", "Dates", "When"]}
-      empty=""
-      rows={events.map((e): TableCell[] => [
-        { text: humanize(e.cause) },
-        { text: e.actor ?? "—" },
-        { text: e.dates ?? "—" },
-        { text: fmtWhen(e.createdAt), quiet: true },
-      ])}
-    />
+    <SectionCard title="Leave timeline" meta={String(d.leaveEvents.length)}>
+      <DataTable
+        columns={["Event", "Actor", "Dates", "When"]}
+        empty="No leave events."
+        rows={d.leaveEvents.map((e): TableCell[] => [
+          { text: humanize(e.cause) },
+          { text: e.actor ?? "—" },
+          { text: fmtDateRange(e.dates) },
+          { text: fmtWhen(e.createdAt), quiet: true },
+        ])}
+      />
+    </SectionCard>
   );
 }
 
@@ -349,7 +349,7 @@ export function OfficesSection({ offices }: { offices: DossierOffice[] }) {
         rows={offices.map((o): TableCell[] => [
           { text: o.name },
           { text: o.address ?? "—" },
-          { text: o.radius === null ? "—" : `${o.radius} m` },
+          { text: fmtDistance(o.radius) },
           { text: o.valid ?? "—" },
         ])}
       />

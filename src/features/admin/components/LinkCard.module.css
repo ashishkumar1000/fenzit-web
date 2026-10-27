@@ -1,0 +1,45 @@
+.card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  min-height: 128px;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+}
+
+.body {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  max-width: 70%;
+}
+
+.label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+}
