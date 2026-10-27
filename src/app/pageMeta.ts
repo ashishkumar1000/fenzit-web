@@ -207,6 +207,10 @@ export const PUBLIC_PAGES: PageMeta[] = [
  */
 export const CLIENT_ONLY_TITLES: Record<string, string> = {
   "/login": "Log in · Fenzit",
-  "/admin": "Company admin · Fenzit",
+  "/admin": "Console · Fenzit",
+  "/admin/inspect": "Console · Fenzit",
+  "/admin/account": "Console · Fenzit",
+  "/admin/company": "Console · Fenzit",
+  "/admin/me": "Console · Fenzit",
   "404": "Page not found · Fenzit",
 };

@@ -1,0 +1,35 @@
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.badge[data-tone="done"] {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border-color: var(--color-status-done-border);
+}
+
+.badge[data-tone="progress"] {
+  color: var(--color-status-progress-fg);
+  background: var(--color-status-progress-bg);
+  border-color: var(--color-status-progress-border);
+}
+
+.badge[data-tone="scheduled"] {
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+  border-color: var(--color-status-scheduled-border);
+}
+
+.badge[data-tone="cancelled"] {
+  color: var(--color-status-cancelled-fg);
+  background: var(--color-status-cancelled-bg);
+  border-color: var(--color-status-cancelled-border);
+}

@@ -147,9 +147,9 @@ describe("LoginForm: the code step", () => {
     change("4-digit code", "1234");
     fireEvent.click(loginButton());
 
-    await screen.findByRole("heading", { name: "Company admin" });
-    // The landing is the allowed state, not the refused render the heading shares.
-    expect(screen.getByText("Signed in as Ravi Kumar")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Hello, Ravi Kumar" });
+    // The landing is the owner console, not the refused render the heading shares.
+    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
     expect(sentTo("/auth/otp/verify").at(-1)?.body).toMatchObject({
       otpSessionId: "sess-2",
       otpCode: "1234",
@@ -192,7 +192,7 @@ describe("LoginForm: the code step", () => {
     change("4-digit code", "1234");
     fireEvent.click(loginButton());
 
-    expect(await screen.findByRole("heading", { name: "Company admin" })).toBeInTheDocument();
-    expect(screen.getByText("Signed in as Ravi Kumar")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
+    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
   });
 });

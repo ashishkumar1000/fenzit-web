@@ -1,0 +1,48 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.dateLine {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.flagLine {
+  color: var(--color-status-scheduled-fg);
+}
+
+.pair {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 900px) {
+  .pair {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.failed {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  cursor: pointer;
+  text-decoration: underline;
+}

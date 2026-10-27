@@ -1,9 +1,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { AdminChecking } from "./AdminPage";
-import { canOpenAdmin } from "../features/admin/adminLoader";
+import { consoleRole, sectionsFor } from "../features/admin/adminLoader";
 import { SESSION_KEY, writeSession } from "../services/session";
 import { clearApiBase, jsonResponse, useApiBase } from "../testing/fetchMock";
 
@@ -27,10 +27,14 @@ beforeEach(() => {
     if (url.endsWith("/users/me")) {
       meCalls += 1;
       const next = meAnswers.shift();
-      if (next === undefined) throw new TypeError("no /users/me answer queued in this test");
-      return next();
+      // Unqueued calls (a revalidation from a previous test that fired late)
+      // get a harmless default, so they cannot poison this test's answers.
+      return next === undefined
+        ? jsonResponse({ id: "late", role: null, name: null, platformAdmin: false })
+        : next();
     }
-    // Anything else (such as the home page's country codes) fails, like router tests do.
+    // Anything else (section endpoints, the home page's country codes) fails,
+    // like router tests do.
     throw new TypeError(`offline in tests: ${url}`);
   }) as unknown as typeof fetch;
 });
@@ -42,41 +46,89 @@ afterEach(() => {
 });
 
 function me(
-  overrides: Partial<{ role: string | null; name: string | null; platformAdmin: boolean }> = {},
+  overrides: Partial<{
+    id: string;
+    role: string | null;
+    name: string | null;
+    platformAdmin: boolean;
+  }> = {},
 ): () => Response {
   return () =>
-    jsonResponse({ role: "company_admin", name: "Ravi Kumar", platformAdmin: false, ...overrides });
+    jsonResponse({
+      id: "11111111-1111-4111-8111-111111111111",
+      role: "company_admin",
+      name: "Ravi Kumar",
+      platformAdmin: false,
+      ...overrides,
+    });
 }
 
-function renderAdmin(): void {
-  const router = createMemoryRouter(routes, { initialEntries: ["/admin"] });
+function renderAdmin(initialEntry = "/admin"): void {
+  const router = createMemoryRouter(routes, { initialEntries: [initialEntry] });
   render(<RouterProvider router={router} />);
 }
 
-describe("canOpenAdmin", () => {
-  it("lets a company admin in", () => {
-    expect(canOpenAdmin("company_admin", false)).toBe(true);
+function meObject(
+  overrides: Partial<{ id: string; role: string | null; platformAdmin: boolean }> = {},
+): {
+  id: string;
+  name: string | null;
+  role: string | null;
+  platformAdmin: boolean;
+  email: string | null;
+  countryCode: string;
+  phoneNumber: string;
+  employeeCode: string | null;
+  status: string | null;
+} {
+  return {
+    id: "u",
+    name: null,
+    role: null,
+    platformAdmin: false,
+    email: null,
+    countryCode: "+91",
+    phoneNumber: "9876543210",
+    employeeCode: null,
+    status: null,
+    ...overrides,
+  };
+}
+
+describe("consoleRole", () => {
+  it("makes a platform admin staff", () => {
+    expect(consoleRole(meObject({ platformAdmin: true }))).toBe("staff");
   });
 
-  it("lets a platform admin in, even with no membership role", () => {
-    expect(canOpenAdmin(null, true)).toBe(true);
+  it("makes a company admin an owner", () => {
+    expect(consoleRole(meObject({ role: "company_admin" }))).toBe("owner");
   });
 
-  it.each([
-    ["employee", false, "an employee"],
-    ["viewer", false, "a viewer"],
-    [null, false, "a person with no membership"],
-    ["owner", false, "a stale owner role from before the rename"],
-  ])("refuses %s (%s)", (role, platformAdmin) => {
-    expect(canOpenAdmin(role, platformAdmin)).toBe(false);
+  it.each([["employee"], ["viewer"], [null]] as const)("makes %s a plain member", (role) => {
+    expect(consoleRole(meObject({ role }))).toBe("member");
   });
 });
 
-describe("AdminPage: access", () => {
+describe("sectionsFor", () => {
+  it("gives staff Inspect and Account", () => {
+    expect(sectionsFor("staff").map((s) => s.to)).toEqual(["/admin/inspect", "/admin/account"]);
+  });
+
+  it("gives an owner only Company", () => {
+    expect(sectionsFor("owner").map((s) => s.to)).toEqual(["/admin/company"]);
+  });
+
+  it("gives a member only Me", () => {
+    expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me"]);
+  });
+});
+
+describe("Console: access", () => {
   it("sends a visitor with no saved sign-in to /login without asking the backend", async () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Log in to Fenzit" })).toBeInTheDocument();
+    // The session check comes first: no /users/me probe leaves the browser.
     expect(meCalls).toBe(0);
   });
 
@@ -128,78 +180,83 @@ describe("AdminPage: access", () => {
     renderAdmin();
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
 
-    expect(await screen.findByRole("heading", { name: "Company admin" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
   });
 });
 
-describe("AdminPage: who gets in", () => {
-  it("welcomes a company admin by name", async () => {
+describe("Console: who sees what", () => {
+  it("welcomes a company owner and shows only the Company section", async () => {
     writeSession({ token: "tok-1", name: "Ravi Kumar" });
     meAnswers.push(me());
 
     renderAdmin();
 
-    expect(await screen.findByRole("heading", { name: "Company admin" })).toBeInTheDocument();
-    expect(
-      screen.getByText("This page is a placeholder. Company tools will appear here."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Signed in as Ravi Kumar")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
+    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Company" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
   });
 
-  it("lets a platform admin in and skips the name line when the account has none", async () => {
+  it("gives a platform admin the staff sections, greeting a nameless account as Hello", async () => {
     writeSession({ token: "tok-1", name: null });
     meAnswers.push(me({ role: null, platformAdmin: true, name: null }));
 
     renderAdmin();
 
-    expect(await screen.findByRole("heading", { name: "Company admin" })).toBeInTheDocument();
-    expect(screen.queryByText(/Signed in as/)).toBeNull();
+    expect(await screen.findByRole("heading", { name: "Hello" })).toBeInTheDocument();
+    expect(screen.getByText("Signed in as fenzit staff")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Inspect" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Account" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
   });
 
-  it.each([
-    [me({ role: "employee" }), "an employee"],
-    [me({ role: "viewer" }), "a viewer"],
-    [me({ role: null, platformAdmin: false }), "a person with no membership"],
-  ])("shows the no-permission message to %s", async (answer) => {
+  it("gives an employee only the Me section — the console no longer refuses them", async () => {
     writeSession({ token: "tok-1", name: "Ravi" });
-    meAnswers.push(answer);
+    meAnswers.push(me({ role: "employee" }));
 
     renderAdmin();
 
-    expect(
-      await screen.findByText("You do not have permission to open this page."),
-    ).toBeInTheDocument();
-    // The heading stays (the UX pass keeps it); the refused content and the
-    // placeholder line are what disappear.
-    expect(
-      screen.queryByText("This page is a placeholder. Company tools will appear here."),
-    ).toBeNull();
-    expect(screen.queryByText(/Signed in as/)).toBeNull();
-    expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
+    expect(screen.getByText("Signed in as team member")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Me" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
   });
 });
 
-describe("AdminPage: logging out", () => {
+describe("Console: section gating", () => {
+  it("bounces an employee who hand-types /admin/inspect back to their own console", async () => {
+    writeSession({ token: "tok-1", name: "Ravi" });
+    // The layout loader and the refused child loader each ask who the person is.
+    meAnswers.push(me({ role: "employee" }));
+    meAnswers.push(me({ role: "employee" }));
+
+    renderAdmin("/admin/inspect");
+
+    expect(await screen.findByText(/The Me section shows your attendance/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("98765 43210")).toBeNull();
+  });
+
+  it("lands a staff visit to /admin/account on the search, idle", async () => {
+    writeSession({ token: "tok-1", name: null });
+    meAnswers.push(me({ role: null, platformAdmin: true, name: null }));
+    meAnswers.push(me({ role: null, platformAdmin: true, name: null }));
+
+    renderAdmin("/admin/account");
+
+    expect(
+      await screen.findByText(/Search a phone number to see that person's flags/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Console: logging out", () => {
   it("clears the saved sign-in and returns to the home page", async () => {
     writeSession({ token: "tok-1", name: "Ravi" });
     meAnswers.push(me());
-
-    renderAdmin();
-    fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
-
-    expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: /run your jobs, attendance and leave/i,
-      }),
-    ).toBeInTheDocument();
-    await waitFor(() => expect(window.localStorage.getItem(SESSION_KEY)).toBeNull());
-  });
-
-  it("offers the same log out to a person refused permission", async () => {
-    writeSession({ token: "tok-1", name: "Ravi" });
-    meAnswers.push(me({ role: "employee" }));
 
     renderAdmin();
     fireEvent.click(await screen.findByRole("button", { name: "Log out" }));

@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router";
 import { countryCodesLoader } from "../services/countryCodes";
+import { adminAccountAction } from "../features/admin/adminAccountAction";
 import { earlyAccessAction } from "../features/landing/earlyAccessAction";
 import { UseCasePage } from "../features/use-case/components/UseCasePage";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
@@ -48,18 +49,82 @@ export const routes: RouteObject[] = [
         },
       },
       {
+        // The console: one layout with per-role child sections (staff inspect/
+        // account, owner company, employee me). A lazy() return cannot carry
+        // children, so the child list is static and each child lazy-loads its
+        // own chunk.
         path: "/admin",
+        id: "admin",
         lazy: async () => {
-          const [{ AdminPage, AdminChecking }, { adminLoader }] = await Promise.all([
+          const [{ AdminLayout, AdminChecking }, { adminLoader }] = await Promise.all([
             import("../pages/AdminPage"),
             import("../features/admin/adminLoader"),
           ]);
           return {
-            Component: AdminPage,
+            Component: AdminLayout,
             loader: adminLoader,
             HydrateFallback: AdminChecking,
           };
         },
+        children: [
+          {
+            index: true,
+            lazy: () => import("../pages/AdminPage").then((m) => ({ Component: m.AdminHome })),
+          },
+          {
+            path: "inspect",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminInspectPage"),
+                import("../features/admin/adminInspectLoader"),
+              ]);
+              return {
+                Component: page.AdminInspectPage,
+                loader: loaderModule.adminInspectLoader,
+              };
+            },
+          },
+          {
+            path: "account",
+            action: adminAccountAction,
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminAccountPage"),
+                import("../features/admin/adminAccountLoader"),
+              ]);
+              return {
+                Component: page.AdminAccountPage,
+                loader: loaderModule.adminAccountLoader,
+              };
+            },
+          },
+          {
+            path: "company",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminCompanyPage"),
+                import("../features/admin/adminCompanyLoader"),
+              ]);
+              return {
+                Component: page.AdminCompanyPage,
+                loader: loaderModule.adminCompanyLoader,
+              };
+            },
+          },
+          {
+            path: "me",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminMePage"),
+                import("../features/admin/adminMeLoader"),
+              ]);
+              return {
+                Component: page.AdminMePage,
+                loader: loaderModule.adminMeLoader,
+              };
+            },
+          },
+        ],
       },
       { path: "*", element: <NotFoundPage /> },
     ],

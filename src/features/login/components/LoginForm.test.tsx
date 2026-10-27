@@ -225,8 +225,9 @@ describe("LoginForm: the sign-in step", () => {
     expect((screen.getByLabelText("Password") as HTMLInputElement).disabled).toBe(true);
 
     release?.();
-    await screen.findByRole("heading", { name: "Company admin" });
-    // The sign-in really landed: the access check said yes, not the refused state.
-    expect(screen.getByText("Signed in as Ravi Kumar")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Hello, Ravi Kumar" });
+    // The sign-in really landed: the console greets the person by name and
+    // names their role (a company admin lands as the owner).
+    expect(screen.getByText("Signed in as company owner")).toBeInTheDocument();
   });
 });
