@@ -45,7 +45,7 @@ describe("SearchForm", () => {
   it("shows the reason in a status line only while a search runs", () => {
     renderForm(true);
     expect(screen.getByRole("status").textContent).toBe(
-      "Please wait. The form is locked until the result shows.",
+      "Please wait. You cannot change the form until the result shows.",
     );
     cleanup();
     renderForm(false);

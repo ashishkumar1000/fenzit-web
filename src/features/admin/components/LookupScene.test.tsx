@@ -13,10 +13,10 @@ describe("LookupFacts", () => {
       "Companies",
       "Jobs",
       "Attendance",
-      "Leave requests",
+      "Leave",
       "Invitations",
       "Notifications",
-      "Change history",
+      "Past changes",
     ]);
   });
 });

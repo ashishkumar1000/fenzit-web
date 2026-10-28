@@ -1,7 +1,9 @@
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import type { adminAccountLoader } from "../features/admin/adminAccountLoader";
 import { DossierView } from "../features/admin/DossierView";
+import { AccountScene } from "../features/admin/components/AccountScene";
 import { FlagControls } from "../features/admin/components/FlagControls";
+import { GlyphAccount } from "../features/admin/components/glyphs";
 import { SearchForm } from "../features/admin/components/SearchForm";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { TableSkeleton } from "../features/admin/components/Table";
@@ -33,15 +35,36 @@ export function AdminAccountPage() {
       ) : (
         <>
           {data.state === "idle" ? (
-            <p className={styles.note}>
-              Search a phone number to see that person's flags. Staff accounts can only be demoted
-              here; regular accounts can be promoted, disabled and re-enabled.
-            </p>
+            <div className={styles.idle}>
+              <div className={styles.idleText}>
+                <h2 className={styles.idleTitle}>
+                  <span className={styles.glyph} aria-hidden="true">
+                    <GlyphAccount />
+                  </span>
+                  Change what a person can do
+                </h2>
+                <p className={styles.idleCopy}>
+                  Search for a phone number to see that person's access. Every change asks you to
+                  confirm first. A staff account can only be removed from staff. It cannot be turned
+                  off here.
+                </p>
+                <p className={styles.factsLabel}>You can</p>
+                <ul className={styles.facts} role="list">
+                  <li>Make someone staff</li>
+                  <li>Stop an account from signing in</li>
+                  <li>Let an account sign in again</li>
+                  <li>Remove someone from staff</li>
+                </ul>
+              </div>
+              <div className={styles.idleScene}>
+                <AccountScene />
+              </div>
+            </div>
           ) : null}
           {data.state === "not-found" ? (
             <div className={styles.notice} role="status">
-              <p className={styles.noticeTitle}>No person with this number</p>
-              <p className={styles.noticeCopy}>{data.phone} matches nobody.</p>
+              <p className={styles.noticeTitle}>No one has this number</p>
+              <p className={styles.noticeCopy}>No one has the number {data.phone}.</p>
             </div>
           ) : null}
           {data.state === "invalid" ? (

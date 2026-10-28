@@ -273,8 +273,19 @@ describe("Console: section gating", () => {
     renderAdmin("/admin/account");
 
     expect(
-      await screen.findByText(/Search a phone number to see that person's flags/i),
+      await screen.findByText(/Search for a phone number to see that person's access/i),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Change what a person can do", level: 2 }),
+    ).toBeInTheDocument();
+    for (const action of [
+      "Make someone staff",
+      "Stop an account from signing in",
+      "Let an account sign in again",
+      "Remove someone from staff",
+    ]) {
+      expect(screen.getByText(action, { selector: "li" })).toBeInTheDocument();
+    }
   });
 });
 

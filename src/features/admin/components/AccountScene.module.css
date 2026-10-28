@@ -1,0 +1,94 @@
+/* Colours come from the design tokens, so the artwork follows the theme. */
+
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.panel {
+  fill: var(--color-surface-sunken);
+}
+
+.card {
+  fill: var(--color-surface-card);
+  stroke: var(--color-text-strong);
+  stroke-width: 1.5;
+}
+
+.avatar {
+  fill: none;
+  stroke: var(--color-text-strong);
+  stroke-width: 1.5;
+}
+
+.face {
+  fill: none;
+  stroke: var(--color-text-strong);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.line {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.divider {
+  fill: none;
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
+}
+
+.switchOn {
+  fill: var(--color-primary);
+}
+
+.switchOff {
+  fill: var(--color-border-default);
+}
+
+.knob {
+  fill: var(--color-surface-card);
+}
+
+.link {
+  fill: none;
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 6;
+}
+
+.shieldRing {
+  fill: var(--color-surface-card);
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
+}
+
+.shield {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.check {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkle {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.dot {
+  fill: var(--color-primary);
+}

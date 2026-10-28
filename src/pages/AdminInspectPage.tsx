@@ -40,13 +40,13 @@ export function AdminInspectPage() {
                   <span className={styles.glyph} aria-hidden="true">
                     <GlyphInspect />
                   </span>
-                  Look up anyone by phone
+                  Look up a person by phone
                 </h2>
                 <p className={styles.idleCopy}>
-                  Choose a country code, type the number, and press Search. An exact match shows the
-                  person's details below.
+                  Pick the country code. Type the phone number. Then press Search. You will see the
+                  person's details below. Only the exact number shows a person.
                 </p>
-                <p className={styles.factsLabel}>A match shows</p>
+                <p className={styles.factsLabel}>You will see</p>
                 <LookupFacts />
               </div>
               <div className={styles.idleScene}>
@@ -56,9 +56,9 @@ export function AdminInspectPage() {
           ) : null}
           {data.state === "not-found" ? (
             <div className={styles.notice} role="status">
-              <p className={styles.noticeTitle}>No person with this number</p>
+              <p className={styles.noticeTitle}>No one has this number</p>
               <p className={styles.noticeCopy}>
-                {data.phone} matches nobody. Check the digits — the match is exact.
+                No one has the number {data.phone}. Check each digit and try again.
               </p>
             </div>
           ) : null}

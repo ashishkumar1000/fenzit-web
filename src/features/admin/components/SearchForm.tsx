@@ -66,7 +66,7 @@ export function SearchForm({
             type="tel"
             inputMode="tel"
             autoComplete="off"
-            hint="Enter the phone number without the country code. Pick the country code on the left first."
+            hint="Pick the country code first. Then type the number, without the country code."
             maxLength={14}
             disabled={busy}
             prefix={
@@ -89,7 +89,7 @@ export function SearchForm({
         </div>
       </div>
       <p className={styles.status} role="status">
-        {busy ? "Please wait. The form is locked until the result shows." : ""}
+        {busy ? "Please wait. You cannot change the form until the result shows." : ""}
       </p>
     </Form>
   );

@@ -2,7 +2,7 @@ import styles from "./LookupScene.module.css";
 
 /**
  * Original artwork for the empty side of the look-up card: one phone number at
- * the centre, joined to the six kinds of record an exact match shows. Hand-drawn
+ * the centre, joined to the kinds of record an exact match shows. Hand-drawn
  * on a 440×300 grid, with strokes that take the colours from the stylesheet. It
  * is decorative. The text beside it carries the meaning, so it is hidden from
  * screen readers.
@@ -133,10 +133,10 @@ const FACTS: { kind: Node["mark"]; label: string }[] = [
   { kind: "company", label: "Companies" },
   { kind: "jobs", label: "Jobs" },
   { kind: "clock", label: "Attendance" },
-  { kind: "calendar", label: "Leave requests" },
+  { kind: "calendar", label: "Leave" },
   { kind: "mail", label: "Invitations" },
   { kind: "alert", label: "Notifications" },
-  { kind: "shield", label: "Change history" },
+  { kind: "shield", label: "Past changes" },
 ];
 
 /** The six kinds of record a match shows, each with its mark. Decorative icons: the words carry the meaning. */
