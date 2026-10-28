@@ -67,3 +67,13 @@ export function HeadsetIcon({ className }: PerkIconProps) {
     </svg>
   );
 }
+
+/** A ring with a tick inside: a feature that is included. */
+export function CheckBadgeIcon({ className }: PerkIconProps) {
+  return (
+    <svg className={iconClass(className)} {...SVG_PROPS}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12.2 2.4 2.4 4.6-4.8" />
+    </svg>
+  );
+}

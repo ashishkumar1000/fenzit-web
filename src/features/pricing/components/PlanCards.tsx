@@ -1,6 +1,6 @@
-import { Check } from "lucide-react";
 import { LinkButton } from "../../../components/ui/LinkButton";
 import { CONTACT_EMAIL } from "../../../config/contact";
+import { CheckBadgeIcon } from "../PerkIcons";
 import { PLANS, type PlanTier } from "../pricingContent";
 import { PricingSectionHead } from "./PricingSectionHead";
 import styles from "./PlanCards.module.css";
@@ -51,7 +51,7 @@ export function PlanCards() {
             <ul className={styles.features}>
               {plan.features.map((feature) => (
                 <li key={feature} className={styles.feature}>
-                  <Check className={styles.featureIcon} aria-hidden="true" focusable="false" />
+                  <CheckBadgeIcon className={styles.featureIcon} />
                   <span>{feature}</span>
                 </li>
               ))}

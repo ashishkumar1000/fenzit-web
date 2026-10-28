@@ -1,4 +1,5 @@
-import { ArrowRight, Check, Clock, Route } from "lucide-react";
+import { Clock, Route } from "lucide-react";
+import { CheckBadgeIcon } from "../PerkIcons";
 import { LinkButton } from "../../../components/ui/LinkButton";
 import { TRIAL_FEATURES } from "../pricingContent";
 import styles from "./TrialOverview.module.css";
@@ -40,7 +41,7 @@ export function TrialOverview() {
           <ul className={styles.features}>
             {TRIAL_FEATURES.map((feature) => (
               <li key={feature} className={styles.feature}>
-                <Check className={styles.featureIcon} aria-hidden="true" focusable="false" />
+                <CheckBadgeIcon className={styles.featureIcon} />
                 <span>{feature}</span>
               </li>
             ))}
@@ -48,7 +49,6 @@ export function TrialOverview() {
           <div className={styles.actions}>
             <LinkButton to="/features" variant="primary">
               See the features
-              <ArrowRight aria-hidden="true" focusable="false" size={18} />
             </LinkButton>
             <LinkButton to="/book-demo" variant="secondary">
               Book a demo
