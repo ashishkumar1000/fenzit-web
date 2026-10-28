@@ -109,7 +109,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "trial-title",
     title: "Free trial",
     paragraphs: [
-      "Every team gets 3 months free to try Fenzit.",
+      "Every team gets 90 days free to try Fenzit.",
       "We will tell you the price for your team before the trial ends. We will not charge you until we have told you the price and how to pay.",
     ],
   },

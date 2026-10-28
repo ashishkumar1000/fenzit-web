@@ -1,51 +1,12 @@
-import { BOOK_DEMO_PAGE, DATA_SAFETY_PAGE, PARTNERS_PAGE, PRICING_PAGE } from "../app/pageMeta";
+import { BOOK_DEMO_PAGE, DATA_SAFETY_PAGE, PARTNERS_PAGE } from "../app/pageMeta";
 import { LinkButton } from "../components/ui/LinkButton";
 import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../config/contact";
 import { DemoRequestForm } from "../features/landing/components/ContactForms";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./InfoPages.module.css";
 
-// The four plain public pages. Each statement is something the app or the team does today.
+// The plain public pages. Each statement is something the app or the team does today.
 // No prices are shown until the owner confirms them.
-
-export function PricingPage() {
-  return (
-    <SimplePage
-      meta={PRICING_PAGE}
-      id="pricing-title"
-      title="Pricing"
-      lead="Every team gets 3 months free to try Fenzit."
-    >
-      <SimpleSection
-        id="trial-title"
-        title="3 months free for every team"
-        paragraphs={["Your team can use everything on our features page for the first 3 months."]}
-      >
-        <div className={styles.actions}>
-          <LinkButton href="/features" variant="secondary">
-            See the features
-          </LinkButton>
-        </div>
-      </SimpleSection>
-      <SimpleSection
-        id="price-title"
-        title="After the trial"
-        paragraphs={[
-          "We will tell you the price for your team before the 3 months end. Ask us any time.",
-        ]}
-      >
-        <div className={styles.actions}>
-          <LinkButton href={SALES_PHONE_HREF} variant="secondary">
-            Call {SALES_PHONE_DISPLAY}
-          </LinkButton>
-          <LinkButton href={`mailto:${CONTACT_EMAIL}`} variant="secondary">
-            Email {CONTACT_EMAIL}
-          </LinkButton>
-        </div>
-      </SimpleSection>
-    </SimplePage>
-  );
-}
 
 export function BookDemoPage() {
   return (

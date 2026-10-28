@@ -15,7 +15,7 @@ export function Hero() {
             </h1>
             <p className={styles.sub}>
               Use Fenzit for field jobs, for attendance and leave, or for both. Owners set it up
-              once, and the team uses it on their phones. Every team gets 3 months free.
+              once, and the team uses it on their phones. Every team gets 90 days free.
             </p>
             <div className={styles.actions}>
               <LinkButton href="#early-access" variant="primary">

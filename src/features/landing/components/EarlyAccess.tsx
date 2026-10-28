@@ -8,7 +8,7 @@ import styles from "./EarlyAccess.module.css";
 const PERKS: string[] = [
   "You get a reference number when you join.",
   "Built for owners and employees.",
-  "Every team gets 3 months free.",
+  "Every team gets 90 days free.",
 ];
 
 export function EarlyAccess() {

@@ -172,9 +172,9 @@ export const WATER_PURIFIER_PAGE: PageMeta = {
 
 export const PRICING_PAGE: PageMeta = {
   path: "/pricing",
-  title: "Fenzit pricing — 3 months free for every team",
+  title: "Fenzit pricing — 90 days free for every team",
   description:
-    "Every team gets 3 months free to try Fenzit. Call or email us for the price for your team before the trial ends.",
+    "Every team gets 90 days free to try Fenzit. Call or email us for the price for your team before the trial ends.",
 };
 
 export const BOOK_DEMO_PAGE: PageMeta = {

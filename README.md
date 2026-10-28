@@ -59,7 +59,7 @@ This repo uses **Bun only**. Do not run `npm`, `yarn` or `pnpm`.
 | -------------- | ----------------------------------------------------------- |
 | `/`            | Home, with **Request a call back** and early-access sign-up |
 | `/book-demo`   | **Book a demo** form                                        |
-| `/pricing`     | Pricing: 3 months free for every team                       |
+| `/pricing`     | Pricing: 90 days free for every team                        |
 | `/data-safety` | How company data is kept separate                           |
 | `/partners`    | For installers, service companies and resellers             |
 
