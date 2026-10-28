@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { clearSession, writeSession } from "../../../services/session";
 import { Header } from "./Header";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  clearSession();
+});
 
 // The brand is a router Link, so the header renders inside a memory router in every test.
 function renderHeader() {
@@ -28,14 +32,19 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: "Questions" }).getAttribute("href")).toBe("/#faq");
   });
 
-  it("sends the strip link and the header button to the early-access form", () => {
+  // The early-access form has its own entry points (hero and section), so the header does not repeat it.
+  it("does not show a Join early access link in the header", () => {
     renderHeader();
 
-    const joinLinks = screen.getAllByRole("link", { name: "Join early access" });
-    expect(joinLinks).toHaveLength(2);
-    for (const link of joinLinks) {
-      expect(link.getAttribute("href")).toBe("/#early-access");
-    }
+    expect(screen.queryAllByRole("link", { name: "Join early access" })).toHaveLength(0);
+  });
+
+  it("shows Log out in place of Log in when a session is saved", () => {
+    writeSession({ token: "test-token", name: "Mona" });
+    renderHeader();
+
+    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
   });
 
   it("keeps the page sections in one labelled navigation landmark", () => {

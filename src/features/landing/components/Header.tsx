@@ -22,9 +22,6 @@ export function Header() {
     <>
       <div className={styles.strip}>
         <p className={styles.stripText}>Early access is open for field service teams.</p>
-        <a className={styles.stripLink} href="/#early-access">
-          Join early access
-        </a>
       </div>
       <header className={styles.header}>
         <Container>
@@ -60,7 +57,7 @@ export function Header() {
             ) : (
               <button
                 type="button"
-                className={styles.login}
+                className={`${styles.login} ${styles.logout}`}
                 onClick={() => {
                   clearSession();
                   window.location.reload();
@@ -69,9 +66,6 @@ export function Header() {
                 Log out
               </button>
             )}
-            <a className={styles.cta} href="/#early-access">
-              Join early access
-            </a>
           </div>
         </Container>
       </header>

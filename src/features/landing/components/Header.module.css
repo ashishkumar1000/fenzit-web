@@ -14,23 +14,6 @@
   font-size: var(--font-size-sm);
 }
 
-.stripLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-min);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-on-primary);
-  text-decoration: underline;
-  text-underline-offset: var(--space-1);
-}
-
-.stripLink:focus-visible {
-  outline: 2px solid var(--color-on-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
-}
-
 /* The sticky band keeps the bar on screen. No blur or shadow: the site stays flat. */
 .header {
   position: sticky;
@@ -105,40 +88,27 @@
   text-decoration: none;
 }
 
+/* A button takes the link look: no browser box, and the same font, weight and colour as "Log in". */
+.logout {
+  appearance: none;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
 .navLink:focus-visible,
 .login:focus-visible,
-.cta:focus-visible {
+.logout:focus-visible {
   outline: 2px solid var(--color-ring-focus);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
 }
 
-.cta {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  /* On a phone the label wraps inside a fixed width, so the bar keeps "Log in" beside it. */
-  max-width: 8.5rem;
-  white-space: normal;
-  min-height: var(--touch-min);
-  padding: var(--space-2) var(--space-3);
-  line-height: 1.2;
-  text-align: center;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-}
-
 @media (min-width: 768px) {
   .nav {
     display: block;
-  }
-
-  /* Phones wrap the label inside a fixed width. Wider screens keep it on one line. */
-  .cta {
-    max-width: none;
-    white-space: nowrap;
   }
 }
