@@ -1,4 +1,38 @@
+# Search engines and everyone else: the whole site is public.
 User-agent: *
+Allow: /
+
+# AI search and answer tools. Each one is named so the choice is explicit.
+# OpenAI: ChatGPT search, its training crawler, and the crawler for user-triggered requests.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic: Claude search, its training crawler, and the crawler for user-triggered requests.
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+# Perplexity: its answer engine and the crawler for user-triggered requests.
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Google's AI features (Gemini and AI Overviews) use the normal Googlebot index, but this token
+# controls training use of the content. Allowed here, so the choice is written down.
+User-agent: Google-Extended
 Allow: /
 
 Sitemap: https://fenzit.com/sitemap.xml
