@@ -142,7 +142,7 @@ export function LoginForm() {
         inputMode="text"
         autoComplete="username"
         maxLength={EMAIL_MAX_LENGTH}
-        placeholder="e.g. mona@gmail.com or 98765 43210"
+        placeholder="Phone or email"
         prefix={
           showDialCode ? (
             <DialCodeSelect

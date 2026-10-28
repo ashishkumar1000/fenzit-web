@@ -1,25 +1,48 @@
 .form {
-  display: grid;
-  gap: var(--space-4);
-  max-width: 480px;
+  display: block;
+  max-width: 640px;
 }
 
 .row {
   display: flex;
   gap: var(--space-3);
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .dial {
-  flex: 0 0 132px;
+  flex: 0 0 auto;
   padding-top: var(--space-6);
 }
 
 .field {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: 180px;
 }
 
+/* Below 600px the button takes its own full-width line under the inputs. The
+   grid stretches the button across the wrapper; Button takes no className. */
 .submit {
-  display: flex;
+  display: grid;
+  flex: 1 1 100%;
+  justify-items: stretch;
+}
+
+.status {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Kept in the page so screen readers catch the text when it arrives. */
+.status:empty {
+  margin: 0;
+}
+
+@media (min-width: 600px) {
+  /* Wider: the button sits on the same line as the inputs, lined up with the input boxes. */
+  .submit {
+    flex: 0 0 auto;
+    padding-top: var(--space-6);
+  }
 }

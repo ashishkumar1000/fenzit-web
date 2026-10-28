@@ -37,10 +37,11 @@ function splitForDisplay(
 }
 
 /**
- * The exact-phone search. A router `<Form method="get">`, so the phone is
- * URL state and the loader owns the lookup — submitting is a client-side
- * navigation, not a fetch and not a full document reload. The dial code and
- * the number travel as two params; the loader joins them.
+ * The exact-phone search: dial code, number and the search button on one
+ * line from 600px up, with the button stacked under the inputs on phones. A router `<Form method="get">`, so
+ * the phone is URL state and the loader owns the lookup — submitting is a
+ * client-side navigation, not a fetch and not a full document reload. The dial
+ * code and the number travel as two params; the loader joins them.
  */
 export function SearchForm({
   action,
@@ -62,6 +63,7 @@ export function SearchForm({
             value={dialCode}
             onChange={setDialCode}
             disabled={busy}
+            compact
           />
         </div>
         <div className={styles.field}>
@@ -73,18 +75,22 @@ export function SearchForm({
             onChange={setNumber}
             type="tel"
             inputMode="tel"
-            placeholder="98765 43210"
+            placeholder="Numbers only"
             autoComplete="off"
-            hint="The full number, with the country code picked on the left"
+            hint="Pick the country code, then enter the number without it."
             maxLength={14}
+            disabled={busy}
           />
         </div>
+        <div className={styles.submit}>
+          <Button type="submit" size="large" disabled={busy}>
+            {busy ? "Searching…" : "Search"}
+          </Button>
+        </div>
       </div>
-      <div className={styles.submit}>
-        <Button type="submit" size="large" disabled={busy}>
-          {busy ? "Searching…" : "Search"}
-        </Button>
-      </div>
+      <p className={styles.status} role="status">
+        {busy ? "Please wait. The form is locked until the result shows." : ""}
+      </p>
     </Form>
   );
 }

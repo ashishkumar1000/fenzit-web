@@ -9,7 +9,8 @@ export const LOGIN_COUNTRY_CODES: CountryCode[] = [
   { dialCode: LOGIN_DIAL_CODE, countryName: "India", iso2: "IN" },
 ];
 
-export const INDIA_ONLY_MESSAGE = "Only Indian mobile numbers can sign in by phone. Use +91.";
+export const INDIA_ONLY_MESSAGE =
+  "Phone sign-in works only with +91 mobile numbers for now. You can sign in with your email instead.";
 const PHONE_HINT =
   "Type the 10-digit mobile number without the country code, starting with 6 to 9. Do not add a 0 or 00 at the start.";
 /** An Indian mobile number: 10 digits, starting with 6, 7, 8 or 9. Matches fenzit-be SendOtpDto. */

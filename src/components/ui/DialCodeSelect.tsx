@@ -10,6 +10,11 @@ type DialCodeSelectProps = {
   value: string;
   onChange: (dialCode: string) => void;
   disabled?: boolean;
+  /** Compact shows the ISO code and the dial code (for example "US +1") — for
+   *  search fields that sit next to a labelled input. Several countries share
+   *  a dial code, so the ISO code tells them apart. Each option's native
+   *  tooltip carries the full country name in both modes. */
+  compact?: boolean;
 };
 
 function countryLabel(country: CountryCode): string {
@@ -27,8 +32,11 @@ export function DialCodeSelect({
   value,
   onChange,
   disabled = false,
+  compact = false,
 }: DialCodeSelectProps) {
   const selected = countries.find((country) => country.dialCode === value);
+  const labelFor = (country: CountryCode): string =>
+    compact ? `${country.iso2} ${country.dialCode}` : countryLabel(country);
   return (
     <span className={styles.dialField}>
       <label htmlFor={id} className={styles.visuallyHidden}>
@@ -45,14 +53,18 @@ export function DialCodeSelect({
           disabled={disabled}
         >
           {countries.map((country) => (
-            <option key={`${country.iso2}-${country.dialCode}`} value={country.dialCode}>
-              {countryLabel(country)}
+            <option
+              key={`${country.iso2}-${country.dialCode}`}
+              value={country.dialCode}
+              title={countryLabel(country)}
+            >
+              {labelFor(country)}
             </option>
           ))}
         </select>
         {/* Same text as the chosen option, so the select is only as wide as its choice. */}
         <span className={styles.sizer} aria-hidden="true">
-          {selected ? countryLabel(selected) : value}
+          {selected ? labelFor(selected) : value}
         </span>
         <ChevronDown className={styles.dialChevron} aria-hidden="true" focusable="false" />
       </span>

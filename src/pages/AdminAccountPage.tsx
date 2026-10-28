@@ -48,7 +48,7 @@ export function AdminAccountPage() {
             <div className={styles.notice} role="status">
               <p className={styles.noticeTitle}>That number does not look right</p>
               <p className={styles.noticeCopy}>
-                Enter the full phone number, with the country code picked on the left.
+                Check the country code and the number, then try again.
               </p>
             </div>
           ) : null}
