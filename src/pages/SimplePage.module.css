@@ -10,6 +10,12 @@
   padding: var(--space-8) 0;
 }
 
+/* The reading column: centred in the container, so text does not hug the left edge. */
+.column {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extra);
@@ -18,7 +24,6 @@
 }
 
 .lead {
-  max-width: 640px;
   margin: var(--space-4) 0 0;
   font-size: var(--font-size-lg);
   color: var(--color-text-body);
@@ -27,7 +32,6 @@
 .block {
   display: grid;
   gap: var(--space-4);
-  max-width: 640px;
   margin-top: var(--space-8);
 }
 

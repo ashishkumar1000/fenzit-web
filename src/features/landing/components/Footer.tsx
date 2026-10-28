@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
+import { Mail, MessageCircle, Phone } from "lucide-react";
 import { Link } from "react-router";
+import logo from "../../../assets/brand/logo.png";
+import logo2x from "../../../assets/brand/logo-2x.png";
+import logo3x from "../../../assets/brand/logo-3x.png";
 import { Container } from "../../../components/ui/Container";
 import {
   CONTACT_EMAIL,
@@ -110,7 +114,9 @@ export function Footer() {
         <div className={styles.grid}>
           <div className={styles.side}>
             <nav aria-label="Company pages">
-              <p className={styles.groupTitle}>Company</p>
+              <div className={styles.sectionHead}>
+                <p className={styles.groupTitle}>Company</p>
+              </div>
               <ul className={styles.companyList}>
                 {COMPANY_PAGES.map((page) => (
                   <li key={page.to}>
@@ -131,44 +137,49 @@ export function Footer() {
                 real-time geofenced intelligence.
               </p>
             </div>
-
-            <div>
-              <p className={styles.followTitle}>Follow Fenzit</p>
-              {LINKEDIN_URL ? (
-                <a
-                  className={styles.socialLink}
-                  href={LINKEDIN_URL}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  aria-label="Fenzit on LinkedIn"
-                >
-                  <LinkedInIcon />
-                </a>
-              ) : (
-                // No address yet: the icon shows, but it is not a link and says so.
-                <span className={styles.socialSoon} role="img" aria-label="LinkedIn, coming soon">
-                  <LinkedInIcon />
-                </span>
-              )}
-            </div>
-
-            <p className={styles.contact}>
-              Questions?{" "}
-              <a className={styles.link} href={SALES_PHONE_HREF}>
+          </div>
+          <div className={styles.contactRow}>
+            {LINKEDIN_URL ? (
+              <a
+                className={styles.socialLink}
+                href={LINKEDIN_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+                aria-label="Fenzit on LinkedIn"
+              >
+                <LinkedInIcon />
+              </a>
+            ) : (
+              // No address yet: the icon shows, but it is not a link and says so.
+              <span className={styles.socialSoon} role="img" aria-label="LinkedIn, coming soon">
+                <LinkedInIcon />
+              </span>
+            )}
+            <div className={styles.contactBar}>
+              <span className={styles.contactLabel}>
+                <MessageCircle
+                  className={styles.contactIcon}
+                  aria-hidden="true"
+                  focusable="false"
+                />
+                Questions?
+              </span>
+              <a className={styles.contactItem} href={SALES_PHONE_HREF}>
+                <Phone className={styles.contactIcon} aria-hidden="true" focusable="false" />
                 {SALES_PHONE_DISPLAY}
-              </a>{" "}
-              or{" "}
-              <a className={styles.link} href={`mailto:${CONTACT_EMAIL}`}>
+              </a>
+              <span className={styles.contactDivider} aria-hidden="true" />
+              <a className={styles.contactEmail} href={`mailto:${CONTACT_EMAIL}`}>
+                <Mail className={styles.contactIcon} aria-hidden="true" focusable="false" />
                 {CONTACT_EMAIL}
               </a>
-            </p>
+            </div>
           </div>
 
           <div className={styles.main}>
             <nav aria-label="Solution pages">
               <div className={styles.sectionHead}>
                 <p className={styles.groupTitle}>Solutions &amp; capabilities</p>
-                <span className={styles.pill}>Core Technology</span>
               </div>
               <ul className={styles.cards}>
                 {SOLUTION_CARDS.map((card) => (
@@ -203,7 +214,18 @@ export function Footer() {
       <div className={styles.bar}>
         <Container>
           <div className={styles.barInner}>
-            <span className={styles.copy}>© 2026 Fenzit. All rights reserved.</span>
+            <div className={styles.copyRow}>
+              {/* The brand glyph in black and white. Decorative: the copyright line names the company. */}
+              <img
+                className={styles.mark}
+                src={logo}
+                srcSet={`${logo} 1x, ${logo2x} 2x, ${logo3x} 3x`}
+                width={20}
+                height={20}
+                alt=""
+              />
+              <span className={styles.copy}>© 2026 Fenzit. All rights reserved.</span>
+            </div>
             <nav aria-label="Legal pages">
               <ul className={styles.legalList}>
                 {LEGAL_PAGES.map((page, index) => (

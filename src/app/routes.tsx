@@ -8,16 +8,9 @@ import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { AttendancePage } from "../pages/AttendancePage";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
-import {
-  BookDemoPage,
-  DataSafetyPage,
-  PartnersPage,
-  PricingPage,
-  PrivacyPolicyPage,
-  SecurityTrustPage,
-  TermsOfServicePage,
-} from "../pages/InfoPages";
+import { BookDemoPage, DataSafetyPage, PartnersPage, PricingPage } from "../pages/InfoPages";
 import { NotFoundPage } from "../pages/NotFoundPage";
+import { PrivacyPolicyPage, SecurityTrustPage, TermsOfServicePage } from "../pages/LegalPage";
 import { RootLayout } from "./RootLayout";
 
 /**

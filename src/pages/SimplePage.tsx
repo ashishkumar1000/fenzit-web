@@ -23,11 +23,13 @@ export function SimplePage({ meta, id, title, lead, children }: SimplePageProps)
       <main className={styles.main}>
         <section className={styles.section} aria-labelledby={id}>
           <Container>
-            <h1 id={id} className={styles.title}>
-              {title}
-            </h1>
-            <p className={styles.lead}>{lead}</p>
-            {children}
+            <div className={styles.column}>
+              <h1 id={id} className={styles.title}>
+                {title}
+              </h1>
+              <p className={styles.lead}>{lead}</p>
+              {children}
+            </div>
           </Container>
         </section>
       </main>
