@@ -35,12 +35,9 @@
 }
 
 @media (min-width: 600px) {
-  /* Wider: the button sits on the same line as the input box. Its top edge
-     lines up with the box, below the label. The offset is the label line (its
-     font size times the 1.55 line height in global.css) plus the gap above the
-     box (8px) in TextInput. It is in rem so it grows with the user's text size. */
+  /* Wider: the button sits on the same line as the input box, and its top edge
+     lines up with the box. The label is hidden, so the box is the top of the row. */
   .submit {
     flex: 0 0 auto;
-    margin-top: calc(var(--font-size-sm) * 1.55 + var(--space-2));
   }
 }

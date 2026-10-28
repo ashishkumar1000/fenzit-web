@@ -20,11 +20,14 @@ type TextInputProps = {
   error?: string;
   disabled?: boolean;
   maxLength?: number;
+  /** Keeps the label for screen readers only, when the screen already shows what the field is. */
+  hideLabel?: boolean;
 };
 
 /**
- * A labelled text field. The label is always visible (never placeholder only).
- * Hint and error text are linked to the input for screen readers.
+ * A labelled text field. The label is visible (never placeholder only), unless
+ * `hideLabel` is set: then screen readers still read it, and the screen must show
+ * what the field is some other way. Hint and error text are linked to the input for screen readers.
  */
 export function TextInput({
   id,
@@ -42,6 +45,7 @@ export function TextInput({
   error,
   disabled = false,
   maxLength,
+  hideLabel = false,
 }: TextInputProps) {
   const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null]
     .filter((part): part is string => part !== null)
@@ -49,7 +53,7 @@ export function TextInput({
 
   return (
     <div className={styles.field}>
-      <label className={styles.label} htmlFor={id}>
+      <label className={hideLabel ? styles.hiddenLabel : styles.label} htmlFor={id}>
         {label}
       </label>
       <div className={prefix ? `${styles.control} ${styles.boxed}` : styles.control}>

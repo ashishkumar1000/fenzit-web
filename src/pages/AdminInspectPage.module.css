@@ -10,13 +10,38 @@
   box-shadow: var(--shadow-sm);
   padding: var(--space-5);
   display: grid;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.idleText {
+  display: grid;
   gap: var(--space-2);
   justify-items: start;
 }
 
-.art {
-  width: min(340px, 100%);
-  margin-bottom: var(--space-2);
+.factsLabel {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-body);
+}
+
+/* Hidden on phones, where the text fills the card. From 900px it fills the empty right side. */
+.idleScene {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .idle {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-6);
+  }
+
+  .idleScene {
+    display: block;
+  }
 }
 
 .idleTitle {

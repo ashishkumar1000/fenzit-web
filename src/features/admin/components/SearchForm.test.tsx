@@ -60,9 +60,10 @@ describe("SearchForm", () => {
     expect(number.parentElement?.contains(country)).toBe(true);
   });
 
-  it("does not use an India-only sample number as the placeholder", () => {
+  // The label is hidden on screen but still read out, and no placeholder repeats it.
+  it("has no placeholder attribute, and keeps its label for screen readers", () => {
     renderForm(false);
-    const number = screen.getByRole("textbox", { name: "Phone number" }) as HTMLInputElement;
-    expect(number.placeholder).toBe("Numbers only");
+    const number = screen.getByRole("textbox", { name: "Phone number" });
+    expect(number.hasAttribute("placeholder")).toBe(false);
   });
 });

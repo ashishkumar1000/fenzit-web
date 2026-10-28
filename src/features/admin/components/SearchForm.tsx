@@ -60,13 +60,13 @@ export function SearchForm({
             id="phone"
             name="number"
             label="Phone number"
+            hideLabel
             value={number}
             onChange={setNumber}
             type="tel"
             inputMode="tel"
-            placeholder="Numbers only"
             autoComplete="off"
-            hint="Pick the country code, then enter the number without it."
+            hint="Enter the phone number without the country code. Pick the country code on the left first."
             maxLength={14}
             disabled={busy}
             prefix={

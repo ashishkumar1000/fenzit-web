@@ -1,6 +1,7 @@
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import type { adminInspectLoader } from "../features/admin/adminInspectLoader";
-import { ConsoleArt, GlyphInspect } from "../features/admin/components/glyphs";
+import { GlyphInspect } from "../features/admin/components/glyphs";
+import { LookupFacts, LookupScene } from "../features/admin/components/LookupScene";
 import { DossierView } from "../features/admin/DossierView";
 import { SearchForm } from "../features/admin/components/SearchForm";
 import { SectionCard } from "../features/admin/components/SectionCard";
@@ -34,19 +35,23 @@ export function AdminInspectPage() {
         <>
           {data.state === "idle" ? (
             <div className={styles.idle}>
-              <div className={styles.art}>
-                <ConsoleArt />
+              <div className={styles.idleText}>
+                <h2 className={styles.idleTitle}>
+                  <span className={styles.glyph} aria-hidden="true">
+                    <GlyphInspect />
+                  </span>
+                  Look up anyone by phone
+                </h2>
+                <p className={styles.idleCopy}>
+                  Choose a country code, type the number, and press Search. An exact match shows the
+                  person's details below.
+                </p>
+                <p className={styles.factsLabel}>A match shows</p>
+                <LookupFacts />
               </div>
-              <p className={styles.idleTitle}>
-                <span className={styles.glyph} aria-hidden="true">
-                  <GlyphInspect />
-                </span>
-                Look up anyone by phone
-              </p>
-              <p className={styles.idleCopy}>
-                An exact match shows the person's companies, jobs, attendance, leave, invites,
-                notifications and audit trail — everything the system knows.
-              </p>
+              <div className={styles.idleScene}>
+                <LookupScene />
+              </div>
             </div>
           ) : null}
           {data.state === "not-found" ? (
