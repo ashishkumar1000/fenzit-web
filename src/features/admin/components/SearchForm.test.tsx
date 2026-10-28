@@ -52,6 +52,14 @@ describe("SearchForm", () => {
     expect(screen.getByRole("status").textContent).toBe("");
   });
 
+  // The country picker sits inside the same box as the number, so they share one border.
+  it("puts the country picker inside the number's box", () => {
+    renderForm(false);
+    const number = screen.getByRole("textbox", { name: "Phone number" });
+    const country = screen.getByRole("combobox");
+    expect(number.parentElement?.contains(country)).toBe(true);
+  });
+
   it("does not use an India-only sample number as the placeholder", () => {
     renderForm(false);
     const number = screen.getByRole("textbox", { name: "Phone number" }) as HTMLInputElement;

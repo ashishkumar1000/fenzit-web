@@ -10,11 +10,6 @@
   flex-wrap: wrap;
 }
 
-.dial {
-  flex: 0 0 auto;
-  padding-top: var(--space-6);
-}
-
 .field {
   flex: 1 1 0;
   min-width: 180px;
@@ -40,9 +35,12 @@
 }
 
 @media (min-width: 600px) {
-  /* Wider: the button sits on the same line as the inputs, lined up with the input boxes. */
+  /* Wider: the button sits on the same line as the input box. Its top edge
+     lines up with the box, below the label. The offset is the label line (its
+     font size times the 1.55 line height in global.css) plus the gap above the
+     box (8px) in TextInput. It is in rem so it grows with the user's text size. */
   .submit {
     flex: 0 0 auto;
-    padding-top: var(--space-6);
+    margin-top: calc(var(--font-size-sm) * 1.55 + var(--space-2));
   }
 }

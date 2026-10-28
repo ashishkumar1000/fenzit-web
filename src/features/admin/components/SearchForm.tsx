@@ -55,17 +55,6 @@ export function SearchForm({
   return (
     <Form method="get" action={action} className={styles.form} role="search">
       <div className={styles.row}>
-        <div className={styles.dial}>
-          <DialCodeSelect
-            id="dial-code"
-            name="dialCode"
-            countries={countries}
-            value={dialCode}
-            onChange={setDialCode}
-            disabled={busy}
-            compact
-          />
-        </div>
         <div className={styles.field}>
           <TextInput
             id="phone"
@@ -80,10 +69,21 @@ export function SearchForm({
             hint="Pick the country code, then enter the number without it."
             maxLength={14}
             disabled={busy}
+            prefix={
+              <DialCodeSelect
+                id="dial-code"
+                name="dialCode"
+                countries={countries}
+                value={dialCode}
+                onChange={setDialCode}
+                disabled={busy}
+                compact
+              />
+            }
           />
         </div>
         <div className={styles.submit}>
-          <Button type="submit" size="large" disabled={busy}>
+          <Button type="submit" size="regular" disabled={busy}>
             {busy ? "Searching…" : "Search"}
           </Button>
         </div>
