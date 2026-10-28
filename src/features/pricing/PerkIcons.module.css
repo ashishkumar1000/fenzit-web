@@ -1,0 +1,6 @@
+/* Size of the custom perk icons. Colour comes from the text colour, through currentColor. */
+.icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}

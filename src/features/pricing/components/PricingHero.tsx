@@ -13,9 +13,11 @@ export function PricingHero() {
       <ul className={styles.perks}>
         {PERKS.map((perk) => (
           <li key={perk.key} className={styles.perk}>
-            <perk.icon className={styles.perkIcon} aria-hidden="true" focusable="false" />
-            <span className={styles.perkTitle}>{perk.title}</span>
-            <span className={styles.perkDetail}>{perk.detail}</span>
+            <perk.icon className={styles.perkIcon} />
+            <span className={styles.perkText}>
+              <span className={styles.perkTitle}>{perk.title}</span>
+              <span className={styles.perkDetail}>{perk.detail}</span>
+            </span>
           </li>
         ))}
       </ul>

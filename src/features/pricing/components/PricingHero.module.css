@@ -45,27 +45,36 @@
 .perks {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-4) var(--space-3);
   width: 100%;
   margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.perk {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-1);
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-5) var(--space-4);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
   background: var(--color-surface-card);
   box-shadow: var(--shadow-xs);
+  list-style: none;
+}
+
+/* One row of perks: the icon sits beside a title and a grey line under it. */
+.perk {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  text-align: left;
+}
+
+.perkText {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .perkIcon {
-  width: 20px;
-  height: 20px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
   color: var(--color-primary);
 }
 
@@ -87,6 +96,7 @@
 
   .perks {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    max-width: 880px;
+    max-width: 960px;
+    padding: var(--space-5) var(--space-6);
   }
 }

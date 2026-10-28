@@ -21,12 +21,17 @@ export function AfterTrial() {
         <p className={styles.text}>Want a quote today? Talk to our team.</p>
         <div className={styles.actions}>
           <LinkButton href={SALES_PHONE_HREF} variant="secondary">
-            <PhoneCall aria-hidden="true" focusable="false" size={18} />
-            Call {SALES_PHONE_DISPLAY}
+            <PhoneCall
+              className={styles.buttonIcon}
+              aria-hidden="true"
+              focusable="false"
+              size={18}
+            />
+            {SALES_PHONE_DISPLAY}
           </LinkButton>
           <LinkButton href={`mailto:${CONTACT_EMAIL}`} variant="secondary">
-            <Mail aria-hidden="true" focusable="false" size={18} />
-            Email {CONTACT_EMAIL}
+            <Mail className={styles.buttonIcon} aria-hidden="true" focusable="false" size={18} />
+            {CONTACT_EMAIL}
           </LinkButton>
           <LinkButton to="/book-demo" variant="primary">
             Book a 15-minute demo

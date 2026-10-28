@@ -1,26 +1,26 @@
-import type { LucideIcon } from "lucide-react";
-import { CreditCard, Clock, PhoneCall, Repeat } from "lucide-react";
+import type { ComponentType } from "react";
+import { CancelIcon, HeadsetIcon, NoCardIcon, ShieldIcon } from "./PerkIcons";
 
 // Mock content for the pricing page. The figures and plan details are sample copy until the
 // owner confirms the real ones. Keep every number here, so one edit changes the whole page.
 
 export type PerkItem = {
   key: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   title: string;
   detail: string;
 };
 
 export const PERKS: PerkItem[] = [
-  { key: "card", icon: CreditCard, title: "No credit card", detail: "Start in 2 minutes" },
+  { key: "card", icon: NoCardIcon, title: "No credit card", detail: "Start in 2 minutes" },
   {
     key: "unlimited",
-    icon: Clock,
+    icon: ShieldIcon,
     title: "90 days unlimited",
     detail: "Full access for the whole trial",
   },
-  { key: "cancel", icon: Repeat, title: "Cancel anytime", detail: "No lock-in fees" },
-  { key: "setup", icon: PhoneCall, title: "Free setup call", detail: "Talk to our engineer" },
+  { key: "cancel", icon: CancelIcon, title: "Cancel anytime", detail: "No lock-in fees" },
+  { key: "setup", icon: HeadsetIcon, title: "Free setup call", detail: "Talk to our engineer" },
 ];
 
 // Each line is in the app today, per the features page. Nothing here is planned or guessed.
