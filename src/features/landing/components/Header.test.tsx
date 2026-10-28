@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { clearSession, writeSession } from "../../../services/session";
+import { clearSession, SESSION_KEY, writeSession } from "../../../services/session";
 import { Header } from "./Header";
 
 afterEach(() => {
@@ -41,6 +41,36 @@ describe("Header", () => {
 
   it("shows Log out in place of Log in when a session is saved", () => {
     writeSession({ token: "test-token", name: "Mona" });
+    renderHeader();
+
+    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
+  });
+
+  it("shows a Log in link to /login when no session is saved", () => {
+    renderHeader();
+
+    expect(screen.getByRole("link", { name: "Log in" }).getAttribute("href")).toBe("/login");
+    expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
+  });
+
+  // Another tab signs out: the storage event must flip this tab's header to Log in.
+  it("switches to Log in when the saved session is removed in another tab", () => {
+    writeSession({ token: "test-token", name: "Mona" });
+    renderHeader();
+    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+
+    clearSession();
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", { key: SESSION_KEY }));
+    });
+
+    expect(screen.getByRole("link", { name: "Log in" })).toBeTruthy();
+  });
+
+  // The BE can return a user with no name. A saved token alone means signed in.
+  it("shows Log out when the saved sign-in has no display name", () => {
+    writeSession({ token: "test-token", name: null });
     renderHeader();
 
     expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();

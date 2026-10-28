@@ -3,7 +3,7 @@ import { Container } from "../../../components/ui/Container";
 import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
-import { useSessionName } from "../../../hooks/useSessionName";
+import { useIsSignedIn } from "../../../hooks/useIsSignedIn";
 import { clearSession } from "../../../services/session";
 import styles from "./Header.module.css";
 
@@ -17,7 +17,7 @@ const LINKS = [
 ] as const;
 
 export function Header() {
-  const sessionName = useSessionName();
+  const isSignedIn = useIsSignedIn();
   return (
     <>
       <div className={styles.strip}>
@@ -50,7 +50,7 @@ export function Header() {
                 ))}
               </ul>
             </nav>
-            {sessionName === null ? (
+            {!isSignedIn ? (
               <a className={styles.login} href="/login">
                 Log in
               </a>
