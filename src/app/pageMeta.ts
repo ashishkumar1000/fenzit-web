@@ -20,21 +20,21 @@ export const FEATURES_PAGE: PageMeta = {
   path: "/features",
   title: "Fenzit features — jobs, attendance and leave in one app",
   description:
-    "Every feature Fenzit ships today: assign jobs and track them live, attendance with office locations, working hours and reports, and leave approvals — for owners and their field employees.",
+    "Every feature Fenzit ships today: live job tracking, attendance with office locations, working hours, reports and leave approvals.",
 };
 
 export const ATTENDANCE_PAGE: PageMeta = {
   path: "/attendance",
   title: "Attendance and leave software for field teams — Fenzit",
   description:
-    "GPS-verified check-ins from employees' own phones, office locations and working hours, a live daily view, monthly reports and leave approvals. Use attendance on its own or with jobs.",
+    "GPS-verified check-ins from employees' own phones, office locations, working hours, monthly reports and leave approvals.",
 };
 
 export const FIELD_TRACKING_PAGE: PageMeta = {
   path: "/field-job-tracking",
   title: "Field job tracking software for small teams — Fenzit",
   description:
-    "Create field jobs with clear steps, send them to employees, and track live status. Location recorded at the steps that need it, with photos, signatures and PDF reports.",
+    "Create field jobs with clear steps, send them to employees, and track live status. Photos, signatures and PDF reports included.",
 };
 
 export const AC_SERVICE_PAGE: PageMeta = {
@@ -62,7 +62,7 @@ export const COLLECTION_PAGE: PageMeta = {
   path: "/collection-agent-tracking",
   title: "Collection agent tracking for field visits — Fenzit",
   description:
-    "Track collection agents and field visits with Fenzit. Location recorded at each visit, photo proof, live status and PDF reports — with attendance in the same app.",
+    "Track collection agents and field visits with Fenzit. Location at each visit, photo proof, live status and PDF reports.",
 };
 
 export const EMPLOYEE_ATTENDANCE_PAGE: PageMeta = {
