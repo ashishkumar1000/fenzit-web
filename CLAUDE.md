@@ -29,3 +29,16 @@ Full standard: `../../../../docs/repos/fenzit-web/standards.md`. Read it before 
 - **Keep files under about 300 lines.**
 - **Test as a QA engineer.** Cover boundaries, failure paths, and permissions. Never weaken an assertion to match the code.
 - **Indian English in replies.** Plain English, no Hindi words mixed in.
+
+## Public pages and search visibility
+
+Search and AI-tool visibility depend on these files. Keep them in step whenever a public page is added, removed or renamed.
+
+- **Add a public page:** add its meta to `PUBLIC_PAGES` in `src/app/pageMeta.ts` (title and description, 160 characters or fewer for the description), add a route, and add a `href_matches` entry in the speculation rules in `index.html`. The build fails if any of these is missing.
+- **Remove or rename a public page:** remove it from the same places, add a redirect from the old address to the closest page, and remove it from `public/llms.txt`.
+- **Add a page to `public/llms.txt` too.** That file is hand-written. Its descriptions must match the page copy.
+- **Sitemap and pre-rendered HTML** rebuild on every deploy. No manual step is needed for them.
+- **`public/robots.txt`** names each AI crawler with `Allow: /`. Keep it when editing.
+- **Keep these files in `public/`:** `BingSiteAuth.xml` (Bing verification) and the IndexNow key file `3c7da65a76eb496dadb168fe80b707d8.txt`. Removing either breaks the site's Bing verification or IndexNow.
+- **After a deploy that adds or changes pages:** submit the new URLs to IndexNow (one request with the key and the URL list) or to Bing under URL Inspection. Cloudflare Crawler Hints is on for the zone and also signals changes.
+- **Meta descriptions:** check that each one is 25 to 160 characters after editing. Bing flags anything outside that range.
