@@ -1,4 +1,5 @@
 import { Audience } from "../features/landing/components/Audience";
+import { CallBack } from "../features/landing/components/CallBack";
 import { Clients } from "../features/landing/components/Clients";
 import { EarlyAccess } from "../features/landing/components/EarlyAccess";
 import { Faq } from "../features/landing/components/Faq";
@@ -22,6 +23,7 @@ export function HomePage() {
         <HowItWorks />
         <Trust />
         <Faq />
+        <CallBack />
         <EarlyAccess />
       </main>
       <Footer />

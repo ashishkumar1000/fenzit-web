@@ -1,12 +1,14 @@
 import type { RouteObject } from "react-router";
 import { countryCodesLoader } from "../services/countryCodes";
 import { adminAccountAction } from "../features/admin/adminAccountAction";
-import { earlyAccessAction } from "../features/landing/earlyAccessAction";
+import { demoAction } from "../features/landing/contactRequestAction";
+import { homeAction } from "../features/landing/homeAction";
 import { UseCasePage } from "../features/use-case/components/UseCasePage";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { AttendancePage } from "../pages/AttendancePage";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
+import { BookDemoPage, DataSafetyPage, PartnersPage, PricingPage } from "../pages/InfoPages";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { RootLayout } from "./RootLayout";
 
@@ -25,13 +27,24 @@ export const routes: RouteObject[] = [
         path: "/",
         element: <HomePage />,
         loader: countryCodesLoader,
-        action: earlyAccessAction,
+        // Early-access and call-back forms both post here; homeAction picks by intent.
+        action: homeAction,
         // The country list does not change after a submit. Reloading it would replace the
         // full list with the India fallback while the new request runs.
         shouldRevalidate: () => false,
       },
       { path: "/features", element: <FeaturesPage /> },
       { path: "/attendance", element: <AttendancePage /> },
+      { path: "/pricing", element: <PricingPage /> },
+      {
+        path: "/book-demo",
+        element: <BookDemoPage />,
+        loader: countryCodesLoader,
+        action: demoAction,
+        shouldRevalidate: () => false,
+      },
+      { path: "/data-safety", element: <DataSafetyPage /> },
+      { path: "/partners", element: <PartnersPage /> },
       ...ALL_USE_CASE_CONTENT.map((content) => ({
         path: content.meta.path,
         element: <UseCasePage content={content} />,

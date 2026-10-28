@@ -170,12 +170,44 @@ export const WATER_PURIFIER_PAGE: PageMeta = {
     "Track every RO service visit: assign jobs by skill, see live status, and get photo proof and service reports. For water purifier and AMC teams.",
 };
 
+export const PRICING_PAGE: PageMeta = {
+  path: "/pricing",
+  title: "Fenzit pricing — 3 months free for every team",
+  description:
+    "Every team gets 3 months free to try Fenzit. Call or email us for the price for your team before the trial ends.",
+};
+
+export const BOOK_DEMO_PAGE: PageMeta = {
+  path: "/book-demo",
+  title: "Book a Fenzit demo for your field team",
+  description:
+    "Tell us about your team and we will reach out to show you Fenzit: jobs, attendance and leave in one app.",
+};
+
+export const DATA_SAFETY_PAGE: PageMeta = {
+  path: "/data-safety",
+  title: "How Fenzit keeps your business data separate",
+  description:
+    "Phone and one-time code sign-in, each company's data kept separate, and location taken only at job steps and attendance check-ins that need it.",
+};
+
+export const PARTNERS_PAGE: PageMeta = {
+  path: "/partners",
+  title: "Partner with Fenzit for field service teams",
+  description:
+    "Installers, service companies and software resellers can talk to Fenzit about working together to bring field teams on board.",
+};
+
 /**
  * Every indexable page except the home page, whose head lives directly in index.html. The
  * prerender script walks this list, so adding a page to the site means adding its meta here
  * plus a route and content file.
  */
 export const PUBLIC_PAGES: PageMeta[] = [
+  PRICING_PAGE,
+  BOOK_DEMO_PAGE,
+  DATA_SAFETY_PAGE,
+  PARTNERS_PAGE,
   FEATURES_PAGE,
   ATTENDANCE_PAGE,
   EMPLOYEE_ATTENDANCE_PAGE,

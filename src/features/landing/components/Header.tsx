@@ -3,6 +3,7 @@ import { Container } from "../../../components/ui/Container";
 import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
+import { SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../../../config/contact";
 import { useIsSignedIn } from "../../../hooks/useIsSignedIn";
 import { clearSession } from "../../../services/session";
 import styles from "./Header.module.css";
@@ -14,6 +15,7 @@ const LINKS = [
   { href: "/#features", label: "Features" },
   { href: "/#trust", label: "Your data" },
   { href: "/#faq", label: "Questions" },
+  { href: "/book-demo", label: "Book a demo" },
 ] as const;
 
 export function Header() {
@@ -22,6 +24,9 @@ export function Header() {
     <>
       <div className={styles.strip}>
         <p className={styles.stripText}>Early access is open for field service teams.</p>
+        <a className={styles.stripLink} href={SALES_PHONE_HREF}>
+          Call {SALES_PHONE_DISPLAY}
+        </a>
       </div>
       <header className={styles.header}>
         <Container>

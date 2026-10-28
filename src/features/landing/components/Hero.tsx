@@ -15,11 +15,17 @@ export function Hero() {
             </h1>
             <p className={styles.sub}>
               Use Fenzit for field jobs, for attendance and leave, or for both. Owners set it up
-              once, and the team uses it on their phones.
+              once, and the team uses it on their phones. Every team gets 3 months free.
             </p>
             <div className={styles.actions}>
               <LinkButton href="#early-access" variant="primary">
                 Join early access
+              </LinkButton>
+              <LinkButton href="#call-back" variant="secondary">
+                Request a call back
+              </LinkButton>
+              <LinkButton to="/book-demo" variant="secondary">
+                Book a demo
               </LinkButton>
               <LinkButton href="#features" variant="secondary">
                 See what it does

@@ -1,9 +1,18 @@
 import { Link } from "react-router";
 import { Container } from "../../../components/ui/Container";
+import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../../../config/contact";
 import styles from "./Footer.module.css";
 
-/** The site's public pages, so people and crawlers can reach them from every page. */
-const PAGES = [
+/** The company pages: pricing, demo, data and partners. */
+const COMPANY_PAGES = [
+  { to: "/pricing", label: "Pricing" },
+  { to: "/book-demo", label: "Book a demo" },
+  { to: "/data-safety", label: "Your data" },
+  { to: "/partners", label: "Partners" },
+];
+
+/** The product and use-case pages. Crawlers and people reach them from every page. */
+const SOLUTION_PAGES = [
   { to: "/features", label: "Features" },
   { to: "/attendance", label: "Attendance and leave" },
   { to: "/employee-attendance-app", label: "Employee attendance app" },
@@ -32,8 +41,17 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <Container>
-        <nav className={styles.pages} aria-label="Site pages">
-          {PAGES.map((page) => (
+        <nav className={styles.pages} aria-label="Company pages">
+          <p className={styles.groupTitle}>Company</p>
+          {COMPANY_PAGES.map((page) => (
+            <Link key={page.to} className={styles.pageLink} to={page.to}>
+              {page.label}
+            </Link>
+          ))}
+        </nav>
+        <nav className={styles.pages} aria-label="Solution pages">
+          <p className={styles.groupTitle}>Solutions</p>
+          {SOLUTION_PAGES.map((page) => (
             <Link key={page.to} className={styles.pageLink} to={page.to}>
               {page.label}
             </Link>
@@ -43,8 +61,12 @@ export function Footer() {
           <span className={styles.left}>© 2026 Fenzit. All rights reserved.</span>
           <span className={styles.right}>
             Questions?{" "}
-            <a className={styles.link} href="mailto:hello@fenzit.com">
-              hello@fenzit.com
+            <a className={styles.link} href={SALES_PHONE_HREF}>
+              {SALES_PHONE_DISPLAY}
+            </a>{" "}
+            or{" "}
+            <a className={styles.link} href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
             </a>
           </span>
         </div>

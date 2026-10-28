@@ -1,0 +1,8 @@
+.section {
+  padding: var(--space-8) 0;
+  scroll-margin-top: var(--space-16);
+}
+
+.form {
+  margin-top: var(--space-6);
+}

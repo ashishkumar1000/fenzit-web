@@ -1,8 +1,8 @@
 // One @, no spaces. The name may use the letters, digits and symbols RFC 5322 allows
 // (such as ' and +), with dots between parts but never at the start, end, or doubled.
 // Each domain label is letters, digits and hyphens, and the top-level domain is two or
-// more letters. fenzit-be checks email with class-validator IsEmail, which is looser at the
-// edges, so an address it accepts can still be refused here. Keep the two in step if one changes.
+// more letters. fenzit-be checks email with its own pattern in the contact DTO, which is looser
+// at the edges, so an address it accepts can still be refused here. Keep the two in step if one changes.
 // RFC 5321 caps an address at 254 characters.
 export const EMAIL_PATTERN =
   /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[A-Za-z0-9]+(-[A-Za-z0-9]+)*(\.[A-Za-z0-9]+(-[A-Za-z0-9]+)*)*\.[A-Za-z]{2,}$/;

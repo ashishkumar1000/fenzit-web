@@ -85,10 +85,12 @@ describe("router", () => {
   it("lists every public page in the footer's site-pages nav", () => {
     renderAt("/features");
 
-    const nav = screen.getByRole("navigation", { name: "Site pages" });
-    const hrefs = within(nav)
-      .getAllByRole("link")
-      .map((link) => link.getAttribute("href"));
+    // The footer splits the pages into a Company nav and a Solutions nav; together they list every page.
+    const hrefs = ["Company pages", "Solution pages"].flatMap((name) =>
+      within(screen.getByRole("navigation", { name }))
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    );
     // Derived from the meta list, so a page added there but forgotten in the footer fails here.
     expect(hrefs).toEqual(PUBLIC_PAGES.map((page) => page.path));
   });
@@ -128,7 +130,8 @@ describe("router", () => {
     const hrefs = within(nav)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
-    expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#trust", "/#faq"]);
+    // The four section links jump to the home page. "Book a demo" is a real page, so it works from anywhere too.
+    expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#trust", "/#faq", "/book-demo"]);
   });
 
   it("scrolls to the top when a link moves to another page", async () => {
