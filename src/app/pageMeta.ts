@@ -198,6 +198,27 @@ export const PARTNERS_PAGE: PageMeta = {
     "Installers, service companies and software resellers can talk to Fenzit about working together to bring field teams on board.",
 };
 
+export const PRIVACY_POLICY_PAGE: PageMeta = {
+  path: "/privacy-policy",
+  title: "Fenzit privacy policy",
+  description:
+    "What Fenzit keeps when you ask for a call back, a demo or early access, what your team adds, and who can see it.",
+};
+
+export const TERMS_PAGE: PageMeta = {
+  path: "/terms",
+  title: "Fenzit terms of service",
+  description:
+    "The rules for using Fenzit: sign-in, your responsibilities, the 3-month free trial and how to stop using the app.",
+};
+
+export const SECURITY_TRUST_PAGE: PageMeta = {
+  path: "/security-trust",
+  title: "Fenzit security and trust",
+  description:
+    "How Fenzit signs people in, keeps each company's data separate, limits location use, and how to report a security problem.",
+};
+
 /**
  * Every indexable page except the home page, whose head lives directly in index.html. The
  * prerender script walks this list, so adding a page to the site means adding its meta here
@@ -208,6 +229,9 @@ export const PUBLIC_PAGES: PageMeta[] = [
   BOOK_DEMO_PAGE,
   DATA_SAFETY_PAGE,
   PARTNERS_PAGE,
+  PRIVACY_POLICY_PAGE,
+  TERMS_PAGE,
+  SECURITY_TRUST_PAGE,
   FEATURES_PAGE,
   ATTENDANCE_PAGE,
   EMPLOYEE_ATTENDANCE_PAGE,

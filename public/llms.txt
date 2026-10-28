@@ -38,6 +38,9 @@ Contact: phone +91 92792 30451, email hello@fenzit.com. To book a demo, visit ht
 - [Book a demo](https://fenzit.com/book-demo): request a demo or a call back.
 - [Data safety](https://fenzit.com/data-safety): phone and one-time code sign-in, each company's data kept separate, and location taken only at job steps and attendance check-ins that need it.
 - [Partners](https://fenzit.com/partners): for installers, service companies and software resellers.
+- [Privacy policy](https://fenzit.com/privacy-policy): what Fenzit keeps and who can see it.
+- [Terms of service](https://fenzit.com/terms): the rules for using Fenzit, including the free trial.
+- [Security and trust](https://fenzit.com/security-trust): how people sign in and how each company's data stays separate.
 
 ## Optional
 

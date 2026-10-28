@@ -8,7 +8,15 @@ import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { AttendancePage } from "../pages/AttendancePage";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
-import { BookDemoPage, DataSafetyPage, PartnersPage, PricingPage } from "../pages/InfoPages";
+import {
+  BookDemoPage,
+  DataSafetyPage,
+  PartnersPage,
+  PricingPage,
+  PrivacyPolicyPage,
+  SecurityTrustPage,
+  TermsOfServicePage,
+} from "../pages/InfoPages";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { RootLayout } from "./RootLayout";
 
@@ -45,6 +53,9 @@ export const routes: RouteObject[] = [
       },
       { path: "/data-safety", element: <DataSafetyPage /> },
       { path: "/partners", element: <PartnersPage /> },
+      { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+      { path: "/terms", element: <TermsOfServicePage /> },
+      { path: "/security-trust", element: <SecurityTrustPage /> },
       ...ALL_USE_CASE_CONTENT.map((content) => ({
         path: content.meta.path,
         element: <UseCasePage content={content} />,

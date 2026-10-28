@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { type ReactNode, Suspense, useState } from "react";
 import { Await, useLoaderData } from "react-router";
 import { DialCodeSelect } from "../../../components/ui/DialCodeSelect";
 import {
@@ -31,7 +31,14 @@ function SuccessNote({ message }: { message: string }) {
  * gives one or both. The country list loads from the route's loader; until it
  * arrives the India-only fallback shows, in the same markup, so nothing jumps.
  */
-function ContactFields({ errorField }: { errorField: ErrorField }) {
+function ContactFields({
+  errorField,
+  submit,
+}: {
+  errorField: ErrorField;
+  /** When given, the submit button sits on the same row as the two fields on wide screens. */
+  submit?: ReactNode;
+}) {
   const { countryCodes } = useLoaderData() as CountryCodesData;
   const [dialCode, setDialCode] = useState<string>(DEFAULT_DIAL_CODE);
   const contactError = errorField === "contact";
@@ -51,48 +58,51 @@ function ContactFields({ errorField }: { errorField: ErrorField }) {
     <fieldset className={styles.contact}>
       <legend className={styles.legend}>How can we reach you?</legend>
       <p className={styles.hint}>Give a phone number, an email address, or both.</p>
-      <div className={styles.field}>
-        <label htmlFor="contact-phone" className={styles.label}>
-          Phone number
-        </label>
-        <div
-          className={
-            errorField === "phone" || contactError
-              ? `${styles.phoneBox} ${styles.invalid}`
-              : styles.phoneBox
-          }
-        >
-          <Suspense fallback={renderDialField(FALLBACK_COUNTRY_CODES)}>
-            <Await resolve={countryCodes}>{renderDialField}</Await>
-          </Suspense>
+      <div className={submit ? styles.fieldsRow : undefined}>
+        <div className={styles.field}>
+          <label htmlFor="contact-phone" className={styles.label}>
+            Phone number
+          </label>
+          <div
+            className={
+              errorField === "phone" || contactError
+                ? `${styles.phoneBox} ${styles.invalid}`
+                : styles.phoneBox
+            }
+          >
+            <Suspense fallback={renderDialField(FALLBACK_COUNTRY_CODES)}>
+              <Await resolve={countryCodes}>{renderDialField}</Await>
+            </Suspense>
+            <input
+              id="contact-phone"
+              type="tel"
+              name="phone"
+              className={styles.numberInput}
+              inputMode="tel"
+              autoComplete="tel-national"
+              aria-invalid={errorField === "phone" || contactError}
+            />
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="contact-email" className={styles.label}>
+            Email address
+          </label>
           <input
-            id="contact-phone"
-            type="tel"
-            name="phone"
-            className={styles.numberInput}
-            inputMode="tel"
-            autoComplete="tel-national"
-            aria-invalid={errorField === "phone" || contactError}
+            id="contact-email"
+            type="email"
+            name="email"
+            className={
+              errorField === "email" || contactError
+                ? `${styles.input} ${styles.invalid}`
+                : styles.input
+            }
+            autoComplete="email"
+            maxLength={EMAIL_MAX_LENGTH}
+            aria-invalid={errorField === "email" || contactError}
           />
         </div>
-      </div>
-      <div className={styles.field}>
-        <label htmlFor="contact-email" className={styles.label}>
-          Email address
-        </label>
-        <input
-          id="contact-email"
-          type="email"
-          name="email"
-          className={
-            errorField === "email" || contactError
-              ? `${styles.input} ${styles.invalid}`
-              : styles.input
-          }
-          autoComplete="email"
-          maxLength={EMAIL_MAX_LENGTH}
-          aria-invalid={errorField === "email" || contactError}
-        />
+        {submit}
       </div>
     </fieldset>
   );
@@ -110,16 +120,25 @@ export function CallBackForm() {
   return (
     <fetcher.Form
       method="post"
-      className={styles.form}
+      className={`${styles.form} ${styles.callBackForm}`}
       noValidate
       onChange={onEdit}
       onSubmit={onSubmit}
     >
       <input type="hidden" name="intent" value="call-back" />
-      <ContactFields errorField={errorField} />
-      <button type="submit" className={styles.submit} disabled={submitting} aria-busy={submitting}>
-        {submitting ? "Sending…" : "Request a call back"}
-      </button>
+      <ContactFields
+        errorField={errorField}
+        submit={
+          <button
+            type="submit"
+            className={styles.submit}
+            disabled={submitting}
+            aria-busy={submitting}
+          >
+            {submitting ? "Sending…" : "Request a call back"}
+          </button>
+        }
+      />
       <p className={styles.status} role="alert">
         {errorText}
       </p>

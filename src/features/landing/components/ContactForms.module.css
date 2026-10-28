@@ -5,6 +5,24 @@
   width: 100%;
 }
 
+/* The call-back form is wider, so its phone, email and button fit on one row. */
+.callBackForm {
+  max-width: 880px;
+}
+
+/* Phones and tablets stack the fields and the button. Wide screens put them on one row. */
+.fieldsRow {
+  display: grid;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+@media (min-width: 720px) {
+  .fieldsRow {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.3fr) auto;
+  }
+}
+
 .contact {
   display: grid;
   gap: var(--space-4);

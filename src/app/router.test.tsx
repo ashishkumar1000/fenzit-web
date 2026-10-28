@@ -1,7 +1,13 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import { ATTENDANCE_PAGE, PUBLIC_PAGES } from "./pageMeta";
+import {
+  ATTENDANCE_PAGE,
+  PRIVACY_POLICY_PAGE,
+  PUBLIC_PAGES,
+  SECURITY_TRUST_PAGE,
+  TERMS_PAGE,
+} from "./pageMeta";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { routes } from "./router";
 
@@ -82,17 +88,33 @@ describe("router", () => {
     },
   );
 
-  it("lists every public page in the footer's site-pages nav", () => {
+  // The legal pages are not use-case pages, so they are listed here. A wrong or missing page
+  // would otherwise pass every other check while the footer still links to it.
+  it.each([
+    { path: "/privacy-policy", title: PRIVACY_POLICY_PAGE.title, heading: "Privacy policy" },
+    { path: "/terms", title: TERMS_PAGE.title, heading: "Terms of service" },
+    { path: "/security-trust", title: SECURITY_TRUST_PAGE.title, heading: "Security and trust" },
+  ])(
+    "renders the legal page $path with its heading and document title",
+    ({ path, title, heading }) => {
+      renderAt(path);
+
+      expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+      expect(document.title).toBe(title);
+    },
+  );
+
+  it("lists every public page in the footer", () => {
     renderAt("/features");
 
-    // The footer splits the pages into a Company nav and a Solutions nav; together they list every page.
-    const hrefs = ["Company pages", "Solution pages"].flatMap((name) =>
-      within(screen.getByRole("navigation", { name }))
-        .getAllByRole("link")
-        .map((link) => link.getAttribute("href")),
-    );
+    // The footer holds the Company, Solutions and Industry groups, plus the policy link in its
+    // bottom strip. Phone and email links are not pages, so only site paths count here.
+    const hrefs = within(screen.getByRole("contentinfo"))
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"))
+      .filter((href): href is string => href?.startsWith("/") === true);
     // Derived from the meta list, so a page added there but forgotten in the footer fails here.
-    expect(hrefs).toEqual(PUBLIC_PAGES.map((page) => page.path));
+    expect([...hrefs].sort()).toEqual(PUBLIC_PAGES.map((page) => page.path).sort());
   });
 
   // The "Fenzit also helps" links are the site's SEO cross-links; these assertions keep a
@@ -130,8 +152,8 @@ describe("router", () => {
     const hrefs = within(nav)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
-    // The four section links jump to the home page. "Book a demo" is a real page, so it works from anywhere too.
-    expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#trust", "/#faq", "/book-demo"]);
+    // The three section links jump to the home page. "Pricing" and "Book a demo" are real pages, so they work from anywhere too.
+    expect(hrefs).toEqual(["/#how-it-works", "/#features", "/#faq", "/pricing", "/book-demo"]);
   });
 
   it("scrolls to the top when a link moves to another page", async () => {

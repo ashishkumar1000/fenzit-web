@@ -28,7 +28,6 @@ describe("Header", () => {
       "/#how-it-works",
     );
     expect(screen.getByRole("link", { name: "Features" }).getAttribute("href")).toBe("/#features");
-    expect(screen.getByRole("link", { name: "Your data" }).getAttribute("href")).toBe("/#trust");
     expect(screen.getByRole("link", { name: "Questions" }).getAttribute("href")).toBe("/#faq");
   });
 

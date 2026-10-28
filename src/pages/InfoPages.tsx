@@ -1,7 +1,24 @@
-import { BOOK_DEMO_PAGE, DATA_SAFETY_PAGE, PARTNERS_PAGE, PRICING_PAGE } from "../app/pageMeta";
+import {
+  BOOK_DEMO_PAGE,
+  DATA_SAFETY_PAGE,
+  PARTNERS_PAGE,
+  PRICING_PAGE,
+  PRIVACY_POLICY_PAGE,
+  SECURITY_TRUST_PAGE,
+  TERMS_PAGE,
+} from "../app/pageMeta";
 import { LinkButton } from "../components/ui/LinkButton";
 import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../config/contact";
 import { DemoRequestForm } from "../features/landing/components/ContactForms";
+import {
+  PRIVACY_LEAD,
+  PRIVACY_SECTIONS,
+  SECURITY_LEAD,
+  SECURITY_SECTIONS,
+  TERMS_LEAD,
+  TERMS_SECTIONS,
+  type LegalSection,
+} from "./legalCopy";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./InfoPages.module.css";
 
@@ -126,6 +143,56 @@ export function PartnersPage() {
           </LinkButton>
         </div>
       </SimpleSection>
+    </SimplePage>
+  );
+}
+
+/** Renders the sections of a legal page. Each section is plain text and needs no extra styling. */
+function LegalSections({ sections }: { sections: LegalSection[] }) {
+  return (
+    <>
+      {sections.map((section) => (
+        <SimpleSection
+          key={section.id}
+          id={section.id}
+          title={section.title}
+          paragraphs={section.paragraphs}
+        />
+      ))}
+    </>
+  );
+}
+
+export function PrivacyPolicyPage() {
+  return (
+    <SimplePage
+      meta={PRIVACY_POLICY_PAGE}
+      id="privacy-title"
+      title="Privacy policy"
+      lead={PRIVACY_LEAD}
+    >
+      <LegalSections sections={PRIVACY_SECTIONS} />
+    </SimplePage>
+  );
+}
+
+export function TermsOfServicePage() {
+  return (
+    <SimplePage meta={TERMS_PAGE} id="terms-title" title="Terms of service" lead={TERMS_LEAD}>
+      <LegalSections sections={TERMS_SECTIONS} />
+    </SimplePage>
+  );
+}
+
+export function SecurityTrustPage() {
+  return (
+    <SimplePage
+      meta={SECURITY_TRUST_PAGE}
+      id="security-title"
+      title="Security and trust"
+      lead={SECURITY_LEAD}
+    >
+      <LegalSections sections={SECURITY_SECTIONS} />
     </SimplePage>
   );
 }

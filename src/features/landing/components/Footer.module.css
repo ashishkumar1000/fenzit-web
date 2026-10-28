@@ -1,58 +1,221 @@
+/* A white footer with a sunken strip at the bottom. Every colour comes from the app theme. */
 .footer {
-  padding: var(--space-6) 0 var(--space-10);
+  padding-top: var(--space-8);
+  background: var(--color-surface-card);
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.pages {
+.grid {
+  display: grid;
+  gap: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.side,
+.main {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.sectionHead {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-5);
-  padding-bottom: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-/* The group name sits on its own line above its links. */
-.groupTitle {
-  flex-basis: 100%;
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.pageLink {
+.pill,
+.badge {
   display: inline-flex;
   align-items: center;
-  min-height: var(--touch-min);
-  font-size: var(--font-size-sm);
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-link);
-  text-decoration: none;
-}
-
-.pageLink:hover {
-  text-decoration: underline;
-}
-
-.pageLink:focus-visible {
-  outline: 2px solid var(--color-border-focus);
-  outline-offset: 2px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-status-progress-border);
   border-radius: var(--radius-xs);
 }
 
-.bar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-
-.left {
+.count {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
-.right {
+/* Company links */
+.companyList {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.companyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  text-decoration: none;
+}
+
+.companyLink:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.lock {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+/* Built-for card */
+.note {
+  padding: var(--space-5);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-status-progress-border);
+  border-radius: var(--radius-lg);
+}
+
+.noteTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-progress-fg);
+}
+
+.noteBody {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--color-text-body);
+}
+
+/* Social links */
+.followTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.socialLink {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch-comfort);
+  height: var(--touch-comfort);
+  color: var(--color-text-body);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.social {
+  width: 20px;
+  height: 20px;
+}
+
+.socialLink:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Shown until the LinkedIn address is set: visible, but not a link. */
+.socialSoon {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch-comfort);
+  height: var(--touch-comfort);
+  color: var(--color-text-muted);
+  background: var(--color-surface-page);
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+/* Solution cards: one column on phones, two on tablets, three on desktop. */
+.cards {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  gap: 2px;
+  height: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--color-border-default);
+}
+
+.cardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.cardNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Industry tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-body);
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+.tag:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.contact {
+  margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-body);
 }
@@ -70,16 +233,98 @@
   text-decoration: underline;
 }
 
+.companyLink:focus-visible,
+.socialLink:focus-visible,
+.card:focus-visible,
+.tag:focus-visible,
 .link:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Bottom strip */
+.bar {
+  background: var(--color-surface-sunken);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.barInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  padding-block: var(--space-5);
+}
+
+.copy {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.legalList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legalItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The small dot between two legal links. */
+.dot {
+  width: 4px;
+  height: 4px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.legalLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.legalLink:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.legalLink:focus-visible {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
 }
 
+/* Tablets: eight cards make four even pairs, so no card sits alone. */
 @media (min-width: 600px) {
-  .bar {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Desktop: the last card spans two columns beside the one before it, so the rows fill. */
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr);
+    gap: var(--space-10);
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wideCard {
+    grid-column: span 2;
   }
 }

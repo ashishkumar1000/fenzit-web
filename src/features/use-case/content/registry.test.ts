@@ -9,7 +9,7 @@ import { ALL_USE_CASE_CONTENT, siblingsFor } from "./registry";
 // separately written content files against copy-paste drift.
 
 const REGISTRY_PATHS = ALL_USE_CASE_CONTENT.map((content) => content.meta.path);
-// Pages that are not use-case pages: the feature pages, and the pricing, demo, data and partner pages.
+// Pages that are not use-case pages: the feature pages, and the pricing, demo, data, partner and policy pages.
 const NON_USE_CASE_PATHS = [
   "/features",
   "/attendance",
@@ -17,6 +17,9 @@ const NON_USE_CASE_PATHS = [
   "/book-demo",
   "/data-safety",
   "/partners",
+  "/privacy-policy",
+  "/terms",
+  "/security-trust",
 ];
 const PUBLIC_USE_CASE_PATHS = PUBLIC_PAGES.map((page) => page.path).filter(
   (path) => !NON_USE_CASE_PATHS.includes(path),

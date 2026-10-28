@@ -8,11 +8,7 @@ export function CallBack() {
   return (
     <section id="call-back" className={styles.section} aria-labelledby="call-back-title">
       <Container>
-        <SectionHeading
-          id="call-back-title"
-          title="Get a call from our team"
-          lead="Give your phone number or email and we will call you back. To join the early-access list, use the form below."
-        />
+        <SectionHeading id="call-back-title" title="Get a call from our team" />
         <div className={styles.form}>
           <CallBackForm />
         </div>

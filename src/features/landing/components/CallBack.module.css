@@ -1,5 +1,6 @@
+/* No bottom padding: the next section (Join early access) already adds its own space above. */
 .section {
-  padding: var(--space-8) 0;
+  padding: var(--space-8) 0 0;
   scroll-margin-top: var(--space-16);
 }
 

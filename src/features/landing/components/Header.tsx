@@ -13,8 +13,8 @@ import styles from "./Header.module.css";
 const LINKS = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#features", label: "Features" },
-  { href: "/#trust", label: "Your data" },
   { href: "/#faq", label: "Questions" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/book-demo", label: "Book a demo" },
 ] as const;
 

@@ -64,7 +64,7 @@ export function Features() {
                 {block.key === "jobs" && (
                   <>
                     <div className={styles.previewHead}>
-                      <span className={styles.previewValue}>Commercial HVAC Service</span>
+                      <span className={styles.previewValue}>AC service visit</span>
                       <span className={`${styles.pill} ${styles.progress}`}>In progress</span>
                     </div>
                     <div className={styles.steps}>
