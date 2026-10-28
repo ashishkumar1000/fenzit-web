@@ -1,0 +1,44 @@
+# Fenzit
+
+> Fenzit is software for field teams. Owners add employees, assign and dispatch jobs, track every task live, and run attendance and leave from one phone app. Built for AC service, plumbing, delivery, collection, cleaning, pest control and similar businesses in India. Every team gets a 3-month free trial.
+
+Contact: phone +91 92792 30451, email hello@fenzit.com. To book a demo, visit https://fenzit.com/book-demo.
+
+## Product
+
+- [Features](https://fenzit.com/features): every feature Fenzit ships today, for owners and field employees.
+- [Attendance and leave](https://fenzit.com/attendance): GPS-verified check-ins from employees' own phones, office locations, working hours, monthly reports and leave approvals.
+- [Field job tracking](https://fenzit.com/field-job-tracking): create field jobs with clear steps, send them to employees, and track live status with photos, signatures and PDF reports.
+- [Leave management](https://fenzit.com/leave-management-software): leave requests and approvals for small teams.
+- [Geofencing attendance](https://fenzit.com/geofencing-attendance): attendance check-ins limited to office locations.
+- [Employee attendance app](https://fenzit.com/employee-attendance-app): attendance for small teams from each employee's phone.
+- [Technician tracking](https://fenzit.com/technician-tracking-software): see where technicians are and what job each one is on.
+- [Collection agent tracking](https://fenzit.com/collection-agent-tracking): track field visits by collection agents.
+- [Delivery tracking](https://fenzit.com/delivery-tracking): create deliveries as jobs, track them live, and get photo and signature proof of delivery.
+
+## Industries
+
+- [AC service software](https://fenzit.com/ac-service-software): service jobs, technicians assigned by skill, photos, signatures and PDF reports.
+- [Plumber software](https://fenzit.com/plumber-software): plumber dispatch and job tracking from the phone.
+- [Electrician software](https://fenzit.com/electrician-software): electrician job tracking.
+- [Appliance repair software](https://fenzit.com/appliance-repair-software): home appliance repair jobs.
+- [CCTV installation software](https://fenzit.com/cctv-installation-software): installation job tracking.
+- [Cleaning services software](https://fenzit.com/cleaning-services-software): cleaning business visits and teams.
+- [Pest control software](https://fenzit.com/pest-control-software): pest control visits.
+- [Salon at home software](https://fenzit.com/salon-at-home-software): job software for salons that work at the customer's home.
+- [Solar installation software](https://fenzit.com/solar-installation-software): solar installation jobs.
+- [Water purifier service software](https://fenzit.com/water-purifier-service-software): RO service visits and reports.
+- [Facility management software](https://fenzit.com/facility-management-software): site teams.
+- [IT AMC software](https://fenzit.com/it-amc-software): IT annual maintenance contract jobs.
+- [Service business software](https://fenzit.com/service-business-software): general field service teams.
+
+## Company
+
+- [Pricing](https://fenzit.com/pricing): every team gets 3 months free. Call or email for the price for your team after the trial.
+- [Book a demo](https://fenzit.com/book-demo): request a demo or a call back.
+- [Data safety](https://fenzit.com/data-safety): phone and one-time code sign-in, each company's data kept separate, and location taken only at job steps and attendance check-ins that need it.
+- [Partners](https://fenzit.com/partners): for installers, service companies and software resellers.
+
+## Optional
+
+- [Sitemap](https://fenzit.com/sitemap.xml): every public page.
