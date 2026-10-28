@@ -6,7 +6,7 @@
   display: grid;
   gap: var(--space-3);
   justify-items: center;
-  max-width: 880px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
   border-radius: var(--radius-xl);

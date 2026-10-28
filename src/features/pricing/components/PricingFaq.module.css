@@ -5,7 +5,7 @@
 .list {
   display: grid;
   gap: var(--space-3);
-  max-width: 760px;
+  max-width: 1040px;
   margin: var(--space-6) auto 0;
 }
 

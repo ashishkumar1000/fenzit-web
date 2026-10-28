@@ -1,17 +1,17 @@
 .section {
-  padding: var(--space-8) 0;
+  padding: var(--space-6) 0;
   scroll-margin-top: var(--space-16);
   background: var(--color-surface-sunken);
 }
 
 @media (min-width: 768px) {
   .section {
-    padding: var(--space-10) 0;
+    padding: var(--space-8) 0;
   }
 }
 
 .list {
-  max-width: 720px;
+  max-width: 1040px;
   border-top: 1px solid var(--color-border-subtle);
 }
 
@@ -59,6 +59,6 @@
 
 .answer {
   padding: 0 0 var(--space-4);
-  max-width: 640px;
+  max-width: 720px;
   color: var(--color-text-body);
 }

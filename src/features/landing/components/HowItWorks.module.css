@@ -1,5 +1,5 @@
 .section {
-  padding: var(--space-8) 0;
+  padding: var(--space-6) 0;
   scroll-margin-top: var(--space-16);
   background: var(--color-surface-sunken);
 }
@@ -170,7 +170,7 @@
 
 @media (min-width: 768px) {
   .section {
-    padding: var(--space-10) 0;
+    padding: var(--space-8) 0;
   }
 
   .card {

@@ -1,11 +1,11 @@
 .section {
-  padding: var(--space-6) 0 var(--space-8);
+  padding: var(--space-4) 0 var(--space-6);
 }
 
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-10);
+  gap: var(--space-8);
   align-items: center;
 }
 
@@ -41,12 +41,12 @@
 
 @media (min-width: 768px) {
   .section {
-    padding: var(--space-10) 0;
+    padding: var(--space-8) 0;
   }
 
   .hero {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-10);
+    gap: var(--space-8);
   }
 
   .title {
