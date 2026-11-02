@@ -2,10 +2,12 @@ import type { RouteObject } from "react-router";
 import { countryCodesLoader } from "../services/countryCodes";
 import { adminAccountAction } from "../features/admin/adminAccountAction";
 import { demoAction } from "../features/landing/contactRequestAction";
+import { deleteAccountAction } from "../features/account-deletion/deletionAction";
 import { homeAction } from "../features/landing/homeAction";
 import { UseCasePage } from "../features/use-case/components/UseCasePage";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { AttendancePage } from "../pages/AttendancePage";
+import { DeleteAccountPage } from "../pages/DeleteAccountPage";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
 import { BookDemoPage, DataSafetyPage, PartnersPage } from "../pages/InfoPages";
@@ -48,6 +50,12 @@ export const routes: RouteObject[] = [
       { path: "/data-safety", element: <DataSafetyPage /> },
       { path: "/partners", element: <PartnersPage /> },
       { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+      {
+        // Public: asks for an account to be deleted. Phone code first; nothing is deleted here.
+        path: "/delete-account",
+        element: <DeleteAccountPage />,
+        action: deleteAccountAction,
+      },
       { path: "/terms", element: <TermsOfServicePage /> },
       { path: "/security-trust", element: <SecurityTrustPage /> },
       ...ALL_USE_CASE_CONTENT.map((content) => ({
@@ -127,6 +135,20 @@ export const routes: RouteObject[] = [
                 Component: page.AdminReportsPage,
                 loader: loaderModule.adminReportsLoader,
                 action: loaderModule.adminReportsAction,
+              };
+            },
+          },
+          {
+            path: "deletion-requests",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminDeletionRequestsPage"),
+                import("../features/admin/adminDeletionLoaders"),
+              ]);
+              return {
+                Component: page.AdminDeletionRequestsPage,
+                loader: loaderModule.adminDeletionLoader,
+                action: loaderModule.adminDeletionAction,
               };
             },
           },

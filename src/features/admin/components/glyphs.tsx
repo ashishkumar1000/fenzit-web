@@ -183,3 +183,14 @@ export function ConsoleArt() {
     </svg>
   );
 }
+
+/** A person with a minus sign — the Deletion requests section. */
+export function GlyphDeletion({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <circle cx="9.5" cy="8" r="3.8" />
+      <path d="M3 20.5c.9-3.6 3.6-5.6 6.5-5.6s5.6 2 6.5 5.6" />
+      <path d="M16.5 15.5h5" />
+    </svg>
+  );
+}

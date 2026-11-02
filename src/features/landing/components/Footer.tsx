@@ -51,6 +51,7 @@ const LEGAL_PAGES = [
   { to: "/privacy-policy", label: "Privacy Policy" },
   { to: "/terms", label: "Terms of Service" },
   { to: "/security-trust", label: "Security & Trust" },
+  { to: "/delete-account", label: "Delete Account" },
 ];
 
 /** The industry pages, shown as tags. */

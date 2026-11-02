@@ -120,11 +120,12 @@ describe("consoleRole", () => {
 });
 
 describe("sectionsFor", () => {
-  it("gives staff Inspect, Account and Reports, with Reports below Account", () => {
+  it("gives staff Inspect, Account, Reports and Deletion requests, in that order", () => {
     expect(sectionsFor("staff").map((s) => s.to)).toEqual([
       "/admin/inspect",
       "/admin/account",
       "/admin/reports",
+      "/admin/deletion-requests",
     ]);
   });
 

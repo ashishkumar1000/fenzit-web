@@ -219,6 +219,13 @@ export const SECURITY_TRUST_PAGE: PageMeta = {
     "How Fenzit signs people in, keeps each company's data separate, limits location use, and how to report a security problem.",
 };
 
+export const DELETE_ACCOUNT_PAGE: PageMeta = {
+  path: "/delete-account",
+  title: "Delete your Fenzit account: request form",
+  description:
+    "Ask Fenzit to delete your account and linked personal details. Confirm with a code sent to your phone. Our team reviews each request.",
+};
+
 /**
  * Every indexable page except the home page, whose head lives directly in index.html. The
  * prerender script walks this list, so adding a page to the site means adding its meta here
@@ -230,6 +237,7 @@ export const PUBLIC_PAGES: PageMeta[] = [
   DATA_SAFETY_PAGE,
   PARTNERS_PAGE,
   PRIVACY_POLICY_PAGE,
+  DELETE_ACCOUNT_PAGE,
   TERMS_PAGE,
   SECURITY_TRUST_PAGE,
   FEATURES_PAGE,
@@ -273,5 +281,6 @@ export const CLIENT_ONLY_TITLES: Record<string, string> = {
   "/admin/company/holidays": "Console · Fenzit",
   "/admin/company/attendance": "Console · Fenzit",
   "/admin/me": "Console · Fenzit",
+  "/admin/deletion-requests": "Console · Fenzit",
   "404": "Page not found · Fenzit",
 };
