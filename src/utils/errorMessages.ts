@@ -14,6 +14,7 @@ const MESSAGES_BY_CODE = new Map<string, string>([
   ["OTP_EXPIRED", "That code has expired. Ask for a new one."],
   ["OTP_SESSION_LOCKED", "Too many wrong codes. Wait before you try again."],
   ["OTP_SEND_FAILED", "We could not send the code. Try again in a moment."],
+  ["REPORT_ALREADY_RESOLVED", "Someone already handled this report. The list has been refreshed."],
 ]);
 
 export const GENERIC_MESSAGE = "Something went wrong. Try again.";

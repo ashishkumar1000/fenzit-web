@@ -117,6 +117,20 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            path: "reports",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminReportsPage"),
+                import("../features/admin/adminReportsLoaders"),
+              ]);
+              return {
+                Component: page.AdminReportsPage,
+                loader: loaderModule.adminReportsLoader,
+                action: loaderModule.adminReportsAction,
+              };
+            },
+          },
+          {
             path: "company",
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([

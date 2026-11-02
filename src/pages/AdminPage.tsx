@@ -9,6 +9,7 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "react-router";
+import { Flag } from "lucide-react";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
@@ -44,9 +45,15 @@ export function AdminChecking() {
   );
 }
 
+/** Reports uses the lucide flag icon, the same family as the mobile app. */
+function GlyphReports({ size = 20 }: { size?: number }) {
+  return <Flag size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
+
 const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
   "/admin/inspect": GlyphInspect,
   "/admin/account": GlyphAccount,
+  "/admin/reports": GlyphReports,
   "/admin/company": GlyphCompany,
   "/admin/company/customers": GlyphCustomers,
   "/admin/company/employees": GlyphMe,

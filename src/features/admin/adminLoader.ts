@@ -32,6 +32,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
     return [
       { to: "/admin/inspect", label: "Inspect" },
       { to: "/admin/account", label: "Account" },
+      { to: "/admin/reports", label: "Reports" },
     ];
   }
   if (role === "owner") {

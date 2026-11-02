@@ -120,8 +120,12 @@ describe("consoleRole", () => {
 });
 
 describe("sectionsFor", () => {
-  it("gives staff Inspect and Account", () => {
-    expect(sectionsFor("staff").map((s) => s.to)).toEqual(["/admin/inspect", "/admin/account"]);
+  it("gives staff Inspect, Account and Reports, with Reports below Account", () => {
+    expect(sectionsFor("staff").map((s) => s.to)).toEqual([
+      "/admin/inspect",
+      "/admin/account",
+      "/admin/reports",
+    ]);
   });
 
   it("gives an owner the overview plus the five browse lists", () => {
