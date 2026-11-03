@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "../config/contact";
 
 /** The date shown on every legal page. Change it here when a page changes. */
-const LEGAL_UPDATED = "28 October 2026";
+const LEGAL_UPDATED = "3 November 2026";
 
 // Plain-English copy for the legal pages. Each sentence states what Fenzit does today, or a
 // promise the team has agreed to keep. Anything the owner has not decided yet is left off.
@@ -31,6 +31,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       "When you sign in, we keep your phone number. We send a one-time code by SMS to check the number is yours.",
       "What your team adds to Fenzit includes the names and contact details of employees and customers, job details, photos, customer signatures, attendance check-ins and leave requests.",
       "Location is taken only at job steps and attendance check-ins that need it. We keep the place and time of each one.",
+      "The app uses your device's camera only when you add a job photo or a customer signature.",
       "When you type an address in the app, the text is sent to Google to suggest matches.",
     ],
   },
@@ -69,10 +70,19 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     ],
   },
   {
+    id: "children-title",
+    title: "Children",
+    paragraphs: [
+      "Fenzit is a tool for people at work. It is not meant for children, and we do not knowingly collect personal data from children under 13.",
+      `If you believe a child's personal data has reached us, write to ${CONTACT_EMAIL} and we will delete it.`,
+    ],
+  },
+  {
     id: "rights-title",
     title: "Your rights",
     paragraphs: [
       "You can ask us to show you the personal data we hold about you, to correct it, to delete it, or to stop using it for a purpose you have agreed to.",
+      "You can start an account deletion yourself at https://fenzit.com/delete-account, or from the Fenzit app's Account & settings screen.",
       `Write to ${CONTACT_EMAIL} to make a request. We will reply and tell you what we have done.`,
       `If you are not happy with our reply, write to ${CONTACT_EMAIL} again and we will look at it.`,
     ],
