@@ -88,8 +88,8 @@ function RequestItem({
       <div className={styles.details}>
         <p className={styles.name}>{row.name?.trim() || "No name on this account"}</p>
         <p className={styles.quiet}>
-          +{row.countryCode.replace(/^\+/, "")} {row.phoneNumber} · requested{" "}
-          {fmtWhen(row.requestedAt)}
+          +{row.countryCode.replace(/^\+/, "")} {row.phoneNumber} · asked from the{" "}
+          {row.source === "app" ? "app" : "website"} · requested {fmtWhen(row.requestedAt)}
         </p>
         {error ? (
           <p className={styles.alert} role="alert">

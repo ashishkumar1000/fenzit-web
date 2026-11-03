@@ -16,6 +16,8 @@ export interface DeletionRequestRow {
   countryCode: string;
   phoneNumber: string;
   status: string;
+  /** Which surface filed it: "web" (this site) or "app". */
+  source: string;
   requestedAt: string;
   reviewedAt: string | null;
 }
