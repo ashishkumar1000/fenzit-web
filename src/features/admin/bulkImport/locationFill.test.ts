@@ -12,7 +12,13 @@ import {
 } from "../../../testing/fetchMock";
 import type { GeocodeResponse } from "./importApi";
 import { blankCells, type SheetRow } from "./importModel";
-import { applyLocation, lookupLocation, mapWithConcurrency, needsLocation } from "./locationFill";
+import {
+  applyLocation,
+  createPacer,
+  lookupLocation,
+  mapWithConcurrency,
+  needsLocation,
+} from "./locationFill";
 
 const COMPANY = "11111111-2222-4333-8444-555555555555";
 const TOKEN = "staff-token-123";
@@ -126,6 +132,31 @@ describe("mapWithConcurrency", () => {
       seen.push(item);
     });
     expect(seen.sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("createPacer", () => {
+  it("lets callers through no closer together than the gap, in the order they asked", async () => {
+    const pace = createPacer(40);
+    const starts: number[] = [];
+    await Promise.all(
+      [1, 2, 3].map(async (n) => {
+        await pace();
+        starts.push(n);
+      }),
+    );
+    expect(starts).toEqual([1, 2, 3]);
+  });
+
+  it("spaces the starts by at least the gap", async () => {
+    const pace = createPacer(40);
+    const times: number[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      await pace();
+      times.push(Date.now());
+    }
+    expect(times[1] - times[0]).toBeGreaterThanOrEqual(35);
+    expect(times[2] - times[1]).toBeGreaterThanOrEqual(35);
   });
 });
 

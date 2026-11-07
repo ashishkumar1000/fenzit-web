@@ -7,6 +7,29 @@ import type { SheetRow } from "./importModel";
 export const LOCATION_CONCURRENCY = 3;
 /** The server's geocode limit window is one minute. A 429 waits for it to pass. */
 const RATE_WAIT_MS = 60_000;
+/**
+ * Gap between the starts of two lookups in one run: about 55 a minute, under
+ * the server's 60-a-minute limit. A 300-row sheet then takes about 5.5 minutes
+ * instead of tripping the limit after the first 60 rows.
+ */
+export const LOOKUP_GAP_MS = 1100;
+
+/**
+ * Returns a gate that lets one caller through at a time, at least gapMs after
+ * the previous start. Callers queue in the order they ask.
+ */
+export function createPacer(gapMs: number): () => Promise<void> {
+  let last = Number.NEGATIVE_INFINITY;
+  let chain: Promise<void> = Promise.resolve();
+  return () => {
+    chain = chain.then(async () => {
+      const wait = last + gapMs - Date.now();
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      last = Date.now();
+    });
+    return chain;
+  };
+}
 
 /** Blank cells fill from a lookup. Text the staff member typed is never replaced. */
 export function blankThenFill(current: string, found: string | null): string {

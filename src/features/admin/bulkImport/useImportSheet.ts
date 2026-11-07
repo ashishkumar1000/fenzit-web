@@ -13,6 +13,8 @@ import type { SheetRow } from "./importModel";
 import {
   applyLocation,
   lookupLocation,
+  createPacer,
+  LOOKUP_GAP_MS,
   mapWithConcurrency,
   LOCATION_CONCURRENCY,
   needsLocation,
@@ -209,10 +211,12 @@ export function useImportSheet(companyId: string | null) {
           current,
         ),
     );
+    const pace = createPacer(LOOKUP_GAP_MS);
     await mapWithConcurrency(targets, LOCATION_CONCURRENCY, async (index) => {
       const row = snapshot[index];
       let answer: GeocodeResponse | null = null;
       try {
+        await pace();
         answer = await lookupLocation(companyId, row.cells);
       } catch (error) {
         const failed = failedStatus(error);
