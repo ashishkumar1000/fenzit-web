@@ -31,11 +31,15 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: "Questions" }).getAttribute("href")).toBe("/#faq");
   });
 
-  // The early-access form has its own entry points (hero and section), so the header does not repeat it.
-  it("does not show a Join early access link in the header", () => {
+  // The download panel on the home page is the one place to point at, so the strip links there
+  // with the qualified home path — the strip renders on every page.
+  it("links the strip's Get the app to the home download section", () => {
     renderHeader();
 
-    expect(screen.queryAllByRole("link", { name: "Join early access" })).toHaveLength(0);
+    expect(screen.getByRole("link", { name: "Get the app" }).getAttribute("href")).toBe(
+      "/#get-app",
+    );
+    expect(screen.getByText("The Fenzit Android app is live on Google Play.")).toBeTruthy();
   });
 
   it("shows Log out in place of Log in when a session is saved", () => {

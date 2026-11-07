@@ -5,6 +5,7 @@ import type { PageMeta } from "../../../app/pageMeta";
 import { LinkButton } from "../../../components/ui/LinkButton";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
+import { PLAY_STORE_URL } from "../../../config/appStores";
 import { Footer } from "../../landing/components/Footer";
 import { Header } from "../../landing/components/Header";
 import { siblingsFor } from "../content/registry";
@@ -45,7 +46,7 @@ export type UseCaseContent = {
 
 /**
  * The shared shape of a use-case page: hero with art, the problem, how it works, questions, and
- * the early-access call to action with links to the other pages. The content differs per page;
+ * the download call to action with links to the other pages. The content differs per page;
  * this component keeps the structure, spacing and links identical.
  */
 export function UseCasePage({ content }: { content: UseCaseContent }) {
@@ -66,8 +67,8 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
                   {content.heading}
                 </h1>
                 <p className={styles.lead}>{content.lead}</p>
-                <LinkButton to="/" variant="primary">
-                  Join the early access list
+                <LinkButton href={PLAY_STORE_URL} external variant="primary">
+                  Get the app on Google Play
                 </LinkButton>
               </div>
               <div className={styles.artPanel}>
@@ -125,10 +126,10 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
               See it working for your team
             </h2>
             <p className={styles.ctaText}>
-              Join the early access list, and we will email you as access opens.
+              Download the Fenzit Android app, add your team, and start with 90 days free.
             </p>
-            <LinkButton to="/" variant="primary">
-              Join the early access list
+            <LinkButton href={PLAY_STORE_URL} external variant="primary">
+              Get the app on Google Play
             </LinkButton>
             <p className={styles.ctaMore}>Fenzit also helps:</p>
             <ul className={styles.siblings}>

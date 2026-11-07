@@ -1,0 +1,32 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-comfort);
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.badge:hover {
+  opacity: 0.9;
+}
+
+.badge:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/*
+ * The asset ships with a transparent margin, trimmed at import time, so the
+ * image edge is the badge edge; the token radius rounds it to match the
+ * buttons. The official asset itself is otherwise unmodified.
+ */
+.image {
+  height: 56px;
+  width: auto;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.sm .image {
+  height: 48px;
+}

@@ -1,5 +1,6 @@
 import { Container } from "../../../components/ui/Container";
 import { LinkButton } from "../../../components/ui/LinkButton";
+import { StoreBadge } from "../../../components/ui/StoreBadge";
 import { HeroPreview } from "./HeroPreview";
 import styles from "./Hero.module.css";
 
@@ -18,9 +19,7 @@ export function Hero() {
               once, and the team uses it on their phones. Every team gets 90 days free.
             </p>
             <div className={styles.actions}>
-              <LinkButton href="#early-access" variant="primary">
-                Join early access
-              </LinkButton>
+              <StoreBadge />
               <LinkButton href="#call-back" variant="secondary">
                 Request a call back
               </LinkButton>

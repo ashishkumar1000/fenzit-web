@@ -5,6 +5,7 @@ import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
 import { Container } from "../../../components/ui/Container";
+import { StoreBadge } from "../../../components/ui/StoreBadge";
 import {
   CONTACT_EMAIL,
   LINKEDIN_URL,
@@ -28,7 +29,7 @@ const SOLUTION_CARDS = [
   {
     to: "/employee-attendance-app",
     label: "Employee attendance app",
-    note: "iOS & Android mobile",
+    note: "Android app on Google Play",
   },
   { to: "/geofencing-attendance", label: "Geofencing attendance", note: "Location-verified logs" },
   { to: "/leave-management-software", label: "Leave management", note: "Approval workflows" },
@@ -156,6 +157,7 @@ export function Footer() {
                 <LinkedInIcon />
               </span>
             )}
+            <StoreBadge size="sm" />
             <div className={styles.contactBar}>
               <span className={styles.contactLabel}>
                 <MessageCircle

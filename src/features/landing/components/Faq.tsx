@@ -1,12 +1,14 @@
+import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
+import { PLAY_STORE_URL } from "../../../config/appStores";
 import styles from "./Faq.module.css";
 
 type FaqItem = {
   key: string;
   question: string;
-  answer: string;
+  answer: ReactNode;
 };
 
 const ITEMS: FaqItem[] = [
@@ -31,12 +33,20 @@ const ITEMS: FaqItem[] = [
     key: "install",
     question: "Do employees need to install an app?",
     answer:
-      "Yes. Employees use the Fenzit mobile app. We will share how to get it when access opens.",
+      "Yes. Everyone uses the Fenzit Android app from Google Play and signs in with their phone number.",
   },
   {
-    key: "access",
-    question: "How do I get access?",
-    answer: "Join the early access list below. We will email you as access opens.",
+    key: "get",
+    question: "How do I get the app?",
+    answer: (
+      <>
+        Download Fenzit from{" "}
+        <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
+          Google Play
+        </a>
+        , add your team, and every team gets 90 days free.
+      </>
+    ),
   },
 ];
 

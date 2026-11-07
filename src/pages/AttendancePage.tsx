@@ -4,6 +4,7 @@ import { ATTENDANCE_PAGE } from "../app/pageMeta";
 import { LinkButton } from "../components/ui/LinkButton";
 import { Container } from "../components/ui/Container";
 import { SectionHeading } from "../components/ui/SectionHeading";
+import { PLAY_STORE_URL } from "../config/appStores";
 import { AttendanceArt } from "../features/attendance/components/AttendanceArt";
 import { Footer } from "../features/landing/components/Footer";
 import { Header } from "../features/landing/components/Header";
@@ -53,7 +54,7 @@ const FAQ_ITEMS = [
     key: "app",
     question: "Do employees need to install an app?",
     answer:
-      "Yes. Employees use the Fenzit mobile app and sign in with their phone number. We will share how to get it when access opens.",
+      "Yes. Everyone uses the Fenzit Android app from Google Play and signs in with their phone number.",
   },
   {
     key: "office",
@@ -91,8 +92,8 @@ export function AttendancePage() {
                   Your team checks in from their own phones at the office. You see today live, get a
                   clean monthly report, and handle leave in a tap — on its own, or with Fenzit jobs.
                 </p>
-                <LinkButton to="/" variant="primary">
-                  Join the early access list
+                <LinkButton href={PLAY_STORE_URL} external variant="primary">
+                  Get the app on Google Play
                 </LinkButton>
               </div>
               <div className={styles.artPanel}>
@@ -170,10 +171,10 @@ export function AttendancePage() {
               See it working for your team
             </h2>
             <p className={styles.ctaText}>
-              Join the early access list, and we will email you as access opens.
+              Download the Fenzit Android app, add your team, and start with 90 days free.
             </p>
-            <LinkButton to="/" variant="primary">
-              Join the early access list
+            <LinkButton href={PLAY_STORE_URL} external variant="primary">
+              Get the app on Google Play
             </LinkButton>
             <p className={styles.ctaMore}>
               Want the whole picture?{" "}

@@ -23,7 +23,10 @@ export function Header() {
   return (
     <>
       <div className={styles.strip}>
-        <p className={styles.stripText}>Early access is open for field service teams.</p>
+        <p className={styles.stripText}>The Fenzit Android app is live on Google Play.</p>
+        <a className={styles.stripLink} href="/#get-app">
+          Get the app
+        </a>
         <a className={styles.stripLink} href={SALES_PHONE_HREF}>
           Call {SALES_PHONE_DISPLAY}
         </a>

@@ -2,10 +2,14 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import styles from "./LinkButton.module.css";
 
-type LinkButtonTarget = { href: string; to?: never } | { to: string; href?: never };
+/* `external` pairs with `href` only: an in-app route never opens a new tab. */
+type LinkButtonTarget =
+  { href: string; to?: never; external?: boolean } | { to: string; href?: never; external?: never };
 
 type LinkButtonProps = LinkButtonTarget & {
   variant: "primary" | "secondary";
+  /** Opens the address in a new tab. Only valid with `href` — another site, such as the Play Store. */
+  external?: boolean;
   children: ReactNode;
 };
 
@@ -14,7 +18,7 @@ type LinkButtonProps = LinkButtonTarget & {
  * link and works without JavaScript. Use `to` for a route in this app, which moves inside the
  * app without reloading the page.
  */
-export function LinkButton({ href, to, variant, children }: LinkButtonProps) {
+export function LinkButton({ href, to, variant, external, children }: LinkButtonProps) {
   const className = `${styles.base} ${variant === "primary" ? styles.primary : styles.secondary}`;
   if (to !== undefined) {
     return (
@@ -24,7 +28,12 @@ export function LinkButton({ href, to, variant, children }: LinkButtonProps) {
     );
   }
   return (
-    <a className={className} href={href}>
+    <a
+      className={className}
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+    >
       {children}
     </a>
   );

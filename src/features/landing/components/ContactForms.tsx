@@ -108,7 +108,7 @@ function ContactFields({
   );
 }
 
-/** Asks for a call back. Posts to the home route, which routes it by the hidden intent field. */
+/** Asks for a call back. Posts to the home route's action. */
 export function CallBackForm() {
   const { fetcher, submitting, successMessage, errorText, errorField, onEdit, onSubmit } =
     useContactSubmission();
@@ -125,7 +125,6 @@ export function CallBackForm() {
       onChange={onEdit}
       onSubmit={onSubmit}
     >
-      <input type="hidden" name="intent" value="call-back" />
       <ContactFields
         errorField={errorField}
         submit={

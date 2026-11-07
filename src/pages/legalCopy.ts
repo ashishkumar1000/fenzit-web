@@ -27,7 +27,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "collect-title",
     title: "What we collect",
     paragraphs: [
-      "When you ask for a call back, a demo or early access, we keep your name, phone number or email, and anything else you choose to tell us.",
+      "When you ask for a call back or a demo, we keep your name, phone number or email, and anything else you choose to tell us.",
       "When you sign in, we keep your phone number. We send a one-time code by SMS to check the number is yours.",
       "What your team adds to Fenzit includes the names and contact details of employees and customers, job details, photos, customer signatures, attendance check-ins and leave requests.",
       "Location is taken only at job steps and attendance check-ins that need it. We keep the place and time of each one.",
@@ -41,7 +41,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     paragraphs: [
       "We use your details to sign you in and run Fenzit for your team.",
       "We keep the job, attendance and leave records that your team relies on.",
-      "We use your call back, demo and early access details only to reply to you about Fenzit.",
+      "We use your call back and demo details only to reply to you about Fenzit.",
       "We use these details to keep the service secure and to fix problems.",
     ],
   },

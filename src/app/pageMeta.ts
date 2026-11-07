@@ -202,7 +202,7 @@ export const PRIVACY_POLICY_PAGE: PageMeta = {
   path: "/privacy-policy",
   title: "Fenzit privacy policy",
   description:
-    "What Fenzit keeps when you ask for a call back, a demo or early access, what your team adds, and who can see it.",
+    "What Fenzit keeps when you ask for a call back or a demo, what your team adds, and who can see it.",
 };
 
 export const TERMS_PAGE: PageMeta = {

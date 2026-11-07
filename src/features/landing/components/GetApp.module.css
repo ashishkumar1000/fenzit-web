@@ -4,6 +4,9 @@
 }
 
 .panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
   padding: var(--space-6);
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-subtle);
@@ -11,33 +14,24 @@
   box-shadow: var(--shadow-sm);
 }
 
-.head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.badge {
+.body {
   display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: var(--touch-large);
-  height: var(--touch-large);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  border-radius: var(--radius-md);
+  gap: var(--space-5);
+  align-content: start;
 }
 
-.badgeIcon {
-  width: 22px;
-  height: 22px;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .perks {
   display: grid;
   gap: var(--space-2);
-  margin-top: var(--space-6);
+  align-content: center;
+  margin: 0;
   padding-top: var(--space-5);
   list-style: none;
   border-top: 1px solid var(--color-border-subtle);
@@ -59,12 +53,6 @@
   border-radius: var(--radius-pill);
 }
 
-@media (min-width: 600px) {
-  .perks {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 @media (min-width: 768px) {
   .section {
     padding: var(--space-8) 0;
@@ -72,5 +60,12 @@
 
   .panel {
     padding: var(--space-10);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+
+  .perks {
+    padding-top: 0;
+    border-top: none;
   }
 }
