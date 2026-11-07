@@ -1,10 +1,13 @@
 import type { ChangeEvent } from "react";
+import { useBlocker } from "react-router";
+import { useUnsavedWarning } from "../../../hooks/useUnsavedWarning";
 import { Button } from "../../../components/ui/Button";
 import type { CountryCode } from "../../../services/countryCodes";
 import { SectionCard } from "../components/SectionCard";
 import { TableSkeleton } from "../components/Table";
 import { ImportFormatPanel } from "./ImportFormatPanel";
 import { ImportPreviewTable } from "./ImportPreviewTable";
+import { LeaveDialog } from "./LeaveDialog";
 import type { BulkProgress } from "./useImportSheet";
 import { isReadyForLocation, needsLocation } from "./locationFill";
 import { ADDRESS_MIN_LENGTH } from "./addressRules";
@@ -78,6 +81,10 @@ type BulkImportPanelProps = {
  */
 export function BulkImportPanel({ companyId, countries }: BulkImportPanelProps) {
   const importer = useImportSheet(companyId);
+  // A loaded sheet that is not imported yet is work in progress: ask before leaving it.
+  const unsaved = importer.sheet !== null && importer.commit.state !== "done";
+  useUnsavedWarning(unsaved);
+  const blocker = useBlocker(unsaved);
   if (companyId === null) {
     return (
       <SectionCard title="Import customers">
@@ -212,6 +219,9 @@ export function BulkImportPanel({ companyId, countries }: BulkImportPanelProps) 
           </>
         ) : null}
       </div>
+      {blocker.state === "blocked" ? (
+        <LeaveDialog onStay={() => blocker.reset()} onLeave={() => blocker.proceed()} />
+      ) : null}
     </SectionCard>
   );
 }

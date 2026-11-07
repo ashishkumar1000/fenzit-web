@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import type { CountryCode } from "../../../services/countryCodes";
 import { clearSession, writeSession } from "../../../services/session";
 import {
@@ -12,6 +14,12 @@ import {
   useApiBase,
 } from "../../../testing/fetchMock";
 import { BulkImportPanel } from "./BulkImportPanel";
+
+/** The panel uses the router to ask before leaving, so it renders inside a data router. */
+function renderPanel(element: ReactElement) {
+  const router = createMemoryRouter([{ path: "/", element }], { initialEntries: ["/"] });
+  return render(<RouterProvider router={router} />);
+}
 
 const COMPANY = "11111111-2222-4333-8444-555555555555";
 const COUNTRIES: CountryCode[] = [
@@ -89,13 +97,13 @@ afterEach(() => {
 
 describe("states before any file", () => {
   it("asks for a company when none is picked, and offers no file input", () => {
-    render(<BulkImportPanel companyId={null} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={null} countries={COUNTRIES} />);
     expect(screen.getByText("Pick a company above before you import its customers.")).toBeTruthy();
     expect(screen.queryByLabelText("Choose a .xlsx or .csv file")).toBeNull();
   });
 
   it("shows the empty state, the limits and the sample downloads on first view", () => {
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     expect(screen.getByText("No rows yet. Choose a file above to see its rows here.")).toBeTruthy();
     expect(screen.getByText(/Limits: 500 rows, 5 MB, \.xlsx or \.csv\./)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Download sample .xlsx" })).toBeTruthy();
@@ -103,7 +111,7 @@ describe("states before any file", () => {
   });
 
   it("shows the format's required and optional columns, with address_details named as the sheet names it", () => {
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     expect(screen.getByRole("cell", { name: "address_details" })).toBeTruthy();
     // name, address and phone are the three required columns.
     expect(screen.getAllByRole("cell", { name: "Yes" })).toHaveLength(3);
@@ -113,7 +121,7 @@ describe("states before any file", () => {
 
 describe("loading and error states", () => {
   it("shows a reading status and locks the file input while a file is being read", async () => {
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     let finish: (text: string) => void = () => {};
     const contents = new Promise<string>((resolve) => {
       finish = resolve;
@@ -133,7 +141,7 @@ describe("loading and error states", () => {
   });
 
   it("shows a plain-English alert, no rows and no empty-state line for an unsupported file", async () => {
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile("x", "sheet.pdf"));
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toBe("This file type is not supported. Upload a .xlsx or .csv file.");
@@ -143,7 +151,7 @@ describe("loading and error states", () => {
   });
 
   it("names the missing column in plain English when the header row lacks phone", async () => {
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile("name,address\nAsha,1 Park St"));
     expect((await screen.findByRole("alert")).textContent).toContain('has no "phone" column');
   });
@@ -152,7 +160,7 @@ describe("loading and error states", () => {
 describe("check, submit gate and results", () => {
   it("counts ready and needs-fixing rows and labels the button with the ready count", async () => {
     serveValidate(["valid", "invalid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     expect(await screen.findByText("1 ready, 1 need fixing.")).toBeTruthy();
     const button = screen.getByRole("button", { name: "Import 1 customer" }) as HTMLButtonElement;
@@ -162,7 +170,7 @@ describe("check, submit gate and results", () => {
 
   it("disables the import button with a reason when no row is ready", async () => {
     serveValidate(["invalid", "invalid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     await screen.findByText("0 ready, 2 need fixing.");
     const button = screen.getByRole("button", { name: "Import 0 customers" }) as HTMLButtonElement;
@@ -174,7 +182,7 @@ describe("check, submit gate and results", () => {
 
   it("disables the button with a reason after an edit, until the edited row is checked again", async () => {
     serveValidate(["valid", "valid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     await screen.findByText("2 ready, 0 need fixing.");
     const phone = screen.getByLabelText("phone, row 2") as HTMLInputElement;
@@ -191,7 +199,7 @@ describe("check, submit gate and results", () => {
 
   it("numbers customers from 1 in the results, even when a blank line sits in the sheet", async () => {
     serveValidate(["valid", "valid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(
       csvFile("name,address,phone\nAsha,1 Park St,9876543210\n\nRavi,2 Lake Rd,9123456780"),
     );
@@ -206,7 +214,7 @@ describe("check, submit gate and results", () => {
 
   it("does not let the same sheet be imported twice from the screen, and says so", async () => {
     serveValidate(["valid", "valid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     await screen.findByText("2 ready, 0 need fixing.");
     fireEvent.click(screen.getByRole("button", { name: "Import 2 customers" }));
@@ -220,7 +228,7 @@ describe("check, submit gate and results", () => {
 
   it("returns to the empty state when Start over is pressed", async () => {
     serveValidate(["valid", "valid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     await screen.findByText("2 ready, 0 need fixing.");
     fireEvent.click(screen.getByRole("button", { name: "Start over" }));
@@ -230,10 +238,61 @@ describe("check, submit gate and results", () => {
 
   it("names the company it writes to on every request, and only that company", async () => {
     serveValidate(["valid", "valid"]);
-    render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
+    renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(csvFile(TWO_ROWS));
     await screen.findByText("2 ready, 0 need fixing.");
     const companies = new Set(sentRequests().map((request) => request.headers.get("X-Company-Id")));
     expect([...companies]).toEqual([COMPANY]);
+  });
+});
+
+describe("leaving with a sheet that is not imported", () => {
+  function mountWithPage() {
+    const router = createMemoryRouter(
+      [
+        { path: "/", element: <BulkImportPanel companyId={COMPANY} countries={COUNTRIES} /> },
+        { path: "/elsewhere", element: <p>Somewhere else</p> },
+      ],
+      { initialEntries: ["/"] },
+    );
+    render(<RouterProvider router={router} />);
+    return router;
+  }
+
+  it("asks before leaving once a sheet is loaded, and stays when told to", async () => {
+    serveValidate(["valid", "valid"]);
+    const router = mountWithPage();
+    chooseFile(csvFile(TWO_ROWS));
+    await screen.findByText("2 ready, 0 need fixing.");
+    act(() => {
+      void router.navigate("/elsewhere");
+    });
+    expect(await screen.findByRole("alertdialog", undefined, { timeout: 3000 })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Stay on this page" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen.getByText("2 ready, 0 need fixing.")).toBeTruthy();
+  });
+
+  it("leaves when the staff member chooses to lose the changes", async () => {
+    serveValidate(["valid", "valid"]);
+    const router = mountWithPage();
+    chooseFile(csvFile(TWO_ROWS));
+    await screen.findByText("2 ready, 0 need fixing.");
+    act(() => {
+      void router.navigate("/elsewhere");
+    });
+    await screen.findByRole("alertdialog", undefined, { timeout: 3000 });
+    fireEvent.click(screen.getByRole("button", { name: "Leave and lose changes" }));
+    expect(await screen.findByText("Somewhere else")).toBeTruthy();
+  });
+
+  it("does not ask when no sheet is loaded", async () => {
+    const router = mountWithPage();
+    act(() => {
+      void router.navigate("/elsewhere");
+    });
+    expect(await screen.findByText("Somewhere else")).toBeTruthy();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 });

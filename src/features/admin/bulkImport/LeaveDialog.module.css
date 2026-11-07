@@ -1,0 +1,40 @@
+/* The dialog sits over the page; the page behind is dimmed so the choice is the only thing to act on. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.4);
+}
+
+.dialog {
+  display: grid;
+  gap: var(--space-4);
+  width: min(100%, 28rem);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.copy {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
