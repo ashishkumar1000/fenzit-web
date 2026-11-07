@@ -8,14 +8,10 @@ import {
   type SheetCells,
   type SheetRow,
 } from "./importModel";
+import { checkXlsxUnpackedSize } from "./xlsxSizeGuard";
+import { SheetError } from "./sheetError";
 
-/** A problem with the file itself. The message is plain English and safe to show. */
-export class SheetError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SheetError";
-  }
-}
+export { SheetError } from "./sheetError";
 
 type FileKind = "xlsx" | "csv";
 
@@ -41,6 +37,8 @@ function headerKey(value: unknown): string {
 }
 
 async function readXlsxRows(file: File): Promise<unknown[][]> {
+  // Check the unpacked size from the zip directory first, so a zip bomb never reaches the reader.
+  checkXlsxUnpackedSize(new Uint8Array(await file.arrayBuffer()));
   try {
     return await readSheet(file, { trim: true });
   } catch {
