@@ -66,21 +66,39 @@ export async function mapWithConcurrency<T>(
   await Promise.all(runners);
 }
 
+export type LookupOptions = {
+  /** How many one-minute waits to allow on 429. A single row allows one; a run allows any number. */
+  maxWaits?: number;
+  /** Checked before each wait. False stops the wait, for example when the sheet was replaced. */
+  keepGoing?: () => boolean;
+  /** Told when the lookup starts waiting for the server limit, and when it is running again. */
+  onWait?: (waiting: boolean) => void;
+};
+
 /**
  * One lookup. A 429 (the staff member's minute budget is spent) waits for the
- * window to pass and tries once more. Any other error is thrown to the caller.
+ * window to pass and tries again, up to maxWaits times. Any other error, or a
+ * 429 after the waits are used up, is thrown to the caller.
  */
 export async function lookupLocation(
   companyId: string | null,
   cells: Parameters<typeof geocodeAddress>[1],
+  { maxWaits = 1, keepGoing = () => true, onWait }: LookupOptions = {},
   signal?: AbortSignal,
 ): Promise<GeocodeResponse> {
-  try {
-    return await geocodeAddress(companyId, cells, signal);
-  } catch (error) {
-    if (!(error instanceof ApiError) || error.status !== 429) throw error;
-    await new Promise((resolve) => setTimeout(resolve, RATE_WAIT_MS));
-    return geocodeAddress(companyId, cells, signal);
+  let waits = 0;
+  for (;;) {
+    try {
+      const answer = await geocodeAddress(companyId, cells, signal);
+      onWait?.(false);
+      return answer;
+    } catch (error) {
+      const limited = error instanceof ApiError && error.status === 429;
+      if (!limited || waits >= maxWaits || !keepGoing()) throw error;
+      waits += 1;
+      onWait?.(true);
+      await new Promise((resolve) => setTimeout(resolve, RATE_WAIT_MS));
+    }
   }
 }
 

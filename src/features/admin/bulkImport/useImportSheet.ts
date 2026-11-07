@@ -26,6 +26,9 @@ function failedStatus(error: unknown): "rate-limited" | "error" {
   return error instanceof ApiError && error.status === 429 ? "rate-limited" : "error";
 }
 
+/** Progress of a Fetch all run. paused is true while it waits for the server limit. */
+export type BulkProgress = { done: number; total: number; paused: boolean };
+
 /**
  * State and actions for one staff import on one company. Server calls run from
  * event handlers only, never from an effect. Answers are matched to rows by their
@@ -68,7 +71,7 @@ export function useImportSheet(companyId: string | null) {
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState<string | null>(null);
   const [commit, setCommit] = useState<CommitState>({ state: "idle" });
-  const [bulkLocation, setBulkLocation] = useState<{ done: number; total: number } | null>(null);
+  const [bulkLocation, setBulkLocation] = useState<BulkProgress | null>(null);
   const checkSeq = useRef(0);
   /** Bumped on every new file or reset, so a late geocode answer for an old file is dropped. */
   const sheetSeq = useRef(0);
@@ -202,7 +205,7 @@ export function useImportSheet(companyId: string | null) {
     const sheetAtStart = sheetSeq.current;
     const settled = new Map<number, SheetRow>();
     let done = 0;
-    setBulkLocation({ done, total: targets.length });
+    setBulkLocation({ done, total: targets.length, paused: false });
     setSheet(
       (current) =>
         current &&
@@ -217,13 +220,17 @@ export function useImportSheet(companyId: string | null) {
       let answer: GeocodeResponse | null = null;
       try {
         await pace();
-        answer = await lookupLocation(companyId, row.cells);
+        answer = await lookupLocation(companyId, row.cells, {
+          maxWaits: Number.POSITIVE_INFINITY,
+          keepGoing: () => sheetAtStart === sheetSeq.current,
+          onWait: (paused) => setBulkLocation((current) => current && { ...current, paused }),
+        });
       } catch (error) {
         const failed = failedStatus(error);
         if (sheetAtStart !== sheetSeq.current) return;
         settled.set(index, { ...row, geo: failed });
         done += 1;
-        setBulkLocation({ done, total: targets.length });
+        setBulkLocation({ done, total: targets.length, paused: false });
         setSheet(
           (current) => current && withRow(current, index, (item) => ({ ...item, geo: failed })),
         );
@@ -233,7 +240,7 @@ export function useImportSheet(companyId: string | null) {
       // Apply to the row as it is now, so edits made during the run are kept.
       settled.set(index, applyLocation(row, answer));
       done += 1;
-      setBulkLocation({ done, total: targets.length });
+      setBulkLocation({ done, total: targets.length, paused: false });
       setSheet(
         (current) => current && withRow(current, index, (item) => applyLocation(item, answer)),
       );

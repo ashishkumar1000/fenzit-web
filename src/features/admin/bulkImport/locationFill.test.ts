@@ -242,6 +242,33 @@ describe("lookupLocation", () => {
     expect(sentRequests()).toHaveLength(2);
   });
 
+  it("keeps waiting through repeated 429s in a run until the lookup succeeds", async () => {
+    let calls = 0;
+    setRespond(() => {
+      calls += 1;
+      return calls <= 3 ? jsonResponse({ error_code: "RATE_LIMITED" }, 429) : jsonResponse(FOUND);
+    });
+    const waiting: boolean[] = [];
+    const answer = await lookupLocation(COMPANY, cells, {
+      maxWaits: Number.POSITIVE_INFINITY,
+      onWait: (value) => waiting.push(value),
+    });
+    expect(answer).toEqual(FOUND);
+    expect(sentRequests()).toHaveLength(4);
+    expect(waiting).toEqual([true, true, true, false]);
+  });
+
+  it("stops waiting when the run is no longer wanted, and reports the 429", async () => {
+    setRespond(() => jsonResponse({ error_code: "RATE_LIMITED" }, 429));
+    await expect(
+      lookupLocation(COMPANY, cells, {
+        maxWaits: Number.POSITIVE_INFINITY,
+        keepGoing: () => false,
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+    expect(sentRequests()).toHaveLength(1);
+  });
+
   it("gives up after one retry when the 429 comes back", async () => {
     setRespond(() => jsonResponse({ error_code: "RATE_LIMITED" }, 429));
     await expect(lookupLocation(COMPANY, cells)).rejects.toBeInstanceOf(ApiError);

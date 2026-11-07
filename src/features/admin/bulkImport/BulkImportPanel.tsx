@@ -5,6 +5,7 @@ import { SectionCard } from "../components/SectionCard";
 import { TableSkeleton } from "../components/Table";
 import { ImportFormatPanel } from "./ImportFormatPanel";
 import { ImportPreviewTable } from "./ImportPreviewTable";
+import type { BulkProgress } from "./useImportSheet";
 import { needsLocation } from "./locationFill";
 import { ADDRESS_MIN_LENGTH } from "./addressRules";
 import { ImportResults } from "./ImportResults";
@@ -17,7 +18,7 @@ type LocationBarProps = {
   rows: SheetRow[];
   checking: boolean;
   imported: boolean;
-  progress: { done: number; total: number } | null;
+  progress: BulkProgress | null;
   onFetchAll: () => void;
 };
 
@@ -38,7 +39,9 @@ function LocationBar({ rows, checking, imported, progress, onFetchAll }: Locatio
             ? "Every row with an address already has a location."
             : null;
   const label = running
-    ? `Fetching ${progress.done} of ${progress.total}…`
+    ? progress.paused
+      ? `Paused by the server limit: ${progress.done} of ${progress.total} done`
+      : `Fetching ${progress.done} of ${progress.total}…`
     : `Fetch locations for ${count} ${count === 1 ? "row" : "rows"}`;
   return (
     <div className={styles.locationBar}>
