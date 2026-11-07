@@ -2,6 +2,7 @@ import { LinkButton } from "../../../components/ui/LinkButton";
 import { StoreBadge } from "../../../components/ui/StoreBadge";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
+import qrCode from "../../../assets/brand/play-store-qr.svg";
 import styles from "./GetApp.module.css";
 
 // Only facts true in the product today.
@@ -30,14 +31,27 @@ export function GetApp() {
               </LinkButton>
             </div>
           </div>
-          <ul className={styles.perks}>
-            {PERKS.map((perk) => (
-              <li key={perk} className={styles.perk}>
-                <span className={styles.dot} aria-hidden="true" />
-                {perk}
-              </li>
-            ))}
-          </ul>
+          <div className={styles.side}>
+            <ul className={styles.perks}>
+              {PERKS.map((perk) => (
+                <li key={perk} className={styles.perk}>
+                  <span className={styles.dot} aria-hidden="true" />
+                  {perk}
+                </li>
+              ))}
+            </ul>
+            <div className={styles.scan}>
+              <img
+                className={styles.qr}
+                src={qrCode}
+                width={41}
+                height={41}
+                alt="QR code that opens the Fenzit app on Google Play"
+                loading="lazy"
+              />
+              <p className={styles.scanNote}>Scan to install on your phone.</p>
+            </div>
+          </div>
         </div>
       </Container>
     </section>

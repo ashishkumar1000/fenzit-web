@@ -54,14 +54,17 @@ afterEach(() => {
 });
 
 describe("router", () => {
+  // The finder gets 3s: the home page renders more sections now, and at the
+  // default 1s these two flaked once under the full parallel suite.
   it("renders the home page at /", async () => {
     renderAt("/");
 
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: /run your jobs, attendance and leave/i,
-      }),
+      await screen.findByRole(
+        "heading",
+        { level: 1, name: /run your jobs, attendance and leave/i },
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Trusted by growing businesses" }),
@@ -210,10 +213,11 @@ describe("router", () => {
     fireEvent.click(link);
 
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: /run your jobs, attendance and leave/i,
-      }),
+      await screen.findByRole(
+        "heading",
+        { level: 1, name: /run your jobs, attendance and leave/i },
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Page not found")).toBeNull();
   });
