@@ -1,0 +1,177 @@
+/* Shared by the footer chip and the Trust card. Colours and sizes come from tokens only. */
+
+/* Footer chip */
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border: 1px solid var(--color-status-done-border);
+  text-decoration: none;
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--color-success);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+}
+
+.detail {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}
+
+.link:hover {
+  border-color: var(--color-success);
+}
+
+.link:focus-visible,
+.verify:focus-visible {
+  outline: 2px solid var(--color-ring-focus);
+  outline-offset: 2px;
+}
+
+/* Trust card */
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-status-done-border);
+  background: linear-gradient(135deg, var(--color-status-done-bg), var(--color-surface-card));
+}
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  color: var(--color-on-primary);
+}
+
+.sealIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* TEMPORARY, LOCAL TEST ONLY. Remove with the wordmark. */
+.chipWordmark {
+  display: block;
+  width: 72px;
+  height: auto;
+  margin-bottom: 2px;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-card);
+}
+
+.wordmark {
+  display: block;
+  width: 120px;
+  height: auto;
+  margin-bottom: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-card);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-status-done-fg);
+  line-height: 1.3;
+}
+
+.card .detail {
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+  opacity: 1;
+  font-size: var(--font-size-sm);
+}
+
+.note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+  line-height: 1.5;
+}
+
+.verify {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-status-done-solid);
+  color: var(--color-status-done-fg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  background: var(--color-surface-card);
+}
+
+.verify:hover {
+  background: var(--color-status-done-bg);
+}
+
+.verifyIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: var(--space-6);
+    gap: var(--space-5);
+  }
+
+  .cardTitle {
+    font-size: var(--font-size-xl);
+  }
+}

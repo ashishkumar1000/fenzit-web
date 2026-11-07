@@ -1,5 +1,6 @@
 import { LocateFixed, ShieldCheck, Smartphone, type LucideIcon } from "lucide-react";
 import { Container } from "../../../components/ui/Container";
+import { DpiitBadge } from "../../../components/ui/DpiitBadge";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
 import styles from "./Trust.module.css";
 
@@ -43,6 +44,9 @@ export function Trust() {
             );
           })}
         </ul>
+        <div className={styles.badge}>
+          <DpiitBadge variant="card" />
+        </div>
       </Container>
     </section>
   );

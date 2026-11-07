@@ -5,6 +5,7 @@ import logo from "../../../assets/brand/logo.png";
 import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
 import { Container } from "../../../components/ui/Container";
+import { DpiitBadge } from "../../../components/ui/DpiitBadge";
 import { StoreBadge } from "../../../components/ui/StoreBadge";
 import {
   CONTACT_EMAIL,
@@ -139,6 +140,8 @@ export function Footer() {
                 real-time geofenced intelligence.
               </p>
             </div>
+
+            <DpiitBadge variant="chip" />
           </div>
           <div className={styles.contactRow}>
             {LINKEDIN_URL ? (

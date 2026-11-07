@@ -6,6 +6,8 @@ import logo3x from "../../../assets/brand/logo-3x.png";
 import { SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../../../config/contact";
 import { useIsSignedIn } from "../../../hooks/useIsSignedIn";
 import { clearSession } from "../../../services/session";
+// TEMPORARY, LOCAL TEST ONLY. See the note where the wordmark is rendered.
+import startupIndiaWordmark from "../../../assets/brand/startupindia-wordmark.LOCAL-TEST.png";
 import styles from "./Header.module.css";
 
 // Links to the sections on the home page. Qualified with the path so they work from every page,
@@ -34,19 +36,30 @@ export function Header() {
       <header className={styles.header}>
         <Container>
           <div className={styles.bar}>
-            {/* The brand is the home link, on every page. */}
-            <Link to="/" className={styles.logo}>
-              {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
+            <div className={styles.brandGroup}>
+              {/* The brand is the home link, on every page. */}
+              <Link to="/" className={styles.logo}>
+                {/* Same brand glyph as the mobile app. Decorative: the wordmark beside it names the brand. */}
+                <img
+                  className={styles.mark}
+                  src={logo}
+                  srcSet={`${logo} 1x, ${logo2x} 2x, ${logo3x} 3x`}
+                  width={36}
+                  height={36}
+                  alt=""
+                />
+                <span>Fenzit</span>
+              </Link>
+              {/* TEMPORARY, LOCAL TEST ONLY: Startup India wordmark. Kept outside the home link so the
+                link's name stays "Fenzit". Remove or replace before any commit or deploy. */}
               <img
-                className={styles.mark}
-                src={logo}
-                srcSet={`${logo} 1x, ${logo2x} 2x, ${logo3x} 3x`}
-                width={36}
-                height={36}
-                alt=""
+                className={styles.partnerWordmark}
+                src={startupIndiaWordmark}
+                width={96}
+                height={23}
+                alt="Startup India"
               />
-              <span>Fenzit</span>
-            </Link>
+            </div>
             <nav aria-label="Page sections" className={styles.nav}>
               <ul className={styles.links}>
                 {LINKS.map((link) => (

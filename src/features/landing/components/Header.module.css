@@ -59,6 +59,23 @@
   text-decoration: none;
 }
 
+/* Logo and partner wordmark sit together on the left of the header. */
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* TEMPORARY, LOCAL TEST ONLY. Remove with the wordmark. */
+.partnerWordmark {
+  display: block;
+  width: 84px;
+  height: auto;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-card);
+}
+
 .mark {
   display: block;
   width: 36px;

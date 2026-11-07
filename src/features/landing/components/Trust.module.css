@@ -10,6 +10,10 @@
   list-style: none;
 }
 
+.badge {
+  margin-top: var(--space-8);
+}
+
 .item {
   display: flex;
   align-items: flex-start;
