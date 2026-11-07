@@ -6,7 +6,7 @@ import { TableSkeleton } from "../components/Table";
 import { ImportFormatPanel } from "./ImportFormatPanel";
 import { ImportPreviewTable } from "./ImportPreviewTable";
 import type { BulkProgress } from "./useImportSheet";
-import { needsLocation } from "./locationFill";
+import { isReadyForLocation, needsLocation } from "./locationFill";
 import { ADDRESS_MIN_LENGTH } from "./addressRules";
 import { ImportResults } from "./ImportResults";
 import { importButtonLabel, submitBlockedReason, summarise } from "./importSummary";
@@ -24,7 +24,8 @@ type LocationBarProps = {
 
 /** One button that looks up every row still missing coordinates. Says why when it is off. */
 function LocationBar({ rows, checking, imported, progress, onFetchAll }: LocationBarProps) {
-  const count = rows.filter(needsLocation).length;
+  const count = rows.filter((row) => needsLocation(row) && isReadyForLocation(row)).length;
+  const fixFirst = count === 0 && rows.some(needsLocation);
   const running = progress !== null;
   const hasAddress = rows.some((row) => row.cells.address.trim().length >= ADDRESS_MIN_LENGTH);
   const why = running
@@ -33,11 +34,13 @@ function LocationBar({ rows, checking, imported, progress, onFetchAll }: Locatio
       ? "Wait for the check to finish before fetching locations."
       : imported
         ? "This sheet is already imported, so its locations cannot change."
-        : !hasAddress
-          ? "Add an address to a row first."
-          : count === 0
-            ? "Every row with an address already has a location."
-            : null;
+        : fixFirst
+          ? "Fix the rows that need fixing first. Only Ready rows get a lookup."
+          : !hasAddress
+            ? "Add an address to a row first."
+            : count === 0
+              ? "Every row with an address already has a location."
+              : null;
   const label = running
     ? progress.paused
       ? `Paused by the server limit: ${progress.done} of ${progress.total} done`

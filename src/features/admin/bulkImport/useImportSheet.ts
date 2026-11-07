@@ -17,6 +17,7 @@ import {
   LOOKUP_GAP_MS,
   mapWithConcurrency,
   LOCATION_CONCURRENCY,
+  isReadyForLocation,
   needsLocation,
 } from "./locationFill";
 import { parseSheetFile, SheetError } from "./parseSheet";
@@ -200,7 +201,9 @@ export function useImportSheet(companyId: string | null) {
   async function fetchAllLocations(): Promise<void> {
     if (!sheet || bulkLocation !== null) return;
     const snapshot = sheet.rows;
-    const targets = snapshot.flatMap((row, index) => (needsLocation(row) ? [index] : []));
+    const targets = snapshot.flatMap((row, index) =>
+      needsLocation(row) && isReadyForLocation(row) ? [index] : [],
+    );
     if (targets.length === 0) return;
     const sheetAtStart = sheetSeq.current;
     const settled = new Map<number, SheetRow>();

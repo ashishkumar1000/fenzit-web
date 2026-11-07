@@ -36,6 +36,14 @@ export function blankThenFill(current: string, found: string | null): string {
   return current.trim() === "" && found ? found : current;
 }
 
+/**
+ * A row is worth a lookup only when the check says it is Ready. A row that
+ * needs fixing would not be saved, so it does not use a Google lookup.
+ */
+export function isReadyForLocation(row: SheetRow): boolean {
+  return row.check?.status === "valid";
+}
+
 /** A row can be looked up when it has an address and no coordinates yet. */
 export function needsLocation(row: SheetRow): boolean {
   return (

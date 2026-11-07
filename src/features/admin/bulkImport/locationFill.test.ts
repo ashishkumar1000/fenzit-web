@@ -15,6 +15,7 @@ import { blankCells, type SheetRow } from "./importModel";
 import {
   applyLocation,
   createPacer,
+  isReadyForLocation,
   lookupLocation,
   mapWithConcurrency,
   needsLocation,
@@ -99,6 +100,15 @@ describe("needsLocation", () => {
 
   it("treats a whitespace-only coordinate as blank", () => {
     expect(needsLocation(rowWith({ latitude: "   ", longitude: "  " }))).toBe(true);
+  });
+});
+
+describe("isReadyForLocation", () => {
+  it("is true only for a row the check marked Ready", () => {
+    const check = (status: "valid" | "invalid") => ({ status, reasons: [], flags: [] });
+    expect(isReadyForLocation({ ...rowWith(), check: check("valid") })).toBe(true);
+    expect(isReadyForLocation({ ...rowWith(), check: check("invalid") })).toBe(false);
+    expect(isReadyForLocation(rowWith())).toBe(false);
   });
 });
 
