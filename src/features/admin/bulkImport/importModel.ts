@@ -94,7 +94,8 @@ export type ImportFlag = "no_map_pin" | "updates_existing" | "country_code_diffe
 
 export type RowCheck = { status: "valid" | "invalid"; reasons: RowReason[]; flags: ImportFlag[] };
 
-export type GeoStatus = "idle" | "loading" | "found" | "not-found" | "error";
+export type GeoStatus =
+  "idle" | "loading" | "found" | "approximate" | "not-found" | "rate-limited" | "error";
 
 export type SheetRow = {
   /** The spreadsheet row number: the header is row 1, so the first customer is row 2. */

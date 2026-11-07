@@ -18,7 +18,10 @@ const GEO_TEXT: Record<GeoStatus, string> = {
   idle: "",
   loading: "Looking up this address…",
   found: "Location found.",
+  approximate:
+    "Approximate location: only an area centre was found. Check the pin before you save.",
   "not-found": "No location found. Check the address, city, state and pincode, then try again.",
+  "rate-limited": "Too many lookups in a minute. Wait a minute, then fetch this row again.",
   error: "Could not look up this address. Try again.",
 };
 
@@ -76,12 +79,14 @@ export function ImportPreviewTable({
         </thead>
         <tbody>
           {rows.map((row, index) => {
+            // Customers count from 1. The sheet row (header is row 1) is not shown.
+            const number = index + 1;
             const why = whyNoFetch(row.cells.address);
             const fetchDisabled = disabled || why !== null || row.geo === "loading";
             const whyId = `fetch-why-${index}`;
             return (
               <tr key={row.rowNumber} className={styles.tr}>
-                <td className={styles.rowNumber}>{row.rowNumber}</td>
+                <td className={styles.rowNumber}>{number}</td>
                 {IMPORT_COLUMNS.map((column) => (
                   <td key={column.field} className={styles.td}>
                     <input
@@ -89,7 +94,7 @@ export function ImportPreviewTable({
                       value={row.cells[column.field]}
                       disabled={disabled}
                       inputMode={inputModeFor(column.field)}
-                      aria-label={`${column.header}, row ${row.rowNumber}`}
+                      aria-label={`${column.header}, row ${number}`}
                       onChange={(event) => onEdit(index, column.field, event.target.value)}
                       onBlur={onBlur}
                     />
@@ -98,6 +103,7 @@ export function ImportPreviewTable({
                 <td className={styles.td}>
                   <Button
                     variant="secondary"
+                    size="compact"
                     disabled={fetchDisabled}
                     describedBy={why ? whyId : undefined}
                     onClick={() => onFetch(index)}
@@ -139,7 +145,7 @@ function RowResult({ check }: { check: RowCheck | null }) {
         <Badge label="Needs fixing" tone="cancelled" />
       )}
       {check.flags.map((flag) => (
-        <span key={flag} className={styles.note}>
+        <span key={flag} className={styles.flag}>
           {FLAG_TEXT[flag]}
         </span>
       ))}

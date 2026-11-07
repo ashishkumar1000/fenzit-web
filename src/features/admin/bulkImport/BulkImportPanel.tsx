@@ -5,10 +5,59 @@ import { SectionCard } from "../components/SectionCard";
 import { TableSkeleton } from "../components/Table";
 import { ImportFormatPanel } from "./ImportFormatPanel";
 import { ImportPreviewTable } from "./ImportPreviewTable";
+import { needsLocation } from "./locationFill";
+import { ADDRESS_MIN_LENGTH } from "./addressRules";
 import { ImportResults } from "./ImportResults";
 import { importButtonLabel, submitBlockedReason, summarise } from "./importSummary";
+import type { SheetRow } from "./importModel";
 import { useImportSheet } from "./useImportSheet";
 import styles from "./BulkImportPanel.module.css";
+
+type LocationBarProps = {
+  rows: SheetRow[];
+  checking: boolean;
+  imported: boolean;
+  progress: { done: number; total: number } | null;
+  onFetchAll: () => void;
+};
+
+/** One button that looks up every row still missing coordinates. Says why when it is off. */
+function LocationBar({ rows, checking, imported, progress, onFetchAll }: LocationBarProps) {
+  const count = rows.filter(needsLocation).length;
+  const running = progress !== null;
+  const hasAddress = rows.some((row) => row.cells.address.trim().length >= ADDRESS_MIN_LENGTH);
+  const why = running
+    ? null
+    : checking
+      ? "Wait for the check to finish before fetching locations."
+      : imported
+        ? "This sheet is already imported, so its locations cannot change."
+        : !hasAddress
+          ? "Add an address to a row first."
+          : count === 0
+            ? "Every row with an address already has a location."
+            : null;
+  const label = running
+    ? `Fetching ${progress.done} of ${progress.total}…`
+    : `Fetch locations for ${count} ${count === 1 ? "row" : "rows"}`;
+  return (
+    <div className={styles.locationBar}>
+      <Button
+        variant="secondary"
+        disabled={running || checking || imported || count === 0}
+        describedBy={why ? "location-why" : undefined}
+        onClick={onFetchAll}
+      >
+        {label}
+      </Button>
+      {why ? (
+        <p id="location-why" className={styles.note}>
+          {why}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 type BulkImportPanelProps = {
   /** The company staff picked on this page, or null. Every call goes to this company only. */
@@ -104,6 +153,13 @@ export function BulkImportPanel({ companyId, countries }: BulkImportPanelProps) 
                 </Button>
               </div>
             ) : null}
+            <LocationBar
+              rows={sheet.rows}
+              checking={checking}
+              imported={busy}
+              progress={importer.bulkLocation}
+              onFetchAll={() => void importer.fetchAllLocations()}
+            />
             <ImportPreviewTable
               rows={sheet.rows}
               disabled={busy}
@@ -112,14 +168,24 @@ export function BulkImportPanel({ companyId, countries }: BulkImportPanelProps) 
               onFetch={(index) => void importer.fetchLocation(index)}
             />
             <div className={styles.submit}>
-              <Button
-                size="large"
-                disabled={blockedReason !== null}
-                describedBy={blockedReason ? "import-submit-why" : undefined}
-                onClick={() => void importer.submit()}
-              >
-                {importButtonLabel(summary.ready)}
-              </Button>
+              <div className={styles.actions}>
+                <Button
+                  size="large"
+                  disabled={blockedReason !== null}
+                  describedBy={blockedReason ? "import-submit-why" : undefined}
+                  onClick={() => void importer.submit()}
+                >
+                  {importButtonLabel(summary.ready)}
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={commit.state === "submitting"}
+                  describedBy={commit.state === "submitting" ? "import-reset-why" : undefined}
+                  onClick={importer.reset}
+                >
+                  Start over
+                </Button>
+              </div>
               {blockedReason ? (
                 <p id="import-submit-why" className={styles.note}>
                   {blockedReason}
@@ -130,23 +196,13 @@ export function BulkImportPanel({ companyId, countries }: BulkImportPanelProps) 
                   {commit.message} Press the import button again to retry.
                 </p>
               ) : null}
-              <Button
-                variant="secondary"
-                disabled={commit.state === "submitting"}
-                describedBy={commit.state === "submitting" ? "import-reset-why" : undefined}
-                onClick={importer.reset}
-              >
-                Start over
-              </Button>
               {commit.state === "submitting" ? (
                 <p id="import-reset-why" className={styles.note}>
                   You cannot start over while the import is running.
                 </p>
               ) : null}
             </div>
-            {commit.state === "done" ? (
-              <ImportResults result={commit.result} rows={sheet.rows} />
-            ) : null}
+            {commit.state === "done" ? <ImportResults result={commit.result} /> : null}
           </>
         ) : null}
       </div>

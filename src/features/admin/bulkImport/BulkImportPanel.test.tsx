@@ -189,7 +189,7 @@ describe("check, submit gate and results", () => {
     ).toBeTruthy();
   });
 
-  it("maps each result to its row by rowIndex, even when a blank line makes row numbers skip", async () => {
+  it("numbers customers from 1 in the results, even when a blank line sits in the sheet", async () => {
     serveValidate(["valid", "valid"]);
     render(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
     chooseFile(
@@ -198,8 +198,8 @@ describe("check, submit gate and results", () => {
     await screen.findByText("2 ready, 0 need fixing.");
     fireEvent.click(screen.getByRole("button", { name: "Import 2 customers" }));
     expect(await screen.findByText("1 created, 0 updated, 1 not saved.")).toBeTruthy();
+    expect(screen.getByText("Row 1")).toBeTruthy();
     expect(screen.getByText("Row 2")).toBeTruthy();
-    expect(screen.getByText("Row 4")).toBeTruthy();
     expect(screen.queryByText("Row 3")).toBeNull();
     expect(screen.getByText("Phone already used by another customer.")).toBeTruthy();
   });

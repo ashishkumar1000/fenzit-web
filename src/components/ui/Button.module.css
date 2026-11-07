@@ -52,3 +52,18 @@
   padding: 0 var(--space-8);
   font-size: var(--font-size-lg);
 }
+
+/* Compact sits inside a table cell: one line, smaller text. Touch keeps the 44px tap height. */
+.compact {
+  min-height: var(--touch-comfort);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+@media (pointer: fine) {
+  .compact {
+    min-height: 1.75rem;
+    padding: 0 var(--space-2);
+  }
+}

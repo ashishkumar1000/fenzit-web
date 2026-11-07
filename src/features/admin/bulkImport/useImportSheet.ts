@@ -1,14 +1,28 @@
 import { useRef, useState } from "react";
+import { ApiError } from "../../../services/api";
 import { DEFAULT_DIAL_CODE } from "../../../services/countryCodes";
 import { messageForError } from "../../../utils/errorMessages";
+import { ADDRESS_MIN_LENGTH } from "./addressRules";
 import {
   commitImportRows,
-  geocodeAddress,
   validateImportRows,
   type CommitResponse,
+  type GeocodeResponse,
 } from "./importApi";
 import type { SheetRow } from "./importModel";
+import {
+  applyLocation,
+  lookupLocation,
+  mapWithConcurrency,
+  LOCATION_CONCURRENCY,
+  needsLocation,
+} from "./locationFill";
 import { parseSheetFile, SheetError } from "./parseSheet";
+
+/** The row status after a failed lookup: a rate limit is said so, anything else is a plain error. */
+function failedStatus(error: unknown): "rate-limited" | "error" {
+  return error instanceof ApiError && error.status === 429 ? "rate-limited" : "error";
+}
 
 /**
  * State and actions for one staff import on one company. Server calls run from
@@ -20,7 +34,7 @@ import { parseSheetFile, SheetError } from "./parseSheet";
 export const READ_FAILED_MESSAGE = "We could not read this file. Check it and try again.";
 export const GEOCODE_FAILED_MESSAGE = "Could not look up this address. Try again.";
 /** The backend needs at least 3 characters for the address it looks up. */
-export const ADDRESS_MIN_LENGTH = 3;
+export { ADDRESS_MIN_LENGTH } from "./addressRules";
 
 export type LoadedSheet = {
   fileName: string;
@@ -52,6 +66,7 @@ export function useImportSheet(companyId: string | null) {
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState<string | null>(null);
   const [commit, setCommit] = useState<CommitState>({ state: "idle" });
+  const [bulkLocation, setBulkLocation] = useState<{ done: number; total: number } | null>(null);
   const checkSeq = useRef(0);
   /** Bumped on every new file or reset, so a late geocode answer for an old file is dropped. */
   const sheetSeq = useRef(0);
@@ -101,6 +116,7 @@ export function useImportSheet(companyId: string | null) {
     setCheckError(null);
     setChecking(false);
     setCommit({ state: "idle" });
+    setBulkLocation(null);
     try {
       const rows = await parseSheetFile(file);
       const loaded: LoadedSheet = { fileName: file.name, rows };
@@ -152,32 +168,79 @@ export function useImportSheet(companyId: string | null) {
       (current) => current && withRow(current, index, (item) => ({ ...item, geo: "loading" })),
     );
     try {
-      const answer = await geocodeAddress(companyId, row.cells);
+      const answer = await lookupLocation(companyId, row.cells);
       // The staff member loaded another file while this was in flight: drop the answer.
       if (sheetAtStart !== sheetSeq.current) return;
-      // A null latitude or longitude means no location was found, so the coordinates are cleared.
-      const found = answer.latitude !== null && answer.longitude !== null;
-      const apply = (item: SheetRow): SheetRow => ({
-        ...item,
-        cells: {
-          ...item.cells,
-          latitude: found ? String(answer.latitude) : "",
-          longitude: found ? String(answer.longitude) : "",
-        },
-        geo: found ? "found" : "not-found",
-        check: null,
-      });
-      setSheet((current) => current && withRow(current, index, apply));
+      setSheet(
+        (current) => current && withRow(current, index, (item) => applyLocation(item, answer)),
+      );
       const nextRows = sheet.rows.map((item, position) =>
-        position === index ? apply(item) : item,
+        position === index ? applyLocation(item, answer) : item,
       );
       await runCheck(nextRows, dialCode);
-    } catch {
+    } catch (error) {
       if (sheetAtStart !== sheetSeq.current) return;
+      const failed = failedStatus(error);
       setSheet(
-        (current) => current && withRow(current, index, (item) => ({ ...item, geo: "error" })),
+        (current) => current && withRow(current, index, (item) => ({ ...item, geo: failed })),
       );
     }
+  }
+
+  /**
+   * Looks up every row that has an address and no coordinates. At most
+   * LOCATION_CONCURRENCY lookups run at once, and the sheet is checked once at
+   * the end. Rows with coordinates already are left alone.
+   */
+  async function fetchAllLocations(): Promise<void> {
+    if (!sheet || bulkLocation !== null) return;
+    const snapshot = sheet.rows;
+    const targets = snapshot.flatMap((row, index) => (needsLocation(row) ? [index] : []));
+    if (targets.length === 0) return;
+    const sheetAtStart = sheetSeq.current;
+    const settled = new Map<number, SheetRow>();
+    let done = 0;
+    setBulkLocation({ done, total: targets.length });
+    setSheet(
+      (current) =>
+        current &&
+        targets.reduce(
+          (acc, index) => withRow(acc, index, (item) => ({ ...item, geo: "loading" })),
+          current,
+        ),
+    );
+    await mapWithConcurrency(targets, LOCATION_CONCURRENCY, async (index) => {
+      const row = snapshot[index];
+      let answer: GeocodeResponse | null = null;
+      try {
+        answer = await lookupLocation(companyId, row.cells);
+      } catch (error) {
+        const failed = failedStatus(error);
+        if (sheetAtStart !== sheetSeq.current) return;
+        settled.set(index, { ...row, geo: failed });
+        done += 1;
+        setBulkLocation({ done, total: targets.length });
+        setSheet(
+          (current) => current && withRow(current, index, (item) => ({ ...item, geo: failed })),
+        );
+        return;
+      }
+      if (sheetAtStart !== sheetSeq.current) return;
+      // Apply to the row as it is now, so edits made during the run are kept.
+      settled.set(index, applyLocation(row, answer));
+      done += 1;
+      setBulkLocation({ done, total: targets.length });
+      setSheet(
+        (current) => current && withRow(current, index, (item) => applyLocation(item, answer)),
+      );
+    });
+    // A run that was replaced by a new file or reset must not touch the new sheet.
+    if (sheetAtStart !== sheetSeq.current) return;
+    setBulkLocation(null);
+    // Rows the run did not touch keep their current cells. The check uses the
+    // latest values it has, and an edited row's answer is dropped by the cell check.
+    const nextRows = snapshot.map((row, index) => settled.get(index) ?? row);
+    await runCheck(nextRows, dialCode);
   }
 
   /**
@@ -221,6 +284,7 @@ export function useImportSheet(companyId: string | null) {
     setCheckError(null);
     setChecking(false);
     setCommit({ state: "idle" });
+    setBulkLocation(null);
   }
 
   return {
@@ -236,6 +300,8 @@ export function useImportSheet(companyId: string | null) {
     editCell,
     recheckIfNeeded,
     fetchLocation,
+    fetchAllLocations,
+    bulkLocation,
     commit,
     submit,
     reset,

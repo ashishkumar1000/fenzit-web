@@ -160,6 +160,7 @@ describe("geocodeAddress: query", () => {
   it("sends only the address parts that are filled", async () => {
     setRespond(() => jsonResponse({ formattedAddress: "x", latitude: 1, longitude: 2 }));
     await geocodeAddress(COMPANY, {
+      name: "",
       address: "1 Park St",
       city: "",
       state: "  ",
@@ -173,9 +174,22 @@ describe("geocodeAddress: query", () => {
     expect(url.searchParams.has("state")).toBe(false);
   });
 
+  it("sends the customer name with the address", async () => {
+    setRespond(() => jsonResponse({ formattedAddress: "x", latitude: null, longitude: null }));
+    await geocodeAddress(COMPANY, {
+      name: "Ravi Kumar",
+      address: "1 Park St",
+      city: "",
+      state: "",
+      pincode: "",
+    });
+    expect(new URL(sentRequests()[0].url).searchParams.get("name")).toBe("Ravi Kumar");
+  });
+
   it("trims the parts and encodes special characters", async () => {
     setRespond(() => jsonResponse({ formattedAddress: "x", latitude: null, longitude: null }));
     await geocodeAddress(COMPANY, {
+      name: "",
       address: "  Flat 2 & 3, MG Road  ",
       city: "",
       state: "",
@@ -186,7 +200,13 @@ describe("geocodeAddress: query", () => {
 
   it("sends the company header and the staff token", async () => {
     setRespond(() => jsonResponse({ formattedAddress: "x", latitude: null, longitude: null }));
-    await geocodeAddress(COMPANY, { address: "1 Park St", city: "", state: "", pincode: "" });
+    await geocodeAddress(COMPANY, {
+      name: "",
+      address: "1 Park St",
+      city: "",
+      state: "",
+      pincode: "",
+    });
     expect(headerOf(sentRequests()[0], "X-Company-Id")).toBe(COMPANY);
     expect(headerOf(sentRequests()[0], "Authorization")).toBe(`Bearer ${TOKEN}`);
   });

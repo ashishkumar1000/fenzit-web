@@ -70,3 +70,18 @@
   gap: var(--space-3);
   justify-items: start;
 }
+
+/* The import and start-over buttons share one row, and wrap only on narrow screens. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Fetch-all bar above the preview table: the button, and the plain-English reason when it is off. */
+.locationBar {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}

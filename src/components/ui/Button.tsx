@@ -4,8 +4,8 @@ import styles from "./Button.module.css";
 type ButtonProps = {
   type?: "button" | "submit";
   variant?: "primary" | "secondary";
-  /** Large buttons carry the primary action of a form (56px touch height). */
-  size?: "regular" | "large";
+  /** Large buttons carry the primary action of a form (56px touch height). Compact fits a table cell. */
+  size?: "regular" | "large" | "compact";
   disabled?: boolean;
   onClick?: () => void;
   /** The id of text that says why the button is disabled, so screen readers hear it. */
@@ -24,7 +24,7 @@ export function Button({
   children,
 }: ButtonProps) {
   const variantClass = variant === "primary" ? styles.primary : styles.secondary;
-  const sizeClass = size === "large" ? styles.large : "";
+  const sizeClass = size === "large" ? styles.large : size === "compact" ? styles.compact : "";
   return (
     <button
       type={type}

@@ -263,4 +263,11 @@
   .main {
     gap: var(--space-5);
   }
+
+  /* Pages that need the full width (the inspect page's import table). */
+  .contentWide {
+    padding: var(--space-5) var(--space-6) var(--space-10);
+    max-width: none;
+    width: 100%;
+  }
 }

@@ -4,6 +4,7 @@ import {
   NavLink,
   Outlet,
   useLoaderData,
+  useLocation,
   useNavigate,
   useNavigation,
   useRevalidator,
@@ -132,6 +133,9 @@ export function AdminLayout() {
   const data = useLoaderData<typeof adminLoader>();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
+  const location = useLocation();
+  // The inspect page uses the whole width: its import table is wide.
+  const wide = location.pathname.startsWith("/admin/inspect");
   const navigation = useNavigation();
   const busy = navigation.state !== "idle" || revalidator.state !== "idle";
 
@@ -171,7 +175,7 @@ export function AdminLayout() {
           </Button>
         </div>
       </aside>
-      <div className={styles.content}>
+      <div className={wide ? styles.contentWide : styles.content}>
         <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
           <span className={busy ? styles.progressFillActive : styles.progressFill} />
         </div>

@@ -1,6 +1,5 @@
 import { Badge } from "../components/Badge";
 import type { CommitResponse } from "./importApi";
-import type { SheetRow } from "./importModel";
 import styles from "./ImportResults.module.css";
 
 const OUTCOME: Record<
@@ -14,12 +13,10 @@ const OUTCOME: Record<
 
 type ImportResultsProps = {
   result: CommitResponse;
-  /** The sheet rows that were sent. The backend's rowIndex points into this list. */
-  rows: SheetRow[];
 };
 
 /** The outcome of one submit: the totals first, then each row with its reasons. */
-export function ImportResults({ result, rows }: ImportResultsProps) {
+export function ImportResults({ result }: ImportResultsProps) {
   const { summary } = result;
   return (
     <section className={styles.panel} aria-labelledby="import-result-title">
@@ -32,12 +29,9 @@ export function ImportResults({ result, rows }: ImportResultsProps) {
       <ul className={styles.list}>
         {result.rows.map((row) => {
           const outcome = OUTCOME[row.status];
-          const sheetRow = rows[row.rowIndex];
           return (
             <li key={row.rowIndex} className={styles.item}>
-              <span className={styles.rowNumber}>
-                Row {sheetRow?.rowNumber ?? row.rowIndex + 2}
-              </span>
+              <span className={styles.rowNumber}>Row {row.rowIndex + 1}</span>
               <Badge label={outcome.label} tone={outcome.tone} />
               {row.reasons.length > 0 ? (
                 <ul className={styles.reasons}>

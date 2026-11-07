@@ -32,10 +32,16 @@ export type ValidateResponse = {
 };
 
 export type GeocodeResponse = {
-  formattedAddress: string;
+  formattedAddress: string | null;
   /** Both are null when no location was found. */
   latitude: number | null;
   longitude: number | null;
+  /** True when only an area centre was found. The pin needs a check before saving. */
+  approximate: boolean;
+  /** Address parts from the match. Null when the match has no such part. */
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
 };
 
 export type CommitResponse = {
@@ -93,14 +99,14 @@ export async function validateImportRows(
   });
 }
 
-/** Forward geocode for one row. Only the address parts that are filled are sent. */
+/** Forward geocode for one row. Only the parts that are filled are sent, the name included. */
 export async function geocodeAddress(
   companyId: string | null,
-  cells: Pick<SheetRow["cells"], "address" | "city" | "state" | "pincode">,
+  cells: Pick<SheetRow["cells"], "name" | "address" | "city" | "state" | "pincode">,
   signal?: AbortSignal,
 ): Promise<GeocodeResponse> {
   const params = new URLSearchParams();
-  for (const key of ["address", "city", "state", "pincode"] as const) {
+  for (const key of ["name", "address", "city", "state", "pincode"] as const) {
     const value = cells[key].trim();
     if (value !== "") params.set(key, value);
   }
