@@ -34,6 +34,8 @@ export interface DossierCounts {
 }
 
 export interface DossierMembership {
+  /** The company (tenant) id. Staff send it as X-Company-Id. */
+  companyId: string;
   company: string;
   role: string;
   status: string;

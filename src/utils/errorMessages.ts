@@ -1,4 +1,4 @@
-import { ApiError } from "../services/api";
+import { ApiError, NoCompanySelectedError } from "../services/api";
 
 // Plain-English copy for each error_code the BE can return. Screens show these
 // strings, never ApiError.message, because that text is written for developers.
@@ -21,6 +21,8 @@ const MESSAGES_BY_CODE = new Map<string, string>([
   ],
 ]);
 
+export const NO_COMPANY_MESSAGE =
+  "Pick a company first. Search for the person, then choose the company you want to work on.";
 export const GENERIC_MESSAGE = "Something went wrong. Try again.";
 export const SERVER_MESSAGE = "Something went wrong on our side. Try again in a moment.";
 
@@ -30,6 +32,9 @@ export const SERVER_MESSAGE = "Something went wrong on our side. Try again in a 
  * the generic message.
  */
 export function messageForError(error: unknown): string {
+  if (error instanceof NoCompanySelectedError) {
+    return NO_COMPANY_MESSAGE;
+  }
   if (!(error instanceof ApiError)) {
     return GENERIC_MESSAGE;
   }

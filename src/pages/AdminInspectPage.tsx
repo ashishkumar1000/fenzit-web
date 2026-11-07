@@ -3,6 +3,7 @@ import type { adminInspectLoader } from "../features/admin/adminInspectLoader";
 import { GlyphInspect } from "../features/admin/components/glyphs";
 import { LookupFacts, LookupScene } from "../features/admin/components/LookupScene";
 import { DossierView } from "../features/admin/DossierView";
+import { BulkImportPanel } from "../features/admin/bulkImport/BulkImportPanel";
 import { SearchForm } from "../features/admin/components/SearchForm";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { TableSkeleton } from "../features/admin/components/Table";
@@ -76,7 +77,16 @@ export function AdminInspectPage() {
               <p className={styles.noticeCopy}>Check your connection and search again.</p>
             </div>
           ) : null}
-          {data.state === "found" ? <DossierView d={data.dossier} /> : null}
+          {data.state === "found" ? (
+            <>
+              <DossierView d={data.dossier} picker={{ activeCompanyId: data.companyId }} />
+              <BulkImportPanel
+                key={`${data.companyId ?? "none"}:${data.phone}`}
+                companyId={data.companyId}
+                countries={data.countries}
+              />
+            </>
+          ) : null}
         </>
       )}
     </div>

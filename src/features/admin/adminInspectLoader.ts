@@ -8,11 +8,19 @@ import {
 import { clearSession } from "../../services/session";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
 import { lookupUser } from "./adminApi";
+import { activeCompanyFrom } from "./companyContext";
 import type { LookupResponse } from "./dossier-types";
 
 export type InspectData =
   | { state: "idle"; countries: CountryCode[] }
-  | { state: "found"; phone: string; dossier: LookupResponse; countries: CountryCode[] }
+  | {
+      state: "found";
+      phone: string;
+      dossier: LookupResponse;
+      countries: CountryCode[];
+      /** The company picked in the URL, or null. Only one of this person's companies counts. */
+      companyId: string | null;
+    }
   | { state: "not-found"; phone: string; countries: CountryCode[] }
   | { state: "invalid"; countries: CountryCode[] }
   | { state: "error"; countries: CountryCode[] };
@@ -50,7 +58,8 @@ export async function adminInspectLoader({ request }: LoaderFunctionArgs): Promi
     if (phone === "") return { state: "idle", countries: await countries };
     try {
       const dossier = await lookupUser(token, phone, request.signal);
-      return { state: "found", phone, dossier, countries: await countries };
+      const companyId = activeCompanyFrom(url.searchParams, dossier.memberships);
+      return { state: "found", phone, dossier, countries: await countries, companyId };
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
         return { state: "not-found", phone, countries: await countries };

@@ -1,0 +1,72 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.upload {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+/* The file input is hidden, but its label takes the focus ring, so keyboard users still see where they are. */
+.uploadButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-comfort);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.uploadButton:focus-within {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.errorRow {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.submit {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}

@@ -29,6 +29,20 @@ export class ApiError extends Error {
 
 export const CORRELATION_HEADER = "X-Correlation-Id";
 export const SESSION_HEADER = "X-Session-Id";
+/** Staff only: names the company a company-scoped call acts on. The BE ignores it for anyone else. */
+export const COMPANY_HEADER = "X-Company-Id";
+
+/**
+ * A staff company-scoped call was made with no company picked. Thrown before
+ * any request is sent, so no call goes out without the header. Branch on the
+ * class, never on `message`.
+ */
+export class NoCompanySelectedError extends Error {
+  constructor() {
+    super("No company selected");
+    this.name = "NoCompanySelectedError";
+  }
+}
 
 export interface ApiFetchOptions {
   /** Where the base URL comes from. Defaults to the build's VITE_API_BASE_URL. */

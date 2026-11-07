@@ -1,4 +1,5 @@
 import { Badge } from "./components/Badge";
+import { CompanyPicker } from "./components/CompanyPicker";
 import { GlyphMe, GlyphShield } from "./components/glyphs";
 import { StatTiles, type StatTile } from "./components/StatTiles";
 import type { LookupResponse } from "./dossier-types";
@@ -26,7 +27,16 @@ import styles from "./DossierView.module.css";
  * dataset — the web rendering of the super-CLI whois. Destructive work has
  * no place here; this view is read-only by design.
  */
-export function DossierView({ d }: { d: LookupResponse }) {
+/**
+ * `picker` is set only where staff pick a company (the Inspect lookup). Without it, no picker shows.
+ */
+export function DossierView({
+  d,
+  picker,
+}: {
+  d: LookupResponse;
+  picker?: { activeCompanyId: string | null };
+}) {
   const tiles: StatTile[] = [
     { label: "Jobs", value: d.counts.jobs },
     { label: "Attendance", value: d.counts.attendanceRecords },
@@ -69,6 +79,9 @@ export function DossierView({ d }: { d: LookupResponse }) {
       </p>
       <StatTiles tiles={tiles} />
       <div className={styles.grid}>
+        {picker ? (
+          <CompanyPicker memberships={d.memberships} activeCompanyId={picker.activeCompanyId} />
+        ) : null}
         {d.company ? <CompanySummarySection company={d.company} /> : null}
         <CompaniesSection memberships={d.memberships} />
         <JobsSection jobs={d.jobs} total={d.counts.jobs} />
