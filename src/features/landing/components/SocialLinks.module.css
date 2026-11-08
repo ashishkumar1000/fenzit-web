@@ -1,0 +1,31 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.socialLink {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch-comfort);
+  height: var(--touch-comfort);
+  color: var(--color-text-body);
+}
+
+.socialLink:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Gray at rest; the brand colour shows when the icon is hovered or focused. */
+.mark {
+  width: 48px;
+  height: 48px;
+  filter: grayscale(1);
+}
+
+.socialLink:hover .mark,
+.socialLink:focus-visible .mark {
+  filter: none;
+}

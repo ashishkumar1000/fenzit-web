@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { Mail, MessageCircle, Phone } from "lucide-react";
 import { Link } from "react-router";
 import logo from "../../../assets/brand/logo.png";
@@ -7,13 +6,9 @@ import logo3x from "../../../assets/brand/logo-3x.png";
 import { Container } from "../../../components/ui/Container";
 import { DpiitBadge } from "../../../components/ui/DpiitBadge";
 import { StoreBadge } from "../../../components/ui/StoreBadge";
-import {
-  CONTACT_EMAIL,
-  LINKEDIN_URL,
-  SALES_PHONE_DISPLAY,
-  SALES_PHONE_HREF,
-} from "../../../config/contact";
+import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../../../config/contact";
 import styles from "./Footer.module.css";
+import { SocialLinks } from "./SocialLinks";
 
 /** The company pages. "live" marks the one that takes sign-ups today. */
 const COMPANY_PAGES = [
@@ -94,22 +89,6 @@ function LockIcon() {
   );
 }
 
-/** The LinkedIn mark: a rounded square with the letters cut out in the card colour. */
-function LinkedInIcon() {
-  const cutout: CSSProperties = { fill: "var(--color-surface-card)" };
-  return (
-    <svg className={styles.social} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <rect x="0" y="0" width="24" height="24" rx="4" fill="currentColor" />
-      <rect x="5" y="9" width="3" height="10" style={cutout} />
-      <circle cx="6.5" cy="5.5" r="1.9" style={cutout} />
-      <path
-        d="M10 9h2.9v1.4c.5-.9 1.6-1.6 3.1-1.6 3 0 3.5 2 3.5 4.5V19h-3v-5c0-1.2 0-2.7-1.7-2.7s-1.9 1.3-1.9 2.6V19h-3V9z"
-        style={cutout}
-      />
-    </svg>
-  );
-}
-
 export function Footer() {
   return (
     <footer className={styles.footer}>
@@ -144,22 +123,7 @@ export function Footer() {
             <DpiitBadge variant="chip" />
           </div>
           <div className={styles.contactRow}>
-            {LINKEDIN_URL ? (
-              <a
-                className={styles.socialLink}
-                href={LINKEDIN_URL}
-                rel="noopener noreferrer"
-                target="_blank"
-                aria-label="Fenzit on LinkedIn"
-              >
-                <LinkedInIcon />
-              </a>
-            ) : (
-              // No address yet: the icon shows, but it is not a link and says so.
-              <span className={styles.socialSoon} role="img" aria-label="LinkedIn, coming soon">
-                <LinkedInIcon />
-              </span>
-            )}
+            <SocialLinks />
             <StoreBadge size="sm" />
             <div className={styles.contactBar}>
               <span className={styles.contactLabel}>

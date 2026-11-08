@@ -10,6 +10,7 @@ declare module "bun:test" {
     toBeDisabled(): void;
     toBeEnabled(): void;
     toHaveAttribute(name: string, value?: unknown): void;
+    toHaveAccessibleName(name?: string | RegExp): void;
     toHaveTextContent(text: string | RegExp, options?: { normalizeWhitespace: boolean }): void;
     toHaveValue(value: string | number | string[]): void;
   }

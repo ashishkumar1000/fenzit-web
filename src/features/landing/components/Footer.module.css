@@ -111,40 +111,6 @@
   color: var(--color-text-body);
 }
 
-/* Social links */
-.socialLink {
-  display: inline-grid;
-  place-items: center;
-  width: var(--touch-comfort);
-  height: var(--touch-comfort);
-  color: var(--color-text-body);
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-}
-
-.social {
-  width: 20px;
-  height: 20px;
-}
-
-.socialLink:hover {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-/* Shown until the LinkedIn address is set: visible, but not a link. */
-.socialSoon {
-  display: inline-grid;
-  place-items: center;
-  width: var(--touch-comfort);
-  height: var(--touch-comfort);
-  color: var(--color-text-muted);
-  background: var(--color-surface-page);
-  border: 1px dashed var(--color-border-default);
-  border-radius: var(--radius-md);
-}
-
 /* Solution cards: one column on phones, two on tablets, three on desktop. */
 .cards {
   display: grid;
@@ -210,21 +176,13 @@
   border-color: var(--color-primary);
 }
 
-/* The LinkedIn icon sits beside a contact bar: a label, the phone, a divider, and the email. */
+/* The social icons sit beside a contact bar: a label, the phone, a divider, and the email. */
 .contactRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
-}
-
-/* The icon box and the contact bar are both one touch target tall, so they match. */
-.contactRow > .socialLink,
-.contactRow > .socialSoon {
-  flex-shrink: 0;
-  width: var(--touch-min);
-  height: var(--touch-min);
 }
 
 .contactBar {
@@ -234,7 +192,7 @@
   gap: var(--space-2) var(--space-4);
   box-sizing: border-box;
   min-width: 0;
-  min-height: var(--touch-min);
+  min-height: var(--touch-comfort);
   padding: 0 var(--space-5);
   background: var(--color-surface-card);
   border-radius: var(--radius-lg);
@@ -304,7 +262,6 @@
 }
 
 .companyLink:focus-visible,
-.socialLink:focus-visible,
 .card:focus-visible,
 .tag:focus-visible,
 .contactItem:focus-visible,
@@ -417,7 +374,7 @@
     grid-column: span 2;
   }
 
-  /* Desktop: the LinkedIn icon and the contact bar run across the full width, below both columns. */
+  /* Desktop: the social icons and the contact bar run across the full width, below both columns. */
   .side,
   .main {
     grid-row: 1;
