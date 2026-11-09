@@ -9,8 +9,11 @@ export type CountryCode = {
 };
 
 export type CountryCodesData = {
-  /** Streamed: the page renders with the fallback list, then the full list replaces it. */
-  countryCodes: Promise<CountryCode[]>;
+  /**
+   * Streamed in the browser: the page renders with the fallback list, then the full list replaces it.
+   * The build passes a plain list instead, because a promise cannot be stored in the page's HTML.
+   */
+  countryCodes: Promise<CountryCode[]> | CountryCode[];
 };
 
 /** The dropdown starts on India. Any visitor can pick another country. */
@@ -61,6 +64,6 @@ async function loadCountryCodes(): Promise<CountryCode[]> {
  * or failed list falls back to India alone after COUNTRY_CODES_TIMEOUT_MS, and
  * rows the form cannot use are dropped.
  */
-export function countryCodesLoader(): CountryCodesData {
+export function countryCodesLoader(): { countryCodes: Promise<CountryCode[]> } {
   return { countryCodes: loadCountryCodes() };
 }

@@ -1,14 +1,16 @@
 import type { LoaderFunction, RouteObject } from "react-router";
 import { renderToString } from "react-dom/server";
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router";
-import type { CountryCode, CountryCodesData } from "./services/countryCodes";
+import type { CountryCodesData } from "./services/countryCodes";
+import { FALLBACK_COUNTRY_CODES } from "./services/countryCodes";
 import { routes } from "./app/routes";
 
-// The build has no network to the API, so this list never settles on the server. The form then
-// renders its Suspense fallback, which is India alone: the same markup the browser shows first.
-// After hydration the browser swaps in the full list.
+// The build has no network to the API, so the server cannot fetch the full list. It passes India
+// alone as a plain list, not a promise. A promise would be serialised into the page as `{}`, and
+// the browser would then read that as the country list and crash. After hydration the browser
+// shows the same India-only list.
 const STATIC_LOADER_DATA: CountryCodesData = {
-  countryCodes: new Promise<CountryCode[]>(() => {}),
+  countryCodes: FALLBACK_COUNTRY_CODES,
 };
 
 const staticLoader: LoaderFunction = () => STATIC_LOADER_DATA;
