@@ -34,6 +34,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/account", label: "Account" },
       { to: "/admin/reports", label: "Reports" },
       { to: "/admin/deletion-requests", label: "Deletion requests" },
+      { to: "/admin/config", label: "Config" },
     ];
   }
   if (role === "owner") {
@@ -54,7 +55,7 @@ export function isAuthError(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
-async function loadMe(request: Request): Promise<{ token: string; me: CurrentUser }> {
+export async function loadMe(request: Request): Promise<{ token: string; me: CurrentUser }> {
   const session = readSession();
   if (session === null) {
     throw redirect("/login");

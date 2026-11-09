@@ -8,7 +8,7 @@ type TextInputProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "password" | "email" | "tel";
+  type?: "text" | "password" | "email" | "tel" | "url";
   inputMode?: "text" | "tel" | "numeric" | "email";
   autoComplete?: string;
   placeholder?: string;

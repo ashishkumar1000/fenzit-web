@@ -21,6 +21,8 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly errorCode?: string,
+    /** The parsed error body, when there was one. Narrow it before use: a 422 carries field errors here. */
+    readonly body?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -114,8 +116,13 @@ export function createApiFetch(options: ApiFetchOptions = {}) {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const errorCode = await readErrorCode(response);
-    throw new ApiError(response.status, `Request failed with status ${response.status}`, errorCode);
+    const { errorCode, body } = await readErrorBody(response);
+    throw new ApiError(
+      response.status,
+      `Request failed with status ${response.status}`,
+      errorCode,
+      body,
+    );
   }
 
   // 204 is a deliberate "no content" answer, so the caller asked for `void`.
@@ -135,20 +142,17 @@ async function parseResponse<T>(response: Response): Promise<T> {
   }
 }
 
-async function readErrorCode(response: Response): Promise<string | undefined> {
+async function readErrorBody(response: Response): Promise<{ errorCode?: string; body?: unknown }> {
   try {
     const body: unknown = await response.json();
-    if (
-      typeof body === "object" &&
-      body !== null &&
-      "error_code" in body &&
-      typeof body.error_code === "string"
-    ) {
-      return body.error_code;
+    if (typeof body !== "object" || body === null) {
+      return {};
     }
-    return undefined;
+    const errorCode =
+      "error_code" in body && typeof body.error_code === "string" ? body.error_code : undefined;
+    return { errorCode, body };
   } catch {
-    return undefined;
+    return {};
   }
 }
 

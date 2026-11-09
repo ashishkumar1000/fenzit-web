@@ -152,6 +152,21 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            // Super admins only: the loader and action both refuse other roles.
+            path: "config",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminConfigPage"),
+                import("../features/admin/config/configLoaders"),
+              ]);
+              return {
+                Component: page.AdminConfigPage,
+                loader: loaderModule.adminConfigLoader,
+                action: loaderModule.adminConfigAction,
+              };
+            },
+          },
+          {
             path: "company",
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([

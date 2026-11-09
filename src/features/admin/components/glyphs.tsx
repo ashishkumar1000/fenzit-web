@@ -194,3 +194,14 @@ export function GlyphDeletion({ size = 20 }: GlyphProps) {
     </svg>
   );
 }
+
+/** Three sliders with knobs — the Config section. */
+export function GlyphConfig({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    </svg>
+  );
+}

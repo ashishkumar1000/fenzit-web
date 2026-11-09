@@ -1,0 +1,48 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.note {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Phones: the status line sits above a full-width button. Wide screens: side by side. */
+.saveBar {
+  display: grid;
+  gap: var(--space-3);
+  align-items: center;
+  padding-top: var(--space-2);
+  min-width: 0;
+}
+
+.status {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.saveAction {
+  display: grid;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .saveBar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .saveAction {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
