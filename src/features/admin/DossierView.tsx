@@ -4,6 +4,7 @@ import { GlyphMe, GlyphShield } from "./components/glyphs";
 import { StatTiles, type StatTile } from "./components/StatTiles";
 import type { LookupResponse } from "./dossier-types";
 import { fmtPhone, fmtWhen } from "./format";
+import { SubscriptionSection } from "./SubscriptionSection";
 import {
   ActivitySection,
   AttendanceSection,
@@ -83,6 +84,16 @@ export function DossierView({
           <CompanyPicker memberships={d.memberships} activeCompanyId={picker.activeCompanyId} />
         ) : null}
         {d.company ? <CompanySummarySection company={d.company} /> : null}
+        {picker?.activeCompanyId ? (
+          <SubscriptionSection
+            key={picker.activeCompanyId}
+            companyId={picker.activeCompanyId}
+            validityUntil={
+              d.memberships.find((m) => m.companyId === picker.activeCompanyId)?.validityUntil ??
+              null
+            }
+          />
+        ) : null}
         <CompaniesSection memberships={d.memberships} />
         <JobsSection jobs={d.jobs} total={d.counts.jobs} />
         <AttendanceSection attendance={d.attendance} />

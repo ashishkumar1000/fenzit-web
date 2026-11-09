@@ -23,6 +23,32 @@ export function fmtWhen(iso: string | null): string {
   return Number.isNaN(at.getTime()) ? "—" : WHEN.format(at);
 }
 
+const IST_DAY = new Intl.DateTimeFormat("en-IN", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "Asia/Kolkata",
+});
+
+/** A UTC instant shown as a day in India time (subscription end dates). */
+export function fmtIstDay(iso: string): string {
+  const at = new Date(iso);
+  return Number.isNaN(at.getTime()) ? iso : IST_DAY.format(at);
+}
+
+/** The India-time calendar day of a UTC instant, as YYYY-MM-DD for a date field. */
+export function istDateInput(iso: string | null): string {
+  if (!iso) return "";
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Kolkata",
+  }).format(at);
+}
+
 /** A YYYY-MM-DD date as "19 Oct 2026". Anything else passes through. */
 export function fmtDay(day: string): string {
   const at = new Date(`${day}T00:00:00`);

@@ -20,6 +20,7 @@ export type CompanyData =
       members: Slice<MemberRow[]>;
       leave: Slice<LeaveRow[]>;
       audit: Slice<AuditRow[]>;
+      validUntil: string | null;
     }
   | { state: "failed" };
 
@@ -30,14 +31,21 @@ export type CompanyData =
  */
 export async function adminCompanyLoader({ request }: LoaderFunctionArgs): Promise<CompanyData> {
   try {
-    const { token } = await requireConsoleRole(request, ["owner"]);
+    const { token, me } = await requireConsoleRole(request, ["owner"]);
     const [pulse, members, leave, audit] = await Promise.all([
       settle(() => fetchPulse(token, request.signal)),
       settle(() => fetchMembers(token, request.signal)),
       settle(async () => (await fetchCompanyLeave(token, request.signal)).data),
       settle(() => fetchAudit(token, request.signal)),
     ]);
-    return { state: "ok", pulse, members, leave, audit };
+    return {
+      state: "ok",
+      pulse,
+      members,
+      leave,
+      audit,
+      validUntil: me.subscription?.validUntil ?? null,
+    };
   } catch (error) {
     // A redirect thrown deeper down (wrong role, dead session) is navigation.
     if (error instanceof Response) throw error;

@@ -9,7 +9,7 @@ import { CustomersArt } from "../features/admin/components/art/CustomersArt";
 import { HolidaysArt } from "../features/admin/components/art/HolidaysArt";
 import { JobsArt } from "../features/admin/components/art/JobsArt";
 import { TeamArt } from "../features/admin/components/art/TeamArt";
-import { fmtDay, fmtWhen } from "../features/admin/format";
+import { fmtDay, fmtIstDay, fmtWhen } from "../features/admin/format";
 import styles from "./AdminCompanyPage.module.css";
 
 /** The owner's overview: today's pulse, then cards that lead to the full
@@ -53,6 +53,13 @@ export function AdminCompanyPage() {
 
   return (
     <div className={styles.stack}>
+      <SectionCard title="Subscription">
+        <p className={styles.dateLine}>
+          {data.validUntil
+            ? `Valid until ${fmtIstDay(data.validUntil)} (India time).`
+            : "No end date is set for this company. Contact Fenzit support."}
+        </p>
+      </SectionCard>
       {data.pulse.ok ? (
         <>
           <p className={styles.dateLine}>

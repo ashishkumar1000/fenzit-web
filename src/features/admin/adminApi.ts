@@ -17,6 +17,8 @@ export type CurrentUser = {
   phoneNumber: string;
   employeeCode: string | null;
   status: string | null;
+  /** The company's subscription end; null when there is no company or no date. */
+  subscription?: { validUntil: string | null } | null;
 };
 
 /** GET /api/v1/users/me on fenzit-be. Needs the signed-in token. */

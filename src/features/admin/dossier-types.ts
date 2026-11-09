@@ -43,6 +43,8 @@ export interface DossierMembership {
   invitedBy: string | null;
   joined: string | null;
   isFounder: boolean;
+  /** This company's subscription end (UTC ISO), or null when no date is set. */
+  validityUntil: string | null;
 }
 
 export interface DossierOffice {
@@ -164,6 +166,8 @@ export interface DossierCompany {
   isFounder: boolean;
   gstin: string | null;
   upi: string | null;
+  /** Subscription end (UTC ISO), or null when no date is set. */
+  validityUntil: string | null;
 }
 
 export interface LookupResponse {
