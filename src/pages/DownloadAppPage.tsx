@@ -1,6 +1,7 @@
 import { APP_STORE_URL, PLAY_STORE_URL } from "../config/appStores";
 import { DOWNLOAD_APP_PAGE } from "../app/pageMeta";
 import { useMobilePlatform } from "../hooks/useMobilePlatform";
+import { StoreBadge } from "../components/ui/StoreBadge";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./DownloadAppPage.module.css";
 
@@ -8,11 +9,18 @@ const IPHONE_HEADING = "The iPhone app is coming soon";
 const IPHONE_LINE = "Ask your employer for the link again when it is ready.";
 
 /**
- * The invite SMS link. Android sees the Play button (no automatic redirect, so the
- * visitor always sees what they are installing). Android and desktop see the Play button.
- * iPhone and desktop see the iPhone coming-soon block, with an App Store button only once
+ * The invite SMS link (fixed in the DLT-approved template, so the redirect lives
+ * here, not in the SMS). On an Android phone the page redirects straight to the
+ * Google Play listing with an instant (0-second) meta refresh — the W3C-sanctioned
+ * H76 pattern; a timed pause would fail WCAG 2.2.1. React 19 hoists the meta tag
+ * into <head> after hydration; most Android browsers hand play.google.com links
+ * to the Play Store app, but some in-app webviews just show the web page, so the
+ * badge stays as the fallback. iPhone sees the coming-soon block, and desktop
+ * sees the badge plus the coming-soon block, with an App Store button only once
  * APP_STORE_URL is set.
  */
+const REDIRECT_SECONDS = 0;
+
 export function DownloadAppPage() {
   const platform = useMobilePlatform();
 
@@ -22,8 +30,10 @@ export function DownloadAppPage() {
         meta={DOWNLOAD_APP_PAGE}
         id="download-app-title"
         title={DOWNLOAD_APP_PAGE.title}
-        lead="Install the Fenzit app, then log in with your phone number."
+        lead="Taking you to Google Play to install the Fenzit app. If it does not open, tap the badge below."
       >
+        {/* React 19 hoists this meta tag into <head>. */}
+        <meta httpEquiv="refresh" content={`${REDIRECT_SECONDS}; url=${PLAY_STORE_URL}`} />
         <PlayBlock />
       </SimplePage>
     );
@@ -60,9 +70,9 @@ export function DownloadAppPage() {
 function PlayBlock() {
   return (
     <SimpleSection id="play-link" title="Android">
-      <a className={styles.button} href={PLAY_STORE_URL} rel="noopener noreferrer">
-        Get it on Google Play
-      </a>
+      <div className={styles.badgeWrap}>
+        <StoreBadge />
+      </div>
     </SimpleSection>
   );
 }

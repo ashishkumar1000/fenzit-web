@@ -1,3 +1,9 @@
+/* The official store badge ships its own chrome; this keeps it at its natural width. */
+.badgeWrap {
+  width: fit-content;
+}
+
+/* The App Store button, shown once APP_STORE_URL is set. */
 .button {
   display: inline-flex;
   align-items: center;
