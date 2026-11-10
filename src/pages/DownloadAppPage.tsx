@@ -1,4 +1,4 @@
-import { APP_STORE_URL, PLAY_STORE_URL } from "../config/appStores";
+import { APP_STORE_URL, PLAY_STORE_APP_LINK } from "../config/appStores";
 import { DOWNLOAD_APP_PAGE } from "../app/pageMeta";
 import { useMobilePlatform } from "../hooks/useMobilePlatform";
 import { useRedirectTo } from "../hooks/useRedirectTo";
@@ -12,7 +12,7 @@ import styles from "./DownloadAppPage.module.css";
  */
 export function DownloadAppPage() {
   const platform = useMobilePlatform();
-  useRedirectTo(platform === "android" ? PLAY_STORE_URL : null);
+  useRedirectTo(platform === "android" ? PLAY_STORE_APP_LINK : null);
 
   if (platform === "android") {
     return (
@@ -23,7 +23,7 @@ export function DownloadAppPage() {
         lead="You are being sent to the Fenzit app on Google Play. If nothing happens, use the link below."
       >
         <SimpleSection id="play-link" title="Google Play">
-          <a className={styles.button} href={PLAY_STORE_URL} rel="noopener noreferrer">
+          <a className={styles.button} href={PLAY_STORE_APP_LINK} rel="noopener noreferrer">
             Open Google Play
           </a>
         </SimpleSection>
