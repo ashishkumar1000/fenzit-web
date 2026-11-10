@@ -35,6 +35,7 @@ Contact: phone +91 92792 30451, email hello@fenzit.com. To book a demo, visit ht
 ## Company
 
 - [Android app on Google Play](https://play.google.com/store/apps/details?id=com.fenzit): download the Fenzit app for Android phones. Every team gets 90 days free.
+- [Get the Fenzit app](https://fenzit.com/app/download): install the Fenzit app for Android from Google Play.
 - [Pricing](https://fenzit.com/pricing): every team gets 90 days free. Call or email for the price for your team after the trial.
 - [Book a demo](https://fenzit.com/book-demo): request a demo or a call back.
 - [Data safety](https://fenzit.com/data-safety): phone and one-time code sign-in, each company's data kept separate, and location taken only at job steps and attendance check-ins that need it.

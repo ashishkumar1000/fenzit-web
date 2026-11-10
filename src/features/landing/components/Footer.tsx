@@ -16,6 +16,7 @@ const COMPANY_PAGES = [
   { to: "/book-demo", label: "Book a demo", badge: "Live" },
   { to: "/data-safety", label: "Your data", locked: true },
   { to: "/partners", label: "Partners" },
+  { to: "/app/download", label: "Get the app" },
 ];
 
 /** The product pages, with a short line under each title. */

@@ -226,6 +226,13 @@ export const DELETE_ACCOUNT_PAGE: PageMeta = {
     "Ask Fenzit to delete your account and linked personal details. Confirm with a code sent to your phone. Our team reviews each request.",
 };
 
+export const DOWNLOAD_APP_PAGE: PageMeta = {
+  path: "/app/download",
+  title: "Get the Fenzit app for Android",
+  description:
+    "Install the Fenzit app for Android from Google Play, then log in with the phone number your team invited.",
+};
+
 /**
  * Every indexable page except the home page, whose head lives directly in index.html. The
  * prerender script walks this list, so adding a page to the site means adding its meta here
@@ -238,6 +245,7 @@ export const PUBLIC_PAGES: PageMeta[] = [
   PARTNERS_PAGE,
   PRIVACY_POLICY_PAGE,
   DELETE_ACCOUNT_PAGE,
+  DOWNLOAD_APP_PAGE,
   TERMS_PAGE,
   SECURITY_TRUST_PAGE,
   FEATURES_PAGE,

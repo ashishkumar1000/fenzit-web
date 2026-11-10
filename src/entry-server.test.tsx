@@ -28,6 +28,10 @@ describe("renderPage (build-time HTML)", () => {
   // prerendered page renders as a live Android product — no early-access remnant
   // and no iOS mention, because neither is true today. The list mirrors the
   // prerender script's own page list, so a new page joins automatically.
+  // /app/download is the one exception: the invite SMS points iPhone users here, and
+  // it must say the iOS app is coming soon. Decision 2026-11-10, owner-approved.
+  const IOS_NOTE_ALLOWED = new Set(["/app/download"]);
+
   it("renders no pre-launch copy or iOS mention into any prerendered page", async () => {
     for (const path of ["/", ...PUBLIC_PAGES.map((page) => page.path)]) {
       const html = await renderPage(path);
@@ -35,6 +39,7 @@ describe("renderPage (build-time HTML)", () => {
         /early access|waitlist|launching 2026/i.test(html),
         `forbidden launch copy on ${path}`,
       ).toBe(false);
+      if (IOS_NOTE_ALLOWED.has(path)) continue;
       expect(
         /\bios\b|ios\s?\d|iphone|app[\s-]?store/i.test(html),
         `forbidden platform copy on ${path}`,

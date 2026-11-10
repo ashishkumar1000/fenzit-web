@@ -13,6 +13,7 @@ const REGISTRY_PATHS = ALL_USE_CASE_CONTENT.map((content) => content.meta.path);
 const NON_USE_CASE_PATHS = [
   "/features",
   "/delete-account",
+  "/app/download",
   "/attendance",
   "/pricing",
   "/book-demo",

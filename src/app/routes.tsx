@@ -7,6 +7,7 @@ import { UseCasePage } from "../features/use-case/components/UseCasePage";
 import { ALL_USE_CASE_CONTENT } from "../features/use-case/content/registry";
 import { AttendancePage } from "../pages/AttendancePage";
 import { DeleteAccountPage } from "../pages/DeleteAccountPage";
+import { DownloadAppPage } from "../pages/DownloadAppPage";
 import { FeaturesPage } from "../pages/FeaturesPage";
 import { HomePage } from "../pages/HomePage";
 import { BookDemoPage, DataSafetyPage, PartnersPage } from "../pages/InfoPages";
@@ -55,6 +56,7 @@ export const routes: RouteObject[] = [
         element: <DeleteAccountPage />,
         action: deleteAccountAction,
       },
+      { path: "/app/download", element: <DownloadAppPage /> },
       { path: "/terms", element: <TermsOfServicePage /> },
       { path: "/security-trust", element: <SecurityTrustPage /> },
       ...ALL_USE_CASE_CONTENT.map((content) => ({
