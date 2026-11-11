@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "../config/contact";
 
 /** The date shown on every legal page. Change it here when a page changes. */
-const LEGAL_UPDATED = "8 November 2026";
+const LEGAL_UPDATED = "10 November 2026";
 
 // Plain-English copy for the legal pages. Each sentence states what Fenzit does today, or a
 // promise the team has agreed to keep. Anything the owner has not decided yet is left off.
@@ -29,11 +29,13 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     paragraphs: [
       "When you ask for a call back or a demo, we keep your name, phone number or email, and anything else you choose to tell us.",
       "When you sign in, we keep your phone number. We send a one-time code by SMS to check the number is yours.",
+      "When your team invites someone to Fenzit, we keep the invited person's name, phone number and the role they are invited to. We send them one SMS with a link to download the app.",
+      "For each invite SMS we keep a record with the phone number masked (for example +91 ******3210), the time and the result. We also keep a scrambled code of the number that we can match but cannot read back, so we can limit how many SMS one person receives.",
       "What your team adds to Fenzit includes the names and contact details of employees and customers, job details, photos, customer signatures, attendance check-ins and leave requests.",
       "Location is taken only at job steps and attendance check-ins that need it. We keep the place and time of each one.",
       "The app uses your device's camera only when you add a job photo or a customer signature.",
       "When you type an address in the app, the text is sent to Google to suggest matches.",
-      "The app records a few usage events with Google Firebase Analytics: opening the app, signing in, creating a job, completing a job step and tapping a notification. Your role in your company (for example, technician or manager) is attached to these events.",
+      "The app records a few usage events with Google Firebase Analytics: opening the app, signing in, creating a job, completing a job step and tapping a notification. Your role in your company (for example, employee, admin or viewer) is attached to these events.",
       "When the app crashes or hits an error, it sends a crash report to Google Firebase Crashlytics and to Sentry. A report holds the error message, the screen it happened on, the device model, the operating system and the app version. We do not attach your name, email address or phone number to these reports.",
     ],
   },
@@ -52,7 +54,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: "Who we share it with",
     paragraphs: [
       "We use a few service providers to run Fenzit. Each one handles data only to give us its service.",
-      "Supabase stores our database. Render runs our server. Cloudflare stores the photos and signatures that your team uploads. MSG91 sends the one-time sign-in codes by SMS. Google suggests addresses in the app. Google Firebase stores the usage events and crash reports described above. Sentry (sentry.io) stores the error reports described above.",
+      "Supabase stores our database. Render runs our server. Cloudflare stores the photos and signatures that your team uploads. MSG91 sends the one-time sign-in codes and the invite SMS. Google suggests addresses in the app. Google Firebase stores the usage events and crash reports described above. Sentry (sentry.io) stores the error reports described above.",
       "We do not sell your data, and we do not share it for advertising.",
     ],
   },
@@ -68,6 +70,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: "How long we keep it",
     paragraphs: [
       "We keep your team's data for as long as your team's account is active.",
+      "Invite SMS records (with the phone number masked) are deleted 12 months after they are created.",
+      "The scrambled codes used to limit invite SMS are deleted 24 hours after they are created.",
       "When an account is closed, we delete the team's data. Some records may be kept for longer where the law requires it.",
     ],
   },
