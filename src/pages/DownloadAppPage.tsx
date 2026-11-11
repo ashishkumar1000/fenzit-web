@@ -1,14 +1,17 @@
-import { APP_STORE_URL, PLAY_STORE_APP_LINK } from "../config/appStores";
+import { APP_STORE_URL, PLAY_STORE_APP_LINK, PLAY_STORE_URL } from "../config/appStores";
 import { DOWNLOAD_APP_PAGE } from "../app/pageMeta";
 import { useMobilePlatform } from "../hooks/useMobilePlatform";
 import { useRedirectTo } from "../hooks/useRedirectTo";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./DownloadAppPage.module.css";
 
+const IPHONE_HEADING = "The iPhone app is coming soon";
+const IPHONE_LINE = "Ask your employer for the link again when it is ready.";
+
 /**
- * Redirect page for invite SMS links. Android goes straight to the Play Store.
- * iOS sees a coming-soon note, with the App Store button only once APP_STORE_URL
- * is set. Desktop is told to open the link on a phone.
+ * The invite SMS link. Android goes straight to the Play Store app (the web listing is the
+ * fallback). Android and desktop see the Play button. iPhone and desktop see the iPhone
+ * coming-soon block, with an App Store button only once APP_STORE_URL is set.
  */
 export function DownloadAppPage() {
   const platform = useMobilePlatform();
@@ -19,14 +22,10 @@ export function DownloadAppPage() {
       <SimplePage
         meta={DOWNLOAD_APP_PAGE}
         id="download-app-title"
-        title="Opening Google Play"
-        lead="You are being sent to the Fenzit app on Google Play. If nothing happens, use the link below."
+        title="Get the Fenzit app"
+        lead="Install the Fenzit app, then log in with your phone number."
       >
-        <SimpleSection id="play-link" title="Google Play">
-          <a className={styles.button} href={PLAY_STORE_APP_LINK} rel="noopener noreferrer">
-            Open Google Play
-          </a>
-        </SimpleSection>
+        <PlayBlock />
       </SimplePage>
     );
   }
@@ -36,16 +35,10 @@ export function DownloadAppPage() {
       <SimplePage
         meta={DOWNLOAD_APP_PAGE}
         id="download-app-title"
-        title="The iOS app is coming soon"
-        lead="The Fenzit iOS app is not available yet. Ask your employer for the link again when it is ready."
+        title={IPHONE_HEADING}
+        lead={IPHONE_LINE}
       >
-        {APP_STORE_URL !== null ? (
-          <SimpleSection id="app-store-link" title="App Store">
-            <a className={styles.button} href={APP_STORE_URL} rel="noopener noreferrer">
-              Download on the App Store
-            </a>
-          </SimpleSection>
-        ) : null}
+        <AppStoreBlock />
       </SimplePage>
     );
   }
@@ -54,10 +47,35 @@ export function DownloadAppPage() {
     <SimplePage
       meta={DOWNLOAD_APP_PAGE}
       id="download-app-title"
-      title="Open this link on your phone"
-      lead="The Fenzit app is for Android and iOS phones. Open this link on your phone to get it."
+      title="Get the Fenzit app"
+      lead="Install the Fenzit app on your Android phone, then log in with your phone number."
     >
-      {null}
+      <PlayBlock />
+      <SimpleSection id="iphone-title" title={IPHONE_HEADING} paragraphs={[IPHONE_LINE]}>
+        {APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null}
+      </SimpleSection>
     </SimplePage>
+  );
+}
+
+function PlayBlock() {
+  return (
+    <SimpleSection id="play-link" title="Android">
+      <a className={styles.button} href={PLAY_STORE_URL} rel="noopener noreferrer">
+        Get it on Google Play
+      </a>
+    </SimpleSection>
+  );
+}
+
+function AppStoreBlock() {
+  return APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null;
+}
+
+function AppStoreButton({ href }: { href: string }) {
+  return (
+    <a className={styles.button} href={href} rel="noopener noreferrer">
+      Download on the App Store
+    </a>
   );
 }

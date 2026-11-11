@@ -228,7 +228,7 @@ export const DELETE_ACCOUNT_PAGE: PageMeta = {
 
 export const DOWNLOAD_APP_PAGE: PageMeta = {
   path: "/app/download",
-  title: "Get the Fenzit app for Android",
+  title: "Get the Fenzit app",
   description:
     "Install the Fenzit app for Android from Google Play, then log in with the phone number your team invited.",
 };
