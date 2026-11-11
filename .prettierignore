@@ -9,3 +9,7 @@ wrangler.jsonc
 src/theme/
 src/styles/tokens.css
 dist-server
+
+# Vendored agent tooling — keep as-is (same reasoning as the ports above).
+.claude/
+.zcode/
