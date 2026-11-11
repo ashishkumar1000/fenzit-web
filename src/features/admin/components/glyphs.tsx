@@ -143,6 +143,16 @@ export function GlyphKey({ size = 16 }: GlyphProps) {
   );
 }
 
+/** A small pointing arrow — the landing index's go affordance. */
+export function GlyphArrow({ size = 18 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <path d="M4.5 12h14" />
+      <path d="M13 6.5l5.5 5.5-5.5 5.5" />
+    </svg>
+  );
+}
+
 /**
  * The console's hero scene: a dossier card mid-inspection — badge, redacted
  * rows, a magnifier that catches the light, sparkles. Fresh artwork for this

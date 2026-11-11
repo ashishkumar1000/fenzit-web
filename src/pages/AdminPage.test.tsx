@@ -223,6 +223,10 @@ describe("Console: who sees what", () => {
     expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
+    // The landing index carries the same sections as whole-row links.
+    expect(
+      screen.getByRole("link", { name: /Who checked in, where and when/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
@@ -238,6 +242,12 @@ describe("Console: who sees what", () => {
     expect(screen.getByText("Fenzit staff")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Inspect" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Account" })).toBeInTheDocument();
+    // The landing index: whole-row links with their plain-English blurbs, and
+    // the safety line that says what this console cannot do.
+    expect(
+      screen.getByRole("link", { name: /Everything the system knows about one person/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Destructive work stays in the owner's super CLI/)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
   });

@@ -19,6 +19,7 @@ import type { adminLoader, ConsoleRole } from "../features/admin/adminLoader";
 import {
   ConsoleArt,
   GlyphAccount,
+  GlyphArrow,
   GlyphAttendance,
   GlyphCompany,
   GlyphConfig,
@@ -28,6 +29,7 @@ import {
   GlyphInspect,
   GlyphJobs,
   GlyphMe,
+  GlyphShield,
 } from "../features/admin/components/glyphs";
 import logo from "../assets/brand/logo.png";
 import logo2x from "../assets/brand/logo-2x.png";
@@ -92,30 +94,41 @@ function BrandMark() {
 }
 
 function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
+  // A missing name shows the role as the chip's first line — never a
+  // "(no name)" placeholder.
+  const primary = name ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed in");
   return (
     <span className={styles.chip}>
       <span className={styles.chipGlyph} aria-hidden="true">
         <GlyphMe size={15} />
       </span>
       <span className={styles.chipText}>
-        <span className={styles.chipName}>{name ?? "(no name)"}</span>
-        {role !== undefined ? <span className={styles.chipRole}>{ROLE_CAPTION[role]}</span> : null}
+        <span className={styles.chipName}>{primary}</span>
+        {name !== null && role !== undefined ? (
+          <span className={styles.chipRole}>{ROLE_CAPTION[role]}</span>
+        ) : null}
       </span>
     </span>
   );
 }
 
-function NavLinks({ role }: { role: ConsoleRole }) {
+function NavLinks({ role, landing }: { role: ConsoleRole; landing: boolean }) {
   return (
     <nav className={styles.nav} aria-label="Console sections">
-      {sectionsFor(role).map((section) => {
+      {sectionsFor(role).map((section, index) => {
         const Glyph = GLYPHS[section.to] ?? GlyphMe;
+        // On the landing the first section reads as where you are — the index
+        // below opens with it, so the sidebar says so too. Visual only: no
+        // aria-current, because the URL is still /admin.
+        const leadsLanding = landing && index === 0;
         return (
           <NavLink
             key={section.to}
             to={section.to}
             className={({ isActive }) =>
-              isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              isActive || leadsLanding
+                ? `${styles.navLink} ${styles.navLinkActive}`
+                : styles.navLink
             }
           >
             <span className={styles.navGlyph} aria-hidden="true">
@@ -169,7 +182,7 @@ export function AdminLayout() {
       <title>{CLIENT_ONLY_TITLES["/admin"]}</title>
       <aside className={styles.sidebar}>
         <BrandMark />
-        <NavLinks role={data.role} />
+        <NavLinks role={data.role} landing={location.pathname.replace(/\/+$/, "") === "/admin"} />
         <div className={styles.sidebarFoot}>
           <UserChip name={data.name} role={data.role} />
           <Button variant="secondary" onClick={logOut}>
@@ -190,54 +203,81 @@ export function AdminLayout() {
   );
 }
 
-/** The landing section: what this role's console can do. Reads the layout
- *  route's data by id — the index route has no loader of its own. */
+/** One plain-English line per section, shown under its name on the landing
+ *  index. Keyed by the section's route, the same key the glyphs use. */
+const SECTION_BLURBS: Record<string, string> = {
+  "/admin/inspect": "Everything the system knows about one person, on one page.",
+  "/admin/account": "Flip someone's staff and sign-in flags.",
+  "/admin/reports": "Job photos people flagged, ready to hide or dismiss.",
+  "/admin/deletion-requests": "People asking us to erase their data, and what we did.",
+  "/admin/config": "App-wide settings — the force-update rule and the support contact.",
+  "/admin/company": "Today's team pulse and your recent activity.",
+  "/admin/company/customers": "The people you serve, and the jobs booked for them.",
+  "/admin/company/employees": "Your team, their details and their offices.",
+  "/admin/company/jobs": "Create jobs, assign them and follow them to the finish.",
+  "/admin/company/holidays": "The days your team is off.",
+  "/admin/company/attendance": "Who checked in, where and when.",
+};
+
+const LEDE: Record<ConsoleRole, string> = {
+  staff: "The whole system, one console.",
+  owner: "Your whole business, one console.",
+  member: "Your attendance, leave and jobs — your data only.",
+};
+
+/** The landing index: one row per section this role can open, the whole row
+ *  the link. The sidebar repeats the same sections for in-app navigation. */
+function SectionIndex({ role }: { role: ConsoleRole }) {
+  return (
+    <>
+      <p className={styles.lede}>{LEDE[role]}</p>
+      <ul className={styles.index}>
+        {sectionsFor(role).map((section) => {
+          const Glyph = GLYPHS[section.to] ?? GlyphMe;
+          return (
+            <li key={section.to}>
+              <Link to={section.to} className={styles.indexRow}>
+                <span className={styles.indexGlyph} aria-hidden="true">
+                  <Glyph size={22} />
+                </span>
+                <span className={styles.indexText}>
+                  <span className={styles.indexName}>{section.label}</span>
+                  <span className={styles.indexDesc}>{SECTION_BLURBS[section.to]}</span>
+                </span>
+                <span className={styles.indexGo} aria-hidden="true">
+                  <GlyphArrow size={18} />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
+/** The landing: this role's sections as an index, with the console art beside
+ *  it. A member's console IS the Me section — no welcome screen to click past. */
 export function AdminHome() {
   const data = useRouteLoaderData<typeof adminLoader>("admin");
   if (data === undefined || data.status === "failed") return null;
 
-  if (data.role === "staff") {
-    return (
-      <div className={styles.home}>
-        <div className={styles.homeArt}>
-          <ConsoleArt />
-        </div>
-        <p className={styles.homeTitle}>
-          <span className={styles.homeGlyph} aria-hidden="true">
-            <GlyphInspect />
-          </span>
-          Two sections, the whole system
-        </p>
-        <p className={styles.homeCopy}>
-          Inspect lays out everything the system knows about one person. Account flips their staff
-          and sign-in flags. Destructive work stays in the owner's super CLI — this console cannot
-          delete anything.
-        </p>
-      </div>
-    );
-  }
-
-  if (data.role === "owner") {
-    return (
-      <div className={styles.home}>
-        <p className={styles.homeCopy}>
-          The Overview shows today's team pulse and your recent leave and audit activity. The
-          sidebar carries the full lists — customers, employees, jobs, holidays and attendance.
-        </p>
-      </div>
-    );
-  }
-
-  // An employee's console IS the Me section — no welcome screen to click past.
   if (data.role === "member") {
     return <Navigate to="/admin/me" replace />;
   }
 
   return (
     <div className={styles.home}>
-      <p className={styles.homeCopy}>
-        The Me section shows your attendance, leave and jobs — your data only.
-      </p>
+      <div className={styles.homeArt}>
+        <ConsoleArt />
+      </div>
+      <SectionIndex role={data.role} />
+      {data.role === "staff" ? (
+        <p className={styles.footnote}>
+          <GlyphShield size={14} />
+          Destructive work stays in the owner's super CLI — this console cannot delete anything.
+        </p>
+      ) : null}
     </div>
   );
 }

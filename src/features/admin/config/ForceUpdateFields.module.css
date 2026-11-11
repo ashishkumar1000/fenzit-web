@@ -4,20 +4,20 @@
   min-width: 0;
 }
 
+/* The SectionCard above is already the card; these platform groups are
+   separated by heading and whitespace only — a bordered box here would
+   nest cards inside it. */
 .block {
   display: grid;
   gap: var(--space-4);
   min-width: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
 }
 
 .title {
   margin: 0;
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-strong);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-body);
 }
 
 @media (min-width: 768px) {
