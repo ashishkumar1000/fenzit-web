@@ -96,7 +96,9 @@ function BrandMark() {
 function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
   // A missing name shows the role as the chip's first line — never a
   // "(no name)" placeholder.
-  const primary = name ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed in");
+  // A blank or whitespace-only name counts as missing.
+  const label = name !== null && name.trim() !== "" ? name : null;
+  const primary = label ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed in");
   return (
     <span className={styles.chip}>
       <span className={styles.chipGlyph} aria-hidden="true">
@@ -104,7 +106,7 @@ function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
       </span>
       <span className={styles.chipText}>
         <span className={styles.chipName}>{primary}</span>
-        {name !== null && role !== undefined ? (
+        {label !== null && role !== undefined ? (
           <span className={styles.chipRole}>{ROLE_CAPTION[role]}</span>
         ) : null}
       </span>
@@ -219,15 +221,17 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/company/attendance": "Who checked in, where and when.",
 };
 
-const LEDE: Record<ConsoleRole, string> = {
+/** Members never reach the index: AdminHome sends them to Me first. */
+type IndexRole = Exclude<ConsoleRole, "member">;
+
+const LEDE: Record<IndexRole, string> = {
   staff: "The whole system, one console.",
   owner: "Your whole business, one console.",
-  member: "Your attendance, leave and jobs — your data only.",
 };
 
 /** The landing index: one row per section this role can open, the whole row
  *  the link. The sidebar repeats the same sections for in-app navigation. */
-function SectionIndex({ role }: { role: ConsoleRole }) {
+function SectionIndex({ role }: { role: IndexRole }) {
   return (
     <>
       <p className={styles.lede}>{LEDE[role]}</p>
@@ -242,7 +246,9 @@ function SectionIndex({ role }: { role: ConsoleRole }) {
                 </span>
                 <span className={styles.indexText}>
                   <span className={styles.indexName}>{section.label}</span>
-                  <span className={styles.indexDesc}>{SECTION_BLURBS[section.to]}</span>
+                  {SECTION_BLURBS[section.to] ? (
+                    <span className={styles.indexDesc}>{SECTION_BLURBS[section.to]}</span>
+                  ) : null}
                 </span>
                 <span className={styles.indexGo} aria-hidden="true">
                   <GlyphArrow size={18} />
@@ -260,7 +266,20 @@ function SectionIndex({ role }: { role: ConsoleRole }) {
  *  it. A member's console IS the Me section — no welcome screen to click past. */
 export function AdminHome() {
   const data = useRouteLoaderData<typeof adminLoader>("admin");
-  if (data === undefined || data.status === "failed") return null;
+  if (data === undefined) {
+    return (
+      <p className={styles.lede} role="status">
+        Loading your console…
+      </p>
+    );
+  }
+  if (data.status === "failed") {
+    return (
+      <p className={styles.error} role="alert">
+        We could not load your console. Check your connection and try again.
+      </p>
+    );
+  }
 
   if (data.role === "member") {
     return <Navigate to="/admin/me" replace />;
@@ -275,7 +294,7 @@ export function AdminHome() {
       {data.role === "staff" ? (
         <p className={styles.footnote}>
           <GlyphShield size={14} />
-          Destructive work stays in the owner's super CLI — this console cannot delete anything.
+          This console cannot delete anything.
         </p>
       ) : null}
     </div>

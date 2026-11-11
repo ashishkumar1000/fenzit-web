@@ -1,7 +1,6 @@
-import { APP_STORE_URL, PLAY_STORE_APP_LINK, PLAY_STORE_URL } from "../config/appStores";
+import { APP_STORE_URL, PLAY_STORE_URL } from "../config/appStores";
 import { DOWNLOAD_APP_PAGE } from "../app/pageMeta";
 import { useMobilePlatform } from "../hooks/useMobilePlatform";
-import { useRedirectTo } from "../hooks/useRedirectTo";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./DownloadAppPage.module.css";
 
@@ -9,20 +8,20 @@ const IPHONE_HEADING = "The iPhone app is coming soon";
 const IPHONE_LINE = "Ask your employer for the link again when it is ready.";
 
 /**
- * The invite SMS link. Android goes straight to the Play Store app (the web listing is the
- * fallback). Android and desktop see the Play button. iPhone and desktop see the iPhone
- * coming-soon block, with an App Store button only once APP_STORE_URL is set.
+ * The invite SMS link. Android sees the Play button (no automatic redirect, so the
+ * visitor always sees what they are installing). Android and desktop see the Play button.
+ * iPhone and desktop see the iPhone coming-soon block, with an App Store button only once
+ * APP_STORE_URL is set.
  */
 export function DownloadAppPage() {
   const platform = useMobilePlatform();
-  useRedirectTo(platform === "android" ? PLAY_STORE_APP_LINK : null);
 
   if (platform === "android") {
     return (
       <SimplePage
         meta={DOWNLOAD_APP_PAGE}
         id="download-app-title"
-        title="Get the Fenzit app"
+        title={DOWNLOAD_APP_PAGE.title}
         lead="Install the Fenzit app, then log in with your phone number."
       >
         <PlayBlock />
@@ -38,7 +37,7 @@ export function DownloadAppPage() {
         title={IPHONE_HEADING}
         lead={IPHONE_LINE}
       >
-        <AppStoreBlock />
+        {APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null}
       </SimplePage>
     );
   }
@@ -47,8 +46,8 @@ export function DownloadAppPage() {
     <SimplePage
       meta={DOWNLOAD_APP_PAGE}
       id="download-app-title"
-      title="Get the Fenzit app"
-      lead="Install the Fenzit app on your Android phone, then log in with your phone number."
+      title={DOWNLOAD_APP_PAGE.title}
+      lead="Open this link on your phone to install the Fenzit app. Then log in with your phone number."
     >
       <PlayBlock />
       <SimpleSection id="iphone-title" title={IPHONE_HEADING} paragraphs={[IPHONE_LINE]}>
@@ -66,10 +65,6 @@ function PlayBlock() {
       </a>
     </SimpleSection>
   );
-}
-
-function AppStoreBlock() {
-  return APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null;
 }
 
 function AppStoreButton({ href }: { href: string }) {

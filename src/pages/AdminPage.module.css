@@ -276,6 +276,18 @@
   transform: translateX(3px);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .indexRow,
+  .indexGlyph,
+  .indexGo {
+    transition: none;
+  }
+
+  .indexRow:hover .indexGo {
+    transform: none;
+  }
+}
+
 .footnote {
   margin: var(--space-2) 0 0;
   display: flex;

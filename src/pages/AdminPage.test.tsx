@@ -247,9 +247,35 @@ describe("Console: who sees what", () => {
     expect(
       screen.getByRole("link", { name: /Everything the system knows about one person/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Destructive work stays in the owner's super CLI/)).toBeInTheDocument();
+    expect(screen.getByText("This console cannot delete anything.")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
+  });
+
+  it("shows the role alone in the sidebar chip when the name is blank or only spaces", async () => {
+    writeSession({ token: "tok-1", name: "   " });
+    meAnswers.push(me({ role: null, platformAdmin: true, name: "   " }));
+
+    renderAdmin();
+
+    expect(await screen.findByRole("link", { name: "Inspect" })).toBeInTheDocument();
+    expect(screen.getByText("Fenzit staff").parentElement?.textContent).toBe("Fenzit staff");
+  });
+
+  it("points each staff index row at its own section", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me({ role: null, platformAdmin: true }));
+
+    renderAdmin();
+
+    const inspect = await screen.findByRole("link", {
+      name: /Everything the system knows about one person/,
+    });
+    expect(inspect).toHaveAttribute("href", "/admin/inspect");
+    expect(screen.getByRole("link", { name: /App-wide settings/ })).toHaveAttribute(
+      "href",
+      "/admin/config",
+    );
   });
 
   it("gives an employee only the Me section — the console no longer refuses them", async () => {
