@@ -1,0 +1,37 @@
+/* Full-width strip: a quiet band that reads as a fact, not a control. */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.chip {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-default);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.label {
+  color: var(--color-text-muted);
+}
+
+.version {
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}

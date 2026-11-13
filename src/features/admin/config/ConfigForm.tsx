@@ -5,10 +5,14 @@ import { TextInput } from "../../../components/ui/TextInput";
 import { SectionCard } from "../components/SectionCard";
 import type { AppRoadblockConfig } from "./configApi";
 import { ForceUpdateFields, type ConfigFieldProps } from "./ForceUpdateFields";
+import { MinVersionDialog } from "./MinVersionDialog";
+import { LiveVersionStrip } from "./LiveVersionStrip";
 import {
+  androidMinVersionRefusal,
   draftFromConfig,
   isDirty,
   validateDraft,
+  type MinVersionRefusal,
   type ConfigDraft,
   type FieldErrors,
   type FieldKey,
@@ -36,8 +40,11 @@ export function ConfigForm({ config, serverErrors, saving, notice }: ConfigFormP
   const [draft, setDraft] = useState<ConfigDraft>(() => draftFromConfig(config));
   const [submitted, setSubmitted] = useState(false);
   const [edited, setEdited] = useState<ReadonlySet<FieldKey>>(() => new Set());
+  const [refusal, setRefusal] = useState<MinVersionRefusal | null>(null);
 
-  const clientErrors = validateDraft(draft);
+  const liveAndroidVersion = config.liveAndroidVersion ?? null;
+  const storedMinVersion = config.android.minVersion;
+  const clientErrors = validateDraft(draft, liveAndroidVersion, storedMinVersion);
   const errorFor = (key: FieldKey): string | undefined => {
     if (submitted && clientErrors[key] !== undefined) return clientErrors[key];
     return edited.has(key) ? undefined : serverErrors[key];
@@ -50,6 +57,13 @@ export function ConfigForm({ config, serverErrors, saving, notice }: ConfigFormP
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     setSubmitted(true);
+    // A minimum that cannot be saved gets a popup with a way out, not only a field error.
+    const minRefusal = androidMinVersionRefusal(draft, liveAndroidVersion, storedMinVersion);
+    if (minRefusal !== null) {
+      event.preventDefault();
+      setRefusal(minRefusal);
+      return;
+    }
     // Stop the send while the screen still has a problem to fix. Keep the
     // edited fields as they are, so a server error on a corrected field stays hidden.
     if (Object.keys(clientErrors).length > 0) {
@@ -74,6 +88,7 @@ export function ConfigForm({ config, serverErrors, saving, notice }: ConfigFormP
           An installed app older than the minimum version stops at a full-screen update screen with
           a link to the store.
         </p>
+        <LiveVersionStrip live={config.liveAndroidVersion} />
         <ForceUpdateFields {...fieldProps} />
       </SectionCard>
 
@@ -107,6 +122,18 @@ export function ConfigForm({ config, serverErrors, saving, notice }: ConfigFormP
           />
         </div>
       </SectionCard>
+
+      {refusal !== null && (
+        <MinVersionDialog
+          refusal={refusal}
+          enteredValue={draft["android.minVersion"].trim()}
+          onUseLive={(live) => {
+            onChange("android.minVersion", live);
+            setRefusal(null);
+          }}
+          onClose={() => setRefusal(null)}
+        />
+      )}
 
       {notice}
 

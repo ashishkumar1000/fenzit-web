@@ -60,6 +60,7 @@ export async function adminConfigAction({
     const draft = draftFromForm(await request.formData());
 
     // The same rules as the screen, run again so a bypassed form still cannot send bad data.
+    // The live Play version is not re-read here; the BE refuses it on save (422).
     const clientErrors = validateDraft(draft);
     if (Object.keys(clientErrors).length > 0) {
       return {

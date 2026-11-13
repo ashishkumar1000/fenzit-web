@@ -1,0 +1,66 @@
+/* Full-screen scrim. Fixed to the viewport so it works on phones with a moving address bar. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-scrim) 60%, transparent);
+}
+
+.dialog {
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 32rem;
+  max-height: calc(100dvh - var(--space-12));
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-lg);
+  box-sizing: border-box;
+}
+
+.dialog:focus {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-strong);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.text,
+.recommendation {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-body);
+}
+
+.label {
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+/* Phones: buttons stack, full width. Wide screens: side by side, the safe choice last. */
+.actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}

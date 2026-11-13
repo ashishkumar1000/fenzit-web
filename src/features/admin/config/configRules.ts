@@ -1,4 +1,4 @@
-import type { AppRoadblockConfig } from "./configApi";
+import type { AppRoadblockConfig, AppRoadblockSave } from "./configApi";
 
 /**
  * Client-side rules for the Config page. They mirror the backend rules so the
@@ -56,7 +56,7 @@ function trimmed(draft: ConfigDraft): ConfigDraft {
   return result;
 }
 
-export function toConfigBody(draft: ConfigDraft): AppRoadblockConfig {
+export function toConfigBody(draft: ConfigDraft): AppRoadblockSave {
   const value = trimmed(draft);
   return {
     android: {
@@ -85,6 +85,46 @@ function versionError(value: string): string | null {
   if (value === "") return "Enter the minimum version, like 1.4.0.";
   if (!VERSION_PATTERN.test(value)) return "Use three numbers with dots, like 1.4.0.";
   return null;
+}
+
+/** Numeric compare of dotted versions: > 0 if a is newer, < 0 if b is. Same rule as the BE. */
+export function compareVersionNames(a: string, b: string): number {
+  const parse = (v: string) => v.split(".").map((p) => parseInt(p, 10) || 0);
+  const left = parse(a);
+  const right = parse(b);
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const diff = (left[i] ?? 0) - (right[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+/** Why the Android minimum cannot be saved, for the popup: not three numbers, or newer than the live version. */
+export type MinVersionRefusal = { kind: "invalid" } | { kind: "above-live"; live: string };
+
+/**
+ * The popup's reason, or null when the minimum is empty (a field error covers that),
+ * unchanged from what is stored (the server only checks a change too), or acceptable.
+ */
+export function androidMinVersionRefusal(
+  draft: ConfigDraft,
+  liveAndroidVersion: string | null,
+  storedAndroidMinVersion: string | null = null,
+): MinVersionRefusal | null {
+  const value = draft["android.minVersion"].trim();
+  if (value === "" || value === storedAndroidMinVersion) return null;
+  if (!VERSION_PATTERN.test(value)) return { kind: "invalid" };
+  if (liveAndroidVersion !== null && compareVersionNames(value, liveAndroidVersion) > 0) {
+    return { kind: "above-live", live: liveAndroidVersion };
+  }
+  return null;
+}
+
+/** Refuses a minimum newer than the live Google Play version. Skipped when the live version is unknown. */
+function aboveLiveError(value: string, live: string | null): string | null {
+  if (live === null || !VERSION_PATTERN.test(value)) return null;
+  if (compareVersionNames(value, live) <= 0) return null;
+  return `Version ${value} isn't live on Google Play yet. The latest live Android version is ${live}.`;
 }
 
 function storeUrlError(value: string, platform: keyof typeof STORE_HOSTS): string | null {
@@ -138,8 +178,16 @@ const RULES: Record<FieldKey, (value: string) => string | null> = {
   "support.phone": phoneError,
 };
 
-/** Every field that breaks a rule, with the sentence to show under it. */
-export function validateDraft(draft: ConfigDraft): FieldErrors {
+/**
+ * Every field that breaks a rule, with the sentence to show under it. The
+ * Android minimum is also checked against the live Google Play version when
+ * the server reported one.
+ */
+export function validateDraft(
+  draft: ConfigDraft,
+  liveAndroidVersion: string | null = null,
+  storedAndroidMinVersion: string | null = null,
+): FieldErrors {
   const value = trimmed(draft);
   const errors: FieldErrors = {};
   for (const key of FIELD_KEYS) {
@@ -147,6 +195,11 @@ export function validateDraft(draft: ConfigDraft): FieldErrors {
     if (message !== null) {
       errors[key] = message;
     }
+  }
+  const unchanged = value["android.minVersion"] === storedAndroidMinVersion;
+  if (errors["android.minVersion"] === undefined && !unchanged) {
+    const liveError = aboveLiveError(value["android.minVersion"], liveAndroidVersion);
+    if (liveError !== null) errors["android.minVersion"] = liveError;
   }
   return errors;
 }
