@@ -11,6 +11,7 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import { Flag } from "lucide-react";
+import { AdminOwnerDashboard } from "./AdminOwnerDashboard";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
@@ -56,6 +57,7 @@ function GlyphReports({ size = 20 }: { size?: number }) {
 }
 
 const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
+  "/admin": GlyphAttendance,
   "/admin/inspect": GlyphInspect,
   "/admin/account": GlyphAccount,
   "/admin/reports": GlyphReports,
@@ -65,6 +67,7 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company/customers": GlyphCustomers,
   "/admin/company/employees": GlyphMe,
   "/admin/company/jobs": GlyphJobs,
+  "/admin/company/approvals": GlyphJobs,
   "/admin/company/holidays": GlyphHolidays,
   "/admin/company/attendance": GlyphAttendance,
   "/admin/me": GlyphMe,
@@ -262,10 +265,13 @@ function SectionIndex({ role }: { role: IndexRole }) {
   );
 }
 
-/** The landing: this role's sections as an index, with the console art beside
- *  it. A member's console IS the Me section — no welcome screen to click past. */
+/** The landing: an owner gets the job-reports dashboard (Epic 22, CAP-8 —
+ *  the landing view after sign-in); everyone else sees this role's sections
+ *  as an index, with the console art beside it. A member's console IS the Me
+ *  section — no welcome screen to click past. */
 export function AdminHome() {
   const data = useRouteLoaderData<typeof adminLoader>("admin");
+
   if (data === undefined) {
     return (
       <p className={styles.lede} role="status">
@@ -283,6 +289,10 @@ export function AdminHome() {
 
   if (data.role === "member") {
     return <Navigate to="/admin/me" replace />;
+  }
+
+  if (data.role === "owner" && data.dashboard !== null) {
+    return <AdminOwnerDashboard dashboard={data.dashboard} />;
   }
 
   return (

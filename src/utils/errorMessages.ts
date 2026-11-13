@@ -19,6 +19,8 @@ const MESSAGES_BY_CODE = new Map<string, string>([
     "DELETION_REQUEST_ALREADY_RESOLVED",
     "Someone already handled this request. The list has been refreshed.",
   ],
+  ["JOB_NOT_PENDING", "That job was already decided. The list has been refreshed."],
+  ["JOB_NOT_MODIFIABLE", "That job can no longer be edited. The list has been refreshed."],
 ]);
 
 export const NO_COMPANY_MESSAGE =

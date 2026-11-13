@@ -30,6 +30,27 @@ export interface MemberRow {
   role: string;
   status: "invited" | "active" | "removed";
   createdAt: string;
+  /** Job switches (Epic 22, CAP-1) — meaningful for employees. */
+  canCreateJobs: boolean;
+  jobApprovalRequired: boolean;
+}
+
+/**
+ * Set one employee's two job switches (CAP-1). A change applies to the next
+ * job the employee creates — jobs already pending keep their state.
+ */
+export function updateJobSettings(
+  token: string,
+  userId: string,
+  settings: { canCreateJobs: boolean; jobApprovalRequired: boolean },
+  signal?: AbortSignal,
+): Promise<void> {
+  return apiFetch<void>(`/api/v1/members/${encodeURIComponent(userId)}/job-settings`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+    signal,
+  });
 }
 
 export interface LeaveRow {

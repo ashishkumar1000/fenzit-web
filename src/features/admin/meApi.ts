@@ -98,3 +98,30 @@ export function fetchMyJobs(token: string, signal?: AbortSignal): Promise<Page<J
     signal,
   });
 }
+
+/** One rejected job of mine — the fields the rejected list shows. */
+export interface RejectedJobRow {
+  jobNumber: string;
+  description: string;
+  rejectionReason: string | null;
+  decidedAt: string | null;
+  scheduledStart: string | null;
+}
+
+/**
+ * My rejected jobs, all time (Epic 22, CAP-7): scope=all skips every day
+ * window and the repeatable status param narrows to rejections, so history
+ * keeps them with no expiry. Fifty per page; `cursor` walks further back.
+ */
+export function fetchMyRejectedJobs(
+  token: string,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<Page<RejectedJobRow>> {
+  const query =
+    cursor !== undefined && cursor !== "" ? `&cursor=${encodeURIComponent(cursor)}` : "";
+  return apiFetch<Page<RejectedJobRow>>(`/api/v1/jobs?scope=all&status=rejected&limit=50${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}

@@ -1,9 +1,14 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { StatusBadge } from "./Badge";
 import styles from "./Table.module.css";
 
 export interface TableCell {
   text: string;
+  /** An interactive control rendered in place of the text (rare — the
+   *  employees page's job-settings button). The control's own visible label
+   *  names the cell for assistive tech, so `text` is only a fallback for the
+   *  code paths that render it. */
+  node?: ReactNode;
   /** Render as a status badge (tone from the design system's vocabulary). */
   status?: boolean;
   /** De-emphasise (identifiers, timestamps). */
@@ -45,6 +50,8 @@ export function DataTable({ columns, rows, empty }: TableProps) {
                 <td key={c} className={styles.td}>
                   {cell.status ? (
                     <StatusBadge status={cell.text} />
+                  ) : cell.node !== undefined ? (
+                    cell.node
                   ) : (
                     <span className={cell.quiet ? styles.quiet : styles.cell}>{cell.text}</span>
                   )}

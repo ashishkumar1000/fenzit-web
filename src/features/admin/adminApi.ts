@@ -19,6 +19,11 @@ export type CurrentUser = {
   status: string | null;
   /** The company's subscription end; null when there is no company or no date. */
   subscription?: { validUntil: string | null } | null;
+  /** Epic 22 (CAP-1) — the employee's own job switches. Present for
+   *  employees; absent (undefined) on other shapes of the profile. Display
+   *  truth only — the create endpoint re-checks server-side. */
+  canCreateJobs?: boolean;
+  jobApprovalRequired?: boolean;
 };
 
 /** GET /api/v1/users/me on fenzit-be. Needs the signed-in token. */

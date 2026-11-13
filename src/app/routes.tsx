@@ -91,6 +91,11 @@ export const routes: RouteObject[] = [
             Component: AdminLayout,
             loader: adminLoader,
             HydrateFallback: AdminChecking,
+            // The layout loader fetches /users/me and — for an owner — the full
+            // reports dashboard. Those only matter when /admin itself is on
+            // screen, so a navigation to any other console section (or an
+            // action on one) skips the refetch; returning to /admin revalidates.
+            shouldRevalidate: ({ nextUrl }) => nextUrl.pathname === "/admin",
           };
         },
         children: [
@@ -195,6 +200,20 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            path: "me/new-job",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminMeNewJobPage"),
+                import("../features/admin/meCreateJobLoaders"),
+              ]);
+              return {
+                Component: page.AdminMeNewJobPage,
+                loader: loaderModule.meCreateJobLoader,
+                action: loaderModule.meCreateJobAction,
+              };
+            },
+          },
+          {
             path: "company/customers",
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([
@@ -217,6 +236,21 @@ export const routes: RouteObject[] = [
               return {
                 Component: page.AdminEmployeesPage,
                 loader: loaderModule.adminEmployeesLoader,
+                action: loaderModule.adminEmployeesAction,
+              };
+            },
+          },
+          {
+            path: "company/approvals",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminApprovalQueuePage"),
+                import("../features/admin/approvalLoaders"),
+              ]);
+              return {
+                Component: page.AdminApprovalQueuePage,
+                loader: loaderModule.approvalQueueLoader,
+                action: loaderModule.approvalQueueAction,
               };
             },
           },

@@ -1,0 +1,119 @@
+.wrap {
+  display: inline-flex;
+}
+
+.rejectButton {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-danger);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2) var(--space-3);
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.rejectButton:hover {
+  filter: brightness(0.97);
+}
+
+.rejectButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The global reset zeroes every margin, which kills the UA's auto-centring
+   for dialogs — put it back explicitly. The element carries no padding: any
+   click that lands on it is a genuine backdrop click, never a click in the
+   form's own padding being mistaken for one. */
+.dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-height: 85dvh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Only the open dialog lays out as a grid — the bare `display: grid` would
+   override the UA's display:none for a closed dialog and show it inline. */
+.dialog[open] {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--color-text-strong) 45%, transparent);
+}
+
+.dialogForm {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.field input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.cancelButton {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+}

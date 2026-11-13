@@ -1,12 +1,14 @@
-import { redirect, type LoaderFunctionArgs } from "react-router";
+import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { clearSession } from "../../services/session";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
+import { messageForError } from "../../utils/errorMessages";
 import {
   fetchCustomers,
   fetchHolidays,
   fetchJobs,
   fetchMembers,
   fetchMonthly,
+  updateJobSettings,
   type CustomerRow,
   type HolidayRow,
   type JobRow,
@@ -87,6 +89,42 @@ export async function adminEmployeesLoader({
     }
     if (request.signal.aborted) throw error;
     return { state: "failed" };
+  }
+}
+
+export type JobSettingsResult =
+  { state: "done"; userId: string } | { state: "error"; userId: string; message: string };
+
+/** Save one employee's two job switches (Epic 22, CAP-1). The loader
+ *  refetches after the action, so the saved values show on the row. */
+export async function adminEmployeesAction({
+  request,
+}: ActionFunctionArgs): Promise<JobSettingsResult> {
+  const form = await request.formData();
+  const userId = typeof form.get("userId") === "string" ? (form.get("userId") as string) : "";
+  try {
+    const { token } = await requireConsoleRole(request, ["owner"]);
+    if (userId === "") {
+      return { state: "error", userId, message: "That save could not be sent. Try again." };
+    }
+    await updateJobSettings(
+      token,
+      userId,
+      {
+        canCreateJobs: form.get("canCreateJobs") === "on",
+        jobApprovalRequired: form.get("jobApprovalRequired") === "on",
+      },
+      request.signal,
+    );
+    return { state: "done", userId };
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (isAuthError(error)) {
+      clearSession();
+      throw redirect("/login");
+    }
+    if (request.signal.aborted) throw error;
+    return { state: "error", userId, message: messageForError(error) };
   }
 }
 

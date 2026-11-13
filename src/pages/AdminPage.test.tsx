@@ -130,11 +130,13 @@ describe("sectionsFor", () => {
     ]);
   });
 
-  it("gives an owner the overview plus the five browse lists", () => {
+  it("gives an owner the dashboard, the overview and the five browse lists", () => {
     expect(sectionsFor("owner").map((s) => s.to)).toEqual([
+      "/admin",
       "/admin/company",
       "/admin/company/customers",
       "/admin/company/employees",
+      "/admin/company/approvals",
       "/admin/company/jobs",
       "/admin/company/holidays",
       "/admin/company/attendance",
@@ -208,7 +210,7 @@ describe("Console: access", () => {
 });
 
 describe("Console: who sees what", () => {
-  it("welcomes a company owner and shows only the Company section", async () => {
+  it("welcomes a company owner to their reports dashboard and Company sections", async () => {
     writeSession({ token: "tok-1", name: "Ravi Kumar" });
     meAnswers.push(me());
 
@@ -217,16 +219,21 @@ describe("Console: who sees what", () => {
     expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
     // The role lives in the sidebar user chip now, not a sign-in line.
     expect(screen.getByText("Company owner")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Customers" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Approvals" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
-    // The landing index carries the same sections as whole-row links.
+    // Epic 22 (CAP-8): the owner's landing IS the reports dashboard — the
+    // section index is gone for owners, the report failing degrades to a
+    // retry line inside it (this test's fetch mock is offline).
     expect(
-      screen.getByRole("link", { name: /Who checked in, where and when/ }),
+      await screen.findByText("The report could not load for this period."),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Who checked in, where and when/ })).toBeNull();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();

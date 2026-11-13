@@ -49,6 +49,43 @@ export function istDateInput(iso: string | null): string {
   }).format(at);
 }
 
+/** Today's calendar date in IST, as YYYY-MM-DD. Report windows are IST days
+ *  on the server, so the client builds its preset windows with these helpers
+ *  instead of the browser's local clock. */
+const IST_DATE_INPUT = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: "Asia/Kolkata",
+});
+
+export function istToday(): string {
+  return IST_DATE_INPUT.format(new Date());
+}
+
+/** The IST calendar date `days` days from now (negative for the past). */
+export function istShifted(days: number): string {
+  return IST_DATE_INPUT.format(new Date(Date.now() + days * 86400000));
+}
+
+/** The first day of an IST month, `offset` months from the current one. */
+export function istFirstOfMonth(offset = 0): string {
+  const [year, month] = istToday().split("-").map(Number);
+  const shifted = month - 1 + offset;
+  const nextYear = year + Math.floor(shifted / 12);
+  const nextMonth = (((shifted % 12) + 12) % 12) + 1;
+  return `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+}
+
+/** The last day of the IST month before the current one. */
+export function istEndOfLastMonth(): string {
+  const [year, month] = istToday().split("-").map(Number);
+  // Midnight UTC of the first of this month minus one day is the last day of
+  // the previous month; formatting it in UTC keeps the calendar day exact.
+  const day = new Date(Date.UTC(year, month - 1, 0));
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" }).format(day);
+}
+
 /** A YYYY-MM-DD date as "19 Oct 2026". Anything else passes through. */
 export function fmtDay(day: string): string {
   const at = new Date(`${day}T00:00:00`);
