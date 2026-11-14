@@ -78,7 +78,6 @@ function respondDefault(url: string): Response | Promise<Response> {
     // A deferred answer keeps the save in flight so the busy state is visible.
     return new Promise((resolve) => {
       patchDelay = () => resolve(jsonResponse({}, 200));
-      console.log("DEBUG responder armed, deferPatches:", deferPatches);
     });
   }
   throw new TypeError(`offline in tests: ${url}`);
