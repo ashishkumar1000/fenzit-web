@@ -67,7 +67,6 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company/customers": GlyphCustomers,
   "/admin/company/employees": GlyphMe,
   "/admin/company/jobs": GlyphJobs,
-  "/admin/company/approvals": GlyphJobs,
   "/admin/company/holidays": GlyphHolidays,
   "/admin/company/attendance": GlyphAttendance,
   "/admin/me": GlyphMe,
@@ -126,10 +125,14 @@ function NavLinks({ role, landing }: { role: ConsoleRole; landing: boolean }) {
         // below opens with it, so the sidebar says so too. Visual only: no
         // aria-current, because the URL is still /admin.
         const leadsLanding = landing && index === 0;
+        // Landing sections own their address exactly: /admin must not stay
+        // lit on /admin/company/jobs, nor Overview on every sub-list.
+        const exact = section.to === "/admin" || section.to === "/admin/company";
         return (
           <NavLink
             key={section.to}
             to={section.to}
+            end={exact}
             className={({ isActive }) =>
               isActive || leadsLanding
                 ? `${styles.navLink} ${styles.navLinkActive}`

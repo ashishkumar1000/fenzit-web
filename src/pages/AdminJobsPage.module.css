@@ -1,9 +1,146 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.newJobLine {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* The page's primary action carries primary weight — a filled button, the
+   same tokens the shared Button renders for <button> (critique 2026-11-14). */
+.primaryButton {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.primaryButton:hover {
+  background: var(--color-primary-hover);
+}
+
 .failed {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-danger);
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
 }
 
-.more {
+/* Status filter chips — one status at a time, riding ?status= on the URL. */
+.chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+
+.chip {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+}
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+}
+
+.chipActive {
+  composes: chip;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The Job cell leads with the work and answers "which job" underneath. */
+.jobLink {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+  min-width: 12rem;
+}
+
+.jobTitle {
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.jobLink:hover .jobTitle {
+  text-decoration: underline;
+  color: var(--color-text-link);
+}
+
+.jobSub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.urgent {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The table's tools row: search on the left, sort chips on the right. */
+.tableTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--space-3);
+}
+
+.tableTools .chips {
+  margin: 0;
+}
+
+.search {
+  flex: 1 1 220px;
+  max-width: 340px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-sm);
+}
+
+.search::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  cursor: pointer;
+  text-decoration: underline;
 }

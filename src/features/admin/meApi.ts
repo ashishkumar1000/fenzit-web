@@ -56,15 +56,6 @@ export interface MeMonthSummary {
   upcomingHolidays: Array<{ id: string; date: string; name: string }>;
 }
 
-export interface JobRow {
-  jobNumber: string;
-  status: string;
-  priority: string | null;
-  scheduledStart: string | null;
-  currentStep: string | null;
-  skill: { id: string; name: string } | null;
-}
-
 export function fetchMySummary(token: string, signal?: AbortSignal): Promise<MeSummary> {
   return apiFetch<MeSummary>("/api/v1/attendance/me/summary", {
     headers: { Authorization: `Bearer ${token}` },
@@ -87,13 +78,6 @@ export function fetchMyMonthly(
 
 export function fetchMyLeave(token: string, signal?: AbortSignal): Promise<Page<LeaveRow>> {
   return apiFetch<Page<LeaveRow>>("/api/v1/attendance/me/leave?limit=8", {
-    headers: { Authorization: `Bearer ${token}` },
-    signal,
-  });
-}
-
-export function fetchMyJobs(token: string, signal?: AbortSignal): Promise<Page<JobRow>> {
-  return apiFetch<Page<JobRow>>("/api/v1/jobs?scope=history", {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });

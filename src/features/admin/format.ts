@@ -107,6 +107,16 @@ export function fmtDistance(metres: number | null): string {
   return `${Math.round(metres)} m`;
 }
 
+/** A wait the person reads, not the machine: hours below a day, whole days
+ *  after — "waiting 42 h" reads as noise, "waiting 2 d" as a fact. */
+export function waitLabel(hours: number): string {
+  if (hours < 1) return "<1 h";
+  if (hours < 24) return `${hours} h`;
+  // Floor, not round: 36 hours is one whole day plus more — "2 d" would
+  // overstate the wait by up to 12 hours.
+  return `${Math.floor(hours / 24)} d`;
+}
+
 /** Postgres daterange text (`{2026-10-23}` or `{2026-10-23,2026-10-25}`, with
  *  any bracket style) as readable date(s). */
 export function fmtDateRange(text: string | null): string {

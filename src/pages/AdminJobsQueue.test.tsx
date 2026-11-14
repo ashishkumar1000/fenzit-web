@@ -37,6 +37,8 @@ let skillsFail: boolean;
 let customersFail: boolean;
 let membersFail: boolean;
 let jobsCalls: number;
+/** null = the pipeline endpoint is dead (no badge); otherwise the waiting count. */
+let pipelinePending: number | null;
 
 beforeEach(() => {
   queueRows = [row("j1", "JOB-1", "Priya Nair", "Sharma Traders"), row("j2", "JOB-2", null, null)];
@@ -49,6 +51,7 @@ beforeEach(() => {
   customersFail = false;
   membersFail = false;
   jobsCalls = 0;
+  pipelinePending = null;
   installFetchMock();
   setRespond(respondDefault);
 });
@@ -97,6 +100,33 @@ function respondDefault(url: string): Response {
       member("u-gone", "Old Hand", "employee", "removed"),
     ]);
   }
+  if (url.includes("/job-reports/owner")) {
+    // The Approval tab's waiting badge rides this endpoint; a dead one means
+    // no badge, never a broken page.
+    if (pipelinePending === null) return jsonResponse({}, 500);
+    return jsonResponse({
+      range: { from: "2026-10-16", to: "2026-11-14" },
+      headline: {
+        employeeCreated: 2,
+        employeeApproved: 1,
+        employeeAutoApproved: 0,
+        ownerCreated: 1,
+      },
+      pipeline: {
+        pending: pipelinePending,
+        pendingOverOneDay: 0,
+        rejected: 0,
+        rejectedWithReason: 0,
+        rejectedWithoutReason: 0,
+        approvalRate: null,
+        averageMinutesToDecision: null,
+        medianMinutesToDecision: null,
+        oldestPending: null,
+      },
+      perEmployee: [],
+      employeesWithPermissionNoJobs: [],
+    });
+  }
   if (url.includes("/approval-queue")) {
     const rows = queueDropsJ1 ? queueRows.filter((r) => r.id !== "j1") : queueRows;
     return jsonResponse({
@@ -104,6 +134,10 @@ function respondDefault(url: string): Response {
       nextCursor: queueExhausted ? null : "c-next",
       hasMore: !queueExhausted && rows.length > 0,
     });
+  }
+  // The shared table under the queue merges the first page of every timeline.
+  if (url.includes("/jobs?scope=")) {
+    return jsonResponse({ data: [], nextCursor: null, hasMore: false });
   }
   if (/\/jobs\/j1$/.test(url)) {
     jobsCalls += 1;
@@ -172,13 +206,30 @@ function editJob(status = "pending_approval"): Record<string, unknown> {
   };
 }
 
-function renderQueue(entry = "/admin/company/approvals"): void {
+function renderQueue(entry = "/admin/company/jobs?tab=approval"): void {
   writeSession({ token: "tok-1", name: "Ravi" });
   const router = createMemoryRouter(routes, { initialEntries: [entry] });
   render(<RouterProvider router={router} />);
 }
 
-describe("AdminApprovalQueuePage: the rows", () => {
+describe("AdminJobsPage owner queue: the Approval tab's badge", () => {
+  it("shows the waiting count on the Approval tab link without opening it", async () => {
+    pipelinePending = 2;
+    renderQueue();
+    await screen.findByText(/JOB-1/);
+    expect(screen.getByRole("link", { name: "Approval 2" })).toBeInTheDocument();
+  });
+
+  it("shows no badge when the count could not load — the tab still works", async () => {
+    pipelinePending = null;
+    renderQueue();
+    await screen.findByText(/JOB-1/);
+    const approvalTab = screen.getByRole("link", { name: "Approval" });
+    expect(approvalTab.textContent).not.toMatch(/\d/);
+  });
+});
+
+describe("AdminJobsPage owner queue: the rows", () => {
   it("renders the rows in the order the queue returns them — oldest first", async () => {
     queueRows = [
       row("j1", "JOB-1", "Priya Nair", "Sharma Traders"),
@@ -195,13 +246,15 @@ describe("AdminApprovalQueuePage: the rows", () => {
     expect(items[1]?.textContent).toContain("JOB-2");
     expect(screen.getByText(/Sharma Traders/)).toBeInTheDocument();
     expect(screen.getByText(/no name/)).toBeInTheDocument();
-    expect(screen.getAllByText(/waiting 26 h/).length).toBe(2);
+    // 26 hours reads as days now (critique 2026-11-14): the machine's "42 h"
+    // is noise, the person's "1 d" is a fact.
+    expect(screen.getAllByText(/waiting 1 d/).length).toBe(2);
     // More pages exist beyond these two rows.
-    expect(screen.getByText("2+")).toBeInTheDocument();
+    expect(screen.getByText("2+ waiting")).toBeInTheDocument();
   });
 
   it("sends the filters and the cursor as query parameters, not just the URL", async () => {
-    renderQueue("/admin/company/approvals?employeeId=e-gone&olderThan=24&cursor=c-x");
+    renderQueue("/admin/company/jobs?employeeId=e-gone&olderThan=24&cursor=c-x");
     await screen.findByText(/JOB-1/);
     const call = sentRequests().find(
       (r) => r.url.includes("/approval-queue") && !r.url.includes("/mine"),
@@ -211,7 +264,7 @@ describe("AdminApprovalQueuePage: the rows", () => {
     expect(query.get("olderThanHours")).toBe("24");
     expect(query.get("cursor")).toBe("c-x");
     // A malformed age filter reads as "any age" on the wire.
-    renderQueue("/admin/company/approvals?olderThan=abc");
+    renderQueue("/admin/company/jobs?olderThan=abc");
     await screen.findByText(/JOB-1/);
     const unfiltered = sentRequests().filter(
       (r) => r.url.includes("/approval-queue") && !r.url.includes("/mine"),
@@ -222,25 +275,52 @@ describe("AdminApprovalQueuePage: the rows", () => {
 
   it("stops paging at the exhausted queue — no dead link", async () => {
     queueExhausted = true;
-    renderQueue("/admin/company/approvals?cursor=c-x");
+    renderQueue("/admin/company/jobs?cursor=c-x");
     await screen.findByText(/JOB-1/);
     expect(screen.queryByRole("link", { name: "Older submissions" })).toBeNull();
   });
 
   it("shows the empty line, naming the filters, when nothing matches", async () => {
     queueRows = [];
-    renderQueue("/admin/company/approvals?olderThan=24");
+    renderQueue("/admin/company/jobs?olderThan=24");
     await screen.findByText(/Nothing is waiting for approval for these filters/);
   });
 
-  it("shows the plain empty line when no filter is set either", async () => {
+  it("always shows the queue card on its own tab, with the empty line when nothing is pending", async () => {
+    // Requirement change (2026-11-14 tabs): the queue got its own tab, so a
+    // bare empty queue is the tab's content — the empty line, not a hidden
+    // card. The jobs tab (the default) never renders the queue at all.
     queueRows = [];
+    renderQueue("/admin/company/jobs?tab=approval");
+    await screen.findByText(/Nothing is waiting for approval\./);
+  });
+
+  it("leads a row with its work and keeps the number and the slot beside it", async () => {
+    // The who-for-what-when enrichment: the description leads, the job
+    // number moves beside it, and the scheduled time joins the meta line.
+    queueRows = [
+      {
+        ...row("j1", "JOB-1", "Priya Nair", "Sharma Traders"),
+        description: "AC not cooling",
+        scheduledStart: "2026-11-15T05:00:00Z",
+      },
+    ];
     renderQueue();
-    await screen.findByText("Nothing is waiting for approval.");
+    await screen.findByText(/AC not cooling/);
+    expect(screen.getByText(/· JOB-1 · Sharma Traders/)).toBeInTheDocument();
+    expect(screen.getByText(/scheduled 15 Nov/)).toBeInTheDocument();
+  });
+
+  it("falls back to the job number when the description is an empty string", async () => {
+    queueRows = [{ ...row("j1", "JOB-1", "Priya Nair", "Sharma Traders"), description: "" }];
+    renderQueue();
+    await screen.findByText(/^JOB-1 · Sharma Traders/);
+    // No dangling separator where the description would have been.
+    expect(screen.queryByText(/^ · /)).toBeNull();
   });
 
   it("keeps a hand-set employeeId selectable and clearable when the list lacks it", async () => {
-    renderQueue("/admin/company/approvals?employeeId=e-gone");
+    renderQueue("/admin/company/jobs?employeeId=e-gone");
     await screen.findByText(/JOB-1/);
     const ghost = document.querySelector('select option[value="e-gone"]');
     expect(ghost?.textContent).toBe("(this employee)");
@@ -248,7 +328,7 @@ describe("AdminApprovalQueuePage: the rows", () => {
 
   it("says the filter failed but the address still applies", async () => {
     membersFail = true;
-    renderQueue("/admin/company/approvals?employeeId=e-gone");
+    renderQueue("/admin/company/jobs?employeeId=e-gone");
     await screen.findByText(/JOB-1/);
     expect(
       screen.getByText(
@@ -258,7 +338,7 @@ describe("AdminApprovalQueuePage: the rows", () => {
   });
 
   it("points the older page at the next cursor with the filters kept", async () => {
-    renderQueue("/admin/company/approvals?employeeId=e-gone&olderThan=24");
+    renderQueue("/admin/company/jobs?employeeId=e-gone&olderThan=24");
     await screen.findByText(/JOB-1/);
     const link = screen.getByRole("link", { name: "Older submissions" });
     const href = link.getAttribute("href") ?? "";
@@ -268,7 +348,7 @@ describe("AdminApprovalQueuePage: the rows", () => {
   });
 });
 
-describe("AdminApprovalQueuePage: decisions", () => {
+describe("AdminJobsPage owner queue: decisions", () => {
   it("approves the clicked row's job at its exact endpoint, with no reason", async () => {
     renderQueue();
     await screen.findByText(/JOB-1/);
@@ -369,17 +449,17 @@ describe("AdminApprovalQueuePage: decisions", () => {
   });
 });
 
-describe("AdminApprovalQueuePage: the edit form", () => {
+describe("AdminJobsPage owner queue: the edit form", () => {
   it("marks the row being edited and opens its form from ?edit=", async () => {
     editDetail = editJob();
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     expect(screen.getAllByText(/being edited/).length).toBe(1);
   });
 
   it("refuses a full form for a job that is no longer pending", async () => {
     editDetail = editJob("approved");
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     expect(
       await screen.findByText(/That job is no longer waiting for approval/),
     ).toBeInTheDocument();
@@ -387,7 +467,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
   });
 
   it("shows a retry line, not a form, when the job fails to load", async () => {
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     expect(await screen.findByText(/That job could not load for editing/)).toBeInTheDocument();
   });
 
@@ -395,7 +475,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
     editDetail = editJob();
     skillsFail = true;
     customersFail = true;
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     expect(
       screen.getByText(/The skill list could not load — the job keeps its current skill/),
@@ -436,7 +516,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
 
   it("carries the owner's changed fields in the save", async () => {
     editDetail = editJob();
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     fireEvent.change(screen.getByLabelText("What needs doing"), {
       target: { value: "Rewritten brief" },
@@ -463,7 +543,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
 
   it("refuses an end time before the start without sending the save", async () => {
     editDetail = editJob();
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     fireEvent.change(screen.getByLabelText("Ends (optional)"), {
       target: { value: "2026-11-15T04:00" },
@@ -479,7 +559,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
   it("reports a decided-mid-edit 409 inside the form", async () => {
     editDetail = editJob();
     patchConflicts = true;
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(
@@ -489,7 +569,7 @@ describe("AdminApprovalQueuePage: the edit form", () => {
 
   it("sends a real time conversion and reports the save", async () => {
     editDetail = editJob();
-    renderQueue("/admin/company/approvals?edit=j1");
+    renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>

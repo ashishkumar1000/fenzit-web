@@ -165,11 +165,12 @@ describe("AdminOwnerDashboard: the report numbers (CAP-8)", () => {
     expect(card("Per employee").textContent).toContain("2026-10-16 – 2026-11-14");
   });
 
-  it("gates the queue link on pending being above zero", async () => {
+  it("gates the queue link on pending being above zero — and lands on the queue", async () => {
     renderDashboard({ ok: true, data: fullReport });
-    expect(
-      await screen.findByRole("link", { name: "Open the approval queue" }),
-    ).toBeInTheDocument();
+    const link = await screen.findByRole("link", { name: "Open the approval queue" });
+    // The queue lives on the jobs page's Approval tab now — a bare jobs
+    // address would open the table, not the queue the label names.
+    expect(link).toHaveAttribute("href", "/admin/company/jobs?tab=approval");
   });
 
   it("names the oldest pending job and the over-24h count", () => {
@@ -355,7 +356,8 @@ describe("AdminOwnerDashboard: the report request on the wire (CAP-8)", () => {
       await screen.findByText("The report could not load for this period."),
     ).toBeInTheDocument();
     // The degraded card is not a dead console: the sidebar is still there.
-    expect(screen.getByRole("link", { name: "Approvals" })).toBeInTheDocument();
+    // (The old "Approvals" link became the jobs page's Approval tab.)
+    expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
   });
 
   it("waits through a slow report without dropping the previous view", async () => {

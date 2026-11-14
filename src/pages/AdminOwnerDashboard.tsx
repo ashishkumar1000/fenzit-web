@@ -146,7 +146,7 @@ function OwnerDashboardBody({
             />
           </div>
           {p.pending > 0 ? (
-            <Link to="/admin/company/approvals" className={styles.queueLink}>
+            <Link to="/admin/company/jobs?tab=approval" className={styles.queueLink}>
               Open the approval queue
             </Link>
           ) : null}

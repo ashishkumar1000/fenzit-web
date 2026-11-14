@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { AdminChecking } from "./AdminPage";
@@ -130,21 +130,20 @@ describe("sectionsFor", () => {
     ]);
   });
 
-  it("gives an owner the dashboard, the overview and the five browse lists", () => {
+  it("gives an owner the dashboard, the overview and the browse lists", () => {
     expect(sectionsFor("owner").map((s) => s.to)).toEqual([
       "/admin",
       "/admin/company",
       "/admin/company/customers",
       "/admin/company/employees",
-      "/admin/company/approvals",
       "/admin/company/jobs",
       "/admin/company/holidays",
       "/admin/company/attendance",
     ]);
   });
 
-  it("gives a member only Me", () => {
-    expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me"]);
+  it("gives a member Me and the shared Jobs page", () => {
+    expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me", "/admin/company/jobs"]);
   });
 });
 
@@ -223,7 +222,7 @@ describe("Console: who sees what", () => {
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Customers" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Approvals" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Approvals" })).toBeNull();
     expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
@@ -362,5 +361,22 @@ describe("AdminChecking", () => {
 
     expect(screen.getByText("Checking your access…")).toBeInTheDocument();
     cleanup();
+  });
+});
+
+describe("Console: the sidebar's active link on a section page", () => {
+  it("lights Jobs on the jobs page, and never Overview on a sub-page", async () => {
+    writeSession({ token: "tok-1", name: "Ravi" });
+    // Two /users/me calls: the layout's check, then the jobs loader's.
+    meAnswers.push(me(), me());
+    renderAdmin("/admin/company/jobs");
+    const sidebar = await screen.findByRole("navigation", { name: "Console sections" });
+    expect(within(sidebar).getByRole("link", { name: "Jobs" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    // Overview owns its address exactly: a sub-page must not keep it lit.
+    const overview = within(sidebar).getByRole("link", { name: "Overview" });
+    expect(overview.getAttribute("aria-current")).toBeNull();
   });
 });

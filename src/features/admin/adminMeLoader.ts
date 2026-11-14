@@ -3,20 +3,13 @@ import { clearSession } from "../../services/session";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
 import type { LeaveRow } from "./companyApi";
 import {
-  fetchMyJobs,
   fetchMyLeave,
   fetchMyMonthly,
-  fetchMyRejectedJobs,
   fetchMySummary,
-  type JobRow,
   type MeMonthSummary,
   type MeSummary,
-  type RejectedJobRow,
 } from "./meApi";
-import { fetchEmployeeReport, type EmployeeReportResponse } from "./jobReportsApi";
-import { fetchMyPendingJobs } from "./myJobsApi";
-import type { ApprovalQueueItem } from "./approvalApi";
-import { istEndOfLastMonth, istFirstOfMonth, istShifted, istToday } from "./format";
+import { istToday } from "./format";
 import { settle, type Slice } from "./slice";
 
 /** The Me section's profile line — the caller's own /users/me row, which the
@@ -39,64 +32,33 @@ export type MeData =
       summary: Slice<MeSummary>;
       month: Slice<MeMonthSummary>;
       leave: Slice<LeaveRow[]>;
-      jobs: Slice<JobRow[]>;
-      /** My created-job outcomes for the chosen period (Epic 22, CAP-8). */
-      report: Slice<EmployeeReportResponse>;
-      /** Which activity preset is current — the toggle highlights it. */
-      reportPreset: string;
-      /** My rejected jobs, all time (CAP-7) — no expiry. */
-      rejected: Slice<RejectedJobRow[]>;
-      /** More rejected pages exist; `rejectedNext` is the cursor to walk. */
-      rejectedMore: boolean;
-      rejectedNext: string | null;
-      /** My submissions waiting for the owner (CAP-4), oldest first. */
-      pending: Slice<ApprovalQueueItem[]>;
-      /** More pending submissions exist beyond this page. */
-      pendingMore: boolean;
-      /** My own job switches (CAP-1) — display truth for the New job link. */
-      canCreateJobs: boolean;
-      jobApprovalRequired: boolean;
     }
   | { state: "failed" };
 
 /**
  * Loader for /admin/me — an employee's (or viewer's) own section. Only
  * own-scope endpoints are called, so the page cannot show anyone else's data.
+ * The job panels moved to the shared jobs page (adminJobsLoader); Me keeps
+ * attendance, the month summary and leave.
  */
 export async function adminMeLoader({ request }: LoaderFunctionArgs): Promise<MeData> {
+  // Old Me-page report and rejected deep links: those panels moved to the
+  // shared jobs page (2026-11-14 tabs), so carry the address over instead of
+  // silently ignoring it.
+  const old = new URL(request.url).searchParams;
+  if (old.has("range") || old.has("rejectedCursor")) {
+    const carried = new URLSearchParams(old);
+    carried.set("tab", carried.has("rejectedCursor") ? "rejected" : "report");
+    throw redirect(`/admin/company/jobs?${carried.toString()}`);
+  }
   try {
     const { token, me } = await requireConsoleRole(request, ["member"]);
-    const url = new URL(request.url);
-    // The activity period and the rejected-history page ride the URL so both
-    // toggles are plain navigation: the loader refetches, the page never
-    // holds server data. Windows are IST days — the server computes them so.
-    const preset = url.searchParams.get("range") ?? "";
     const today = istToday();
-    const range: { from: string; to: string } = (() => {
-      switch (preset) {
-        case "today":
-          return { from: today, to: today };
-        case "7":
-          return { from: istShifted(-6), to: today };
-        case "this-month":
-          return { from: istFirstOfMonth(), to: today };
-        case "last-month":
-          return { from: istFirstOfMonth(-1), to: istEndOfLastMonth() };
-        default:
-          return { from: istShifted(-29), to: today };
-      }
-    })();
-    const rejectedCursor = url.searchParams.get("rejectedCursor") ?? undefined;
     const from = `${today.slice(0, 7)}-01`;
-    const KNOWN_PRESETS = new Set(["", "today", "7", "30", "this-month", "last-month"]);
-    const [summary, month, leave, jobs, report, rejectedPage, pendingPage] = await Promise.all([
+    const [summary, month, leave] = await Promise.all([
       settle(() => fetchMySummary(token, request.signal)),
       settle(() => fetchMyMonthly(token, from, today, request.signal)),
       settle(async () => (await fetchMyLeave(token, request.signal)).data),
-      settle(async () => (await fetchMyJobs(token, request.signal)).data),
-      settle(() => fetchEmployeeReport(token, range, request.signal)),
-      settle(() => fetchMyRejectedJobs(token, rejectedCursor, request.signal)),
-      settle(() => fetchMyPendingJobs(token, request.signal)),
     ]);
     return {
       state: "ok",
@@ -112,16 +74,6 @@ export async function adminMeLoader({ request }: LoaderFunctionArgs): Promise<Me
       summary,
       month,
       leave,
-      jobs,
-      report,
-      reportPreset: preset !== "" && KNOWN_PRESETS.has(preset) ? preset : "30",
-      rejected: rejectedPage.ok ? { ok: true, data: rejectedPage.data.data } : { ok: false },
-      rejectedMore: rejectedPage.ok ? rejectedPage.data.hasMore : false,
-      rejectedNext: rejectedPage.ok ? rejectedPage.data.nextCursor : null,
-      pending: pendingPage.ok ? { ok: true, data: pendingPage.data.data } : { ok: false },
-      pendingMore: pendingPage.ok ? pendingPage.data.hasMore : false,
-      canCreateJobs: me.canCreateJobs ?? false,
-      jobApprovalRequired: me.jobApprovalRequired ?? false,
     };
   } catch (error) {
     // A redirect thrown deeper down (wrong role, dead session) is navigation.

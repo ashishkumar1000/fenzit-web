@@ -44,7 +44,8 @@ export interface SectionLink {
   label: string;
 }
 
-/** Staff sees everything; an owner sees the company; anyone else, only themselves. */
+/** Staff sees everything; an owner sees the company; a member sees their own
+ *  profile and their own jobs — the jobs list self-scopes on the server. */
 export function consoleRole(me: CurrentUser): ConsoleRole {
   if (me.platformAdmin) return "staff";
   if (me.role === "company_admin") return "owner";
@@ -67,13 +68,15 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/company", label: "Overview" },
       { to: "/admin/company/customers", label: "Customers" },
       { to: "/admin/company/employees", label: "Employees" },
-      { to: "/admin/company/approvals", label: "Approvals" },
       { to: "/admin/company/jobs", label: "Jobs" },
       { to: "/admin/company/holidays", label: "Holidays" },
       { to: "/admin/company/attendance", label: "Attendance" },
     ];
   }
-  return [{ to: "/admin/me", label: "Me" }];
+  return [
+    { to: "/admin/me", label: "Me" },
+    { to: "/admin/company/jobs", label: "Jobs" },
+  ];
 }
 
 /** The sign-in is no longer valid, so the session must go before redirecting. */

@@ -1,6 +1,7 @@
-import type { RouteObject } from "react-router";
+import { redirect, type LoaderFunctionArgs, type RouteObject } from "react-router";
 import { countryCodesLoader } from "../services/countryCodes";
 import { adminAccountAction } from "../features/admin/adminAccountAction";
+import { adminJobsAction } from "../features/admin/adminBrowseLoaders";
 import { callBackAction, demoAction } from "../features/landing/contactRequestAction";
 import { deleteAccountAction } from "../features/account-deletion/deletionAction";
 import { UseCasePage } from "../features/use-case/components/UseCasePage";
@@ -241,21 +242,8 @@ export const routes: RouteObject[] = [
             },
           },
           {
-            path: "company/approvals",
-            lazy: async () => {
-              const [page, loaderModule] = await Promise.all([
-                import("../pages/AdminApprovalQueuePage"),
-                import("../features/admin/approvalLoaders"),
-              ]);
-              return {
-                Component: page.AdminApprovalQueuePage,
-                loader: loaderModule.approvalQueueLoader,
-                action: loaderModule.approvalQueueAction,
-              };
-            },
-          },
-          {
             path: "company/jobs",
+            action: adminJobsAction,
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([
                 import("../pages/AdminJobsPage"),
@@ -265,6 +253,51 @@ export const routes: RouteObject[] = [
                 Component: page.AdminJobsPage,
                 loader: loaderModule.adminJobsLoader,
               };
+            },
+          },
+          {
+            // The owner's create form: same component as the employee's
+            // /admin/me/new-job, with a technician picker and any-employee
+            // assignment (the backend enforces who may assign whom).
+            path: "company/jobs/new",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminMeNewJobPage"),
+                import("../features/admin/meCreateJobLoaders"),
+              ]);
+              return {
+                Component: page.AdminMeNewJobPage,
+                loader: loaderModule.meCreateJobLoader,
+                action: loaderModule.meCreateJobAction,
+              };
+            },
+          },
+          {
+            // One job's detail — common: the owner opens any job in the
+            // company, an employee only a job assigned to them (the backend
+            // 404s the rest). Static paths like company/jobs/new rank above
+            // this dynamic segment on their own.
+            path: "company/jobs/:jobId",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminJobDetailPage"),
+                import("../features/admin/adminJobDetailLoader"),
+              ]);
+              return {
+                Component: page.AdminJobDetailPage,
+                loader: loaderModule.adminJobDetailLoader,
+              };
+            },
+          },
+          {
+            // The approval queue's old address (pre-2026-11-14 tabs): old
+            // bookmarks and shared links ride over to its new tab instead of
+            // dying on the 404 page, keeping their filters and cursors.
+            path: "company/approvals",
+            loader: ({ request }: LoaderFunctionArgs) => {
+              const query = new URL(request.url).searchParams;
+              query.set("tab", "approval");
+              throw redirect(`/admin/company/jobs?${query.toString()}`);
             },
           },
           {

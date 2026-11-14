@@ -1,7 +1,32 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
 .failed {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-danger);
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.retry:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
 }
 
 .note {

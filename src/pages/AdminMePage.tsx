@@ -1,6 +1,5 @@
-import { Link, useLoaderData, useRevalidator } from "react-router";
+import { useLoaderData, useRevalidator } from "react-router";
 import type { adminMeLoader } from "../features/admin/adminMeLoader";
-import { MeJobActivity } from "../features/admin/MeJobActivity";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { Badge } from "../features/admin/components/Badge";
 import { humanize } from "../features/admin/status";
@@ -16,7 +15,9 @@ function weeklyOffLabel(days: number[]): string {
   return days.map((d) => WEEKDAYS[d - 1] ?? String(d)).join(", ");
 }
 
-/** The Me section: my profile, my attendance facts, my leave, my jobs. */
+/** The Me section: my profile, my attendance facts, my month, my leave. The
+ *  job panels (New job, waiting for approval, activity, rejections, my jobs)
+ *  live on the Jobs tab — the shared jobs page self-scopes on the server. */
 export function AdminMePage() {
   const data = useLoaderData<typeof adminMeLoader>();
   const revalidator = useRevalidator();
@@ -156,94 +157,21 @@ export function AdminMePage() {
         </SectionCard>
       ) : null}
 
-      {/* Epic 22 (CAP-2/CAP-4): my submissions waiting for the owner, and the
-          New job action — hidden when the owner has switched creation off. */}
-      {data.pending.ok && data.pending.data.length > 0 ? (
-        <SectionCard
-          title="Waiting for approval"
-          meta={
-            data.pendingMore ? `${data.pending.data.length}+` : String(data.pending.data.length)
-          }
-        >
-          <ul className={styles.pendingList}>
-            {data.pending.data.map((p) => (
-              <li key={p.id}>
-                <span className={styles.pendingJob}>{p.jobNumber}</span>
-                <span className={styles.pendingMeta}>
-                  {p.customerName !== null ? `· ${p.customerName}` : "· (no customer)"} · waiting{" "}
-                  {p.ageHours} h
-                </span>
-              </li>
-            ))}
-          </ul>
-          {data.pendingMore ? (
-            <p className={styles.pendingMeta}>Older submissions follow on the next pages.</p>
-          ) : null}
+      {data.leave.ok ? (
+        <SectionCard title="My leave" meta={String(data.leave.data.length)}>
+          <DataTable
+            columns={["From", "To", "Part", "Days", "State"]}
+            empty="No leave requests."
+            rows={data.leave.data.map((l): TableCell[] => [
+              { text: fmtDay(l.startDate) },
+              { text: fmtDay(l.endDate) },
+              { text: humanize(l.part) },
+              { text: `${l.workingDays} of ${l.totalDays}` },
+              { text: l.status, status: true },
+            ])}
+          />
         </SectionCard>
       ) : null}
-      {!data.pending.ok ? (
-        <SectionCard title="Waiting for approval">
-          <p className={styles.failed} role="alert">
-            Your waiting-for-approval list could not load. Retry from the sidebar.
-          </p>
-        </SectionCard>
-      ) : null}
-      {data.canCreateJobs ? (
-        <SectionCard title="New job">
-          <p className={styles.newJobLine}>
-            {data.jobApprovalRequired
-              ? "Create a job for a customer — it waits for your owner's approval first."
-              : "Create a job for a customer — it is assigned to you at once."}
-          </p>
-          <Link to="/admin/me/new-job" className={styles.newJobLink}>
-            Create a job
-          </Link>
-        </SectionCard>
-      ) : null}
-
-      {/* Epic 22 (CAP-8): my created-job outcomes for the chosen period, then
-          my rejected jobs — all time, no expiry (CAP-7). */}
-      <MeJobActivity
-        report={data.report}
-        reportPreset={data.reportPreset}
-        rejected={data.rejected}
-        rejectedMore={data.rejectedMore}
-        rejectedNext={data.rejectedNext}
-      />
-
-      <div className={styles.pair}>
-        {data.leave.ok ? (
-          <SectionCard title="My leave" meta={String(data.leave.data.length)}>
-            <DataTable
-              columns={["From", "To", "Part", "Days", "State"]}
-              empty="No leave requests."
-              rows={data.leave.data.map((l): TableCell[] => [
-                { text: fmtDay(l.startDate) },
-                { text: fmtDay(l.endDate) },
-                { text: humanize(l.part) },
-                { text: `${l.workingDays} of ${l.totalDays}` },
-                { text: l.status, status: true },
-              ])}
-            />
-          </SectionCard>
-        ) : null}
-
-        {data.jobs.ok ? (
-          <SectionCard title="My jobs" meta={String(data.jobs.data.length)}>
-            <DataTable
-              columns={["Job", "Status", "Step", "Skill", "Scheduled"]}
-              empty="No jobs assigned."
-              rows={data.jobs.data.map((j): TableCell[] => [
-                { text: j.jobNumber },
-                { text: j.status, status: true },
-                { text: j.currentStep ?? "—" },
-                { text: j.skill?.name ?? "—" },
-                { text: fmtWhen(j.scheduledStart), quiet: true },
-              ])}
-            />
-          </SectionCard>
-        ) : null}
-      </div>
     </div>
   );
 }
