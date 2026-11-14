@@ -21,6 +21,10 @@ export interface ApprovalQueueItem {
   /** The employee who created the job, when still resolvable. */
   employee: { id: string; name: string | null } | null;
   customerName: string | null;
+  /** The work itself, as the employee described it. */
+  description: string | null;
+  /** When the work was scheduled — the row answers "who, for whom, when". */
+  scheduledStart: string | null;
 }
 
 export interface ApprovalQueuePage {

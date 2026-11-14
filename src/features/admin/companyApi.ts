@@ -133,6 +133,17 @@ export function fetchCustomers(
   });
 }
 
+/** One step of a job's stamped workflow, as the list and detail responses
+ *  carry it. The console renders only the label and where it sits. */
+export interface WorkflowStep {
+  key: string;
+  label: string;
+  requiresPhoto: boolean;
+  requiresSignature: boolean;
+  /** The status this step sets when completed ("in_progress"|"completed"|null). */
+  setsStatus: string | null;
+}
+
 export interface JobRow {
   id: string;
   jobNumber: string;
@@ -141,13 +152,42 @@ export interface JobRow {
   scheduledStart: string | null;
   currentStep: string | null;
   skill: { id: string; name: string } | null;
+  /** The assignee — the owner reads who a job belongs to from the list. */
+  technician: { id: string; name: string | null } | null;
+  /** The customer the work is for (name embed; the queue already had it). */
+  customer: { id: string; name: string | null } | null;
+  /** The work itself, as the creator described it. */
+  description: string | null;
+  serviceLocation: string;
+  completedAt: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+  rejectionReason: string | null;
+  /** 0-based position of current_step in the template's chain; null on a
+   *  fresh job that has not started. */
+  currentStepIndex: number | null;
+  workflowTemplate: { version: number; steps: WorkflowStep[] } | null;
 }
 
-/** The jobs list endpoint slices by timeline (today/upcoming/overdue/history)
- *  and paginates within one — no single "all jobs" scope exists. The
- *  drill-down therefore merges the first page of every scope and sorts by
- *  schedule, newest first. */
-export async function fetchJobs(token: string, signal?: AbortSignal): Promise<JobRow[]> {
+/**
+ * The jobs list endpoint slices by timeline (today/upcoming/overdue/history)
+ * and paginates within one — no single "all jobs" scope exists. The
+ * drill-down therefore merges the first page of every scope and sorts by
+ * schedule, newest first. A `status` filter (the table's chips) skips the
+ * merge: `scope=all&status=…` is one call, newest-created first.
+ */
+export async function fetchJobs(
+  token: string,
+  signal?: AbortSignal,
+  status?: string,
+): Promise<JobRow[]> {
+  if (status !== undefined && status !== "") {
+    const page = await apiFetch<Page<JobRow>>(
+      `/api/v1/jobs?scope=all&status=${encodeURIComponent(status)}&limit=50`,
+      { headers: { Authorization: `Bearer ${token}` }, signal },
+    );
+    return page.data;
+  }
   const scopes = ["today", "upcoming", "overdue", "history"] as const;
   const pages = await Promise.all(
     scopes.map((scope) =>

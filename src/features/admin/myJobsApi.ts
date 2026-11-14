@@ -26,9 +26,9 @@ export function fetchMyPendingJobs(token: string, signal?: AbortSignal): Promise
   });
 }
 
-/** The fields of a job an employee sets on the web create form. The
- *  technician is always the caller themself — the backend refuses anyone
- *  else (employees cannot assign jobs to colleagues). */
+/** The fields of a job set on the web create form. A member always assigns
+ *  themself (the backend refuses anyone else); an owner names any active
+ *  employee — the backend enforces who may assign whom. */
 export interface MyNewJob {
   technicianId: string;
   skillId: string;

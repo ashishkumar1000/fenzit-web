@@ -160,7 +160,7 @@ export function PendingJobEditForm({
         <Button variant="primary" size="regular" type="submit" disabled={busy}>
           {busy ? "Saving…" : "Save changes"}
         </Button>
-        <Link to="/admin/company/approvals" className={styles.backLink}>
+        <Link to="/admin/company/jobs?tab=approval" className={styles.backLink}>
           Back to the queue
         </Link>
       </div>

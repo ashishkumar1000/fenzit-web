@@ -1,0 +1,164 @@
+/* Our own dropdown: the control looks like the design system's inputs, and
+   the popup is real DOM anchored under it — nothing native to detach. */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 10rem;
+  max-width: 15rem;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  text-align: left;
+}
+
+.control:hover {
+  border-color: var(--color-border-strong);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+.control[aria-expanded="true"] {
+  border-color: var(--color-border-focus);
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 10;
+  min-width: max(100%, 15rem);
+  max-height: 17rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-1);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--space-1);
+}
+
+.searchIcon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) 0;
+}
+
+.searchInput:focus-visible {
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 13rem;
+  overflow-y: auto;
+}
+
+.option,
+.optionSelected,
+.optionActive {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.optionLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionSelected .optionLabel {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option:hover {
+  background: var(--color-surface-sunken);
+}
+
+.optionActive {
+  background: var(--color-primary-soft);
+}
+
+.optionSelected {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}

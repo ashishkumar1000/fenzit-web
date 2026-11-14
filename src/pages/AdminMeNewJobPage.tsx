@@ -5,8 +5,10 @@ import {
   useLoaderData,
   useNavigation,
   useRevalidator,
+  useRouteLoaderData,
 } from "react-router";
 import { useState } from "react";
+import type { adminLoader } from "../features/admin/adminLoader";
 import type { CreateJobResult } from "../features/admin/meCreateJobLoaders";
 import type { NewJobFormData } from "../features/admin/meCreateJobLoaders";
 import { SectionCard } from "../features/admin/components/SectionCard";
@@ -14,12 +16,14 @@ import { Button } from "../components/ui/Button";
 import styles from "./AdminMeNewJobPage.module.css";
 
 /**
- * The employee's "New job" page on the web console (Epic 22, CAP-2): a job
- * for an existing customer, or a new customer and the job in one flow. The
- * backend routes it — with approval on it waits ("waiting for approval"),
- * with approval off it is assigned to the employee at once.
+ * The "New job" page on the web console (Epic 22, CAP-2) — one form for both
+ * roles: an employee creates a job for an existing customer, or a new
+ * customer and the job in one flow, and the backend routes it — with
+ * approval on it waits ("waiting for approval"), with approval off it is
+ * assigned to the employee at once. An owner creates for any customer and
+ * assigns any active employee from the picker.
  *
- * A caller without the create switch sees the refusal, not a form.
+ * A member without the create switch sees the refusal, not a form.
  */
 
 /** Local `datetime-local` value for "now, rounded up to the hour". */
@@ -38,6 +42,17 @@ export function AdminMeNewJobPage() {
   const revalidator = useRevalidator();
   const creating = navigation.state === "submitting";
   const [customerKind, setCustomerKind] = useState<"existing" | "new">("existing");
+  // The failed form data carries no role (the loader's own /users/me call is
+  // what failed), so the failed branch reads the layout's role instead.
+  const layout = useRouteLoaderData<typeof adminLoader>("admin");
+  const owner =
+    data.state === "ok"
+      ? data.role === "owner"
+      : layout !== undefined && layout.status === "ok" && layout.role === "owner";
+  // The back and self links follow the role: a member's console home is Me,
+  // an owner's is the shared jobs page.
+  const backTo = owner ? "/admin/company/jobs" : "/admin/me";
+  const selfRoute = owner ? "/admin/company/jobs/new" : "/admin/me/new-job";
 
   if (data.state === "failed") {
     return (
@@ -53,8 +68,8 @@ export function AdminMeNewJobPage() {
             {revalidator.state !== "idle" ? "Retrying…" : "Retry"}
           </button>
         </p>
-        <Link to="/admin/me" className={styles.back}>
-          Back to my dashboard
+        <Link to={backTo} className={styles.back}>
+          Back
         </Link>
       </SectionCard>
     );
@@ -66,16 +81,20 @@ export function AdminMeNewJobPage() {
         <p className={styles.refusal} role="alert">
           You are not allowed to create jobs. Ask your owner to turn this on for you.
         </p>
-        <Link to="/admin/me" className={styles.back}>
-          Back to my dashboard
+        <Link to={backTo} className={styles.back}>
+          Back
         </Link>
       </SectionCard>
     );
   }
 
   // A required picker that failed would make every submit bounce off the
-  // backend — hold the button until the lists are available.
-  const pickersReady = data.skills.ok && (customerKind === "new" || data.customers.ok);
+  // backend — hold the button until the lists are available. An owner with
+  // nobody to assign to is held too: the line above the held button says why.
+  const pickersReady =
+    data.skills.ok &&
+    (customerKind === "new" || data.customers.ok) &&
+    (!owner || (data.technicians.ok && data.technicians.data.length > 0));
   const blocked = !pickersReady || creating;
 
   return (
@@ -83,14 +102,18 @@ export function AdminMeNewJobPage() {
       {action?.state === "done" ? (
         <div className={styles.outcome} role="status">
           <p className={styles.outcomeTitle}>
-            {action.pendingApproval
-              ? `${action.job.jobNumber} created — waiting for your owner's approval.`
-              : `${action.job.jobNumber} created and assigned to you.`}
+            {owner
+              ? action.pendingApproval
+                ? `${action.job.jobNumber} created — waiting for approval.`
+                : `${action.job.jobNumber} created and assigned.`
+              : action.pendingApproval
+                ? `${action.job.jobNumber} created — waiting for your owner's approval.`
+                : `${action.job.jobNumber} created and assigned to you.`}
           </p>
-          <Link to="/admin/me" className={styles.back}>
-            Back to my dashboard
+          <Link to={backTo} className={styles.back}>
+            Back
           </Link>
-          <Link to="/admin/me/new-job" className={styles.back}>
+          <Link to={selfRoute} className={styles.back}>
             Create another job
           </Link>
         </div>
@@ -98,8 +121,9 @@ export function AdminMeNewJobPage() {
         <Form method="post" className={styles.form}>
           <input type="hidden" name="idempotencyKey" value={data.idempotencyKey} />
           <p className={styles.hint}>
-            Your owner sees every job you create
-            {" — "}the approval rule they set for you decides whether it waits for them first.
+            {owner
+              ? "The employee you assign sees the job in their app at once."
+              : "Your owner sees every job you create — the approval rule they set for you decides whether it waits for them first."}
           </p>
           {action?.state === "error" ? (
             <p className={styles.error} role="alert">
@@ -171,6 +195,34 @@ export function AdminMeNewJobPage() {
             </div>
           )}
 
+          {owner ? (
+            <label className={styles.field}>
+              <span className={styles.label}>Assign to</span>
+              {data.technicians.ok ? (
+                data.technicians.data.length === 0 ? (
+                  // An owner with nobody to assign to must know why the
+                  // submit is stuck, not face a select with one placeholder.
+                  <p className={styles.quiet}>
+                    No active employees to assign yet. Add employees first.
+                  </p>
+                ) : (
+                  <select name="technicianId" required defaultValue="">
+                    <option value="">Pick an employee</option>
+                    {data.technicians.data.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                )
+              ) : (
+                <p className={styles.quiet}>
+                  The employee list could not load. Refresh the page to retry.
+                </p>
+              )}
+            </label>
+          ) : null}
+
           <label className={styles.field}>
             <span className={styles.label}>What needs doing (skill)</span>
             {data.skills.ok ? (
@@ -219,7 +271,9 @@ export function AdminMeNewJobPage() {
           </label>
 
           <label className={styles.field}>
-            <span className={styles.label}>Notes for your owner (optional)</span>
+            <span className={styles.label}>
+              {owner ? "Notes for the employee (optional)" : "Notes for your owner (optional)"}
+            </span>
             <textarea name="notesForTechnician" rows={2} />
           </label>
 

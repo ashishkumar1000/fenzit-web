@@ -29,10 +29,14 @@ afterAll(() => {
 const KEY_STORE = "fenzit.newjob.idempotencyKey";
 let jobPosts: number;
 let failFirstPost: boolean;
+let meRole: "member" | "owner";
+let memberRows: Array<Record<string, unknown>>;
 
 beforeEach(() => {
   jobPosts = 0;
   failFirstPost = false;
+  meRole = "member";
+  memberRows = ownerRoster();
   installFetchMock();
   setRespond(respondDefault);
 });
@@ -46,19 +50,36 @@ afterEach(() => {
 
 function respondDefault(url: string): Response {
   if (url.endsWith("/users/me")) {
-    return jsonResponse({
-      id: "u-emp",
-      role: "employee",
-      name: "Priya Nair",
-      platformAdmin: false,
-      email: null,
-      countryCode: "+91",
-      phoneNumber: "9876543210",
-      employeeCode: "E-12",
-      status: "active",
-      canCreateJobs: state.canCreateJobs,
-      jobApprovalRequired: true,
-    });
+    return jsonResponse(
+      meRole === "owner"
+        ? {
+            id: "u-owner",
+            role: "company_admin",
+            name: "Ravi Kumar",
+            platformAdmin: false,
+            email: null,
+            countryCode: "+91",
+            phoneNumber: "9900000001",
+            employeeCode: null,
+            status: "active",
+          }
+        : {
+            id: "u-emp",
+            role: "employee",
+            name: "Priya Nair",
+            platformAdmin: false,
+            email: null,
+            countryCode: "+91",
+            phoneNumber: "9876543210",
+            employeeCode: "E-12",
+            status: "active",
+            canCreateJobs: state.canCreateJobs,
+            jobApprovalRequired: true,
+          },
+    );
+  }
+  if (url.endsWith("/members")) {
+    return jsonResponse(memberRows);
   }
   if (url.endsWith("/skills")) {
     return jsonResponse({
@@ -83,6 +104,24 @@ let state: { canCreateJobs: boolean; createdStatus: string };
 
 function defaultState(): void {
   state = { canCreateJobs: true, createdStatus: "pending_approval" };
+}
+
+function ownerRoster(): Array<Record<string, unknown>> {
+  const person = (userId: string, name: string, role: string, status: string) => ({
+    userId,
+    name,
+    countryCode: "+91",
+    phoneNumber: "9800000000",
+    employeeCode: "E-1",
+    role,
+    status,
+    createdAt: "2026-01-01T00:00:00Z",
+  });
+  return [
+    person("u-owner", "Ravi Kumar", "company_admin", "active"),
+    person("u-emp", "Priya Nair", "employee", "active"),
+    person("u-gone", "Old Hand", "employee", "removed"),
+  ];
 }
 
 function renderNewJob(entry = "/admin/me/new-job"): void {
@@ -353,5 +392,96 @@ describe("AdminMeNewJobPage: the create goes out with the caller as its technici
     await waitFor(() => {
       expect(window.sessionStorage.getItem(KEY_STORE)).not.toBe(keyBefore);
     });
+  });
+});
+
+describe("AdminMeNewJobPage: the owner's create form", () => {
+  function ownerEntry(): void {
+    meRole = "owner";
+    renderNewJob("/admin/company/jobs/new");
+  }
+
+  async function submitAsOwner(employeeId: string): Promise<void> {
+    await screen.findByLabelText("What needs doing");
+    fillRequiredFields();
+    selectCustomer("c1");
+    fireEvent.change(screen.getByLabelText("Assign to"), { target: { value: employeeId } });
+    await submit();
+  }
+
+  it("offers the active employees only — not the owner themself, not the removed", async () => {
+    ownerEntry();
+    await screen.findByText(/The employee you assign sees the job in their app/);
+    const select = screen.getByLabelText("Assign to") as HTMLSelectElement;
+    const names = Array.from(select.options).map((o) => o.textContent);
+    expect(names).toEqual(["Pick an employee", "Priya Nair"]);
+  });
+
+  it("assigns the employee the owner picked — never themself", async () => {
+    defaultState();
+    state.createdStatus = "assigned";
+    ownerEntry();
+    await submitAsOwner("u-emp");
+    expect(await screen.findByText(/created and assigned\./)).toBeInTheDocument();
+    const post = sentRequests().find((r) => r.method === "POST" && r.url.endsWith("/jobs"));
+    expect(post?.body).toMatchObject({ technicianId: "u-emp" });
+    // The owner's own back address is the shared jobs page, not Me.
+    expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
+      "href",
+      "/admin/company/jobs",
+    );
+  });
+
+  it("reports a held job when the backend does hold an owner-created one", async () => {
+    defaultState();
+    state.createdStatus = "pending_approval";
+    ownerEntry();
+    await submitAsOwner("u-emp");
+    expect(await screen.findByText(/created — waiting for approval\./)).toBeInTheDocument();
+  });
+
+  it("holds Create while the employee list failed, and sends nothing", async () => {
+    meRole = "owner";
+    memberRows = []; // replaced by the failing responder below
+    const membersFail = true;
+    setRespond((url) =>
+      url.endsWith("/members")
+        ? membersFail
+          ? jsonResponse({}, 500)
+          : jsonResponse(memberRows)
+        : respondDefault(url),
+    );
+    renderNewJob("/admin/company/jobs/new");
+    await screen.findByText(/The employee list could not load/);
+    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    fireEvent.click(create);
+    expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
+  });
+
+  it("says why Create is stuck when nobody can be assigned", async () => {
+    memberRows = ownerRoster().filter((m) => m.role !== "employee" || m.status !== "active");
+    ownerEntry();
+    expect(await screen.findByText(/No active employees to assign yet/)).toBeInTheDocument();
+    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    expect(create.disabled).toBe(true);
+    fireEvent.click(create);
+    expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
+  });
+
+  it("keeps the owner's back address even when the form fails to load", async () => {
+    meRole = "owner";
+    let meCalls = 0;
+    setRespond((url) => {
+      if (url.endsWith("/users/me")) {
+        meCalls += 1;
+        return meCalls === 1 ? respondDefault(url) : jsonResponse({}, 500);
+      }
+      return respondDefault(url);
+    });
+    renderNewJob("/admin/company/jobs/new");
+    expect(await screen.findByText(/The new-job form could not load/)).toBeInTheDocument();
+    const back = screen.getByRole("link", { name: "Back" });
+    expect(back).toHaveAttribute("href", "/admin/company/jobs");
   });
 });

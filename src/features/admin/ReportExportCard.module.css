@@ -1,0 +1,86 @@
+/* One report card: the pickers, the generate button and its status lines.
+   The history below lives in ReportHistoryList. */
+
+.line {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.alert {
+  margin: var(--space-2) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.link {
+  color: var(--color-text-link);
+}
+
+.button {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  /* The control size, so the button's height matches the date fields it
+     shares the row with. */
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.button:hover:enabled {
+  border-color: var(--color-border-strong);
+}
+
+.button:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+
+.hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* The pickers and the generate button sit in one row — each label directly
+   above its own control, the button bottom-aligned with them (its text is
+   the control size, so its height matches the date fields). The row wraps
+   cleanly on a phone. */
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-5);
+  margin: 0 0 var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.control {
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  /* 16px text so mobile browsers don't zoom the field on focus. */
+  font-size: var(--font-size-base);
+  min-width: 9.5rem;
+  max-width: 15rem;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}

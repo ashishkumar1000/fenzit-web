@@ -1,19 +1,23 @@
 import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { clearSession } from "../../services/session";
 import { messageForError } from "../../utils/errorMessages";
-import { isAuthError, requireConsoleRole } from "./adminLoader";
+import { consoleRole, isAuthError, requireConsoleRole } from "./adminLoader";
 import { createMyJob, type CreatedJob, type MyNewJob } from "./myJobsApi";
 import { fetchCustomerOptions, fetchSkillOptions, type PickOption } from "./approvalApi";
+import { fetchMembers } from "./companyApi";
 import type { Slice } from "./slice";
 import { settle } from "./slice";
 
 /**
- * Loader and action for the employee's "New job" page (Epic 22, CAP-2):
- * create a job for an existing customer, or a new customer and the job in
- * one flow. The backend decides pending-vs-assigned from the caller's own
- * switches; the page only shows the outcome.
+ * Loader and action for the "New job" page (Epic 22, CAP-2) — one form for
+ * both roles on the web console: an employee creates a job for an existing
+ * customer (or a new customer and the job in one flow), assigned to
+ * themself; an owner creates a job for any customer and assigns any active
+ * employee. The backend decides pending-vs-assigned for an employee from
+ * their own switches, and refuses an owner who names no real technician —
+ * the page only shows the outcome.
  *
- * A caller without the create switch gets a plain refusal before any form
+ * A member without the create switch gets a plain refusal before any form
  * renders — and the endpoint refuses again server-side, so the page can
  * never be the guard.
  */
@@ -21,10 +25,15 @@ import { settle } from "./slice";
 export type NewJobFormData =
   | {
       state: "ok";
+      /** Who is filling the form — it decides the copy, the back links and
+       *  whether a technician picker renders. */
+      role: "owner" | "member";
       canCreateJobs: boolean;
       userId: string;
       skills: Slice<PickOption[]>;
       customers: Slice<PickOption[]>;
+      /** Owner only: the active employees a job can be assigned to. */
+      technicians: Slice<PickOption[]>;
       /** The create's idempotency key, minted once and reused until a create
        *  succeeds — a retry after a lost response cannot mint a second job. */
       idempotencyKey: string;
@@ -58,28 +67,41 @@ export function clearIdempotencyKey(): void {
 
 export async function meCreateJobLoader({ request }: LoaderFunctionArgs): Promise<NewJobFormData> {
   try {
-    const { token, me } = await requireConsoleRole(request, ["member"]);
-    if (me.canCreateJobs !== true) {
+    const { token, me } = await requireConsoleRole(request, ["owner", "member"]);
+    const role = consoleRole(me) === "owner" ? "owner" : "member";
+    // Only a member carries the create switch; an owner always may create.
+    if (role === "member" && me.canCreateJobs !== true) {
       // No form for a caller who cannot use it — the endpoint would refuse.
       return {
         state: "ok",
+        role,
         canCreateJobs: false,
         userId: me.id,
         skills: { ok: false },
         customers: { ok: false },
+        technicians: { ok: false },
         idempotencyKey: "",
       };
     }
-    const [skills, customers] = await Promise.all([
+    const [skills, customers, technicians] = await Promise.all([
       settle(() => fetchSkillOptions(token, request.signal)),
       settle(() => fetchCustomerOptions(token, request.signal)),
+      role === "owner"
+        ? settle(async () =>
+            (await fetchMembers(token, request.signal))
+              .filter((m) => m.role === "employee" && m.status === "active")
+              .map((m): PickOption => ({ id: m.userId, name: m.name ?? "(no name)" })),
+          )
+        : Promise.resolve({ ok: true, data: [] as PickOption[] }),
     ]);
     return {
       state: "ok",
+      role,
       canCreateJobs: true,
       userId: me.id,
       skills,
       customers,
+      technicians,
       idempotencyKey: readIdempotencyKey(),
     };
   } catch (error) {
@@ -90,7 +112,9 @@ export async function meCreateJobLoader({ request }: LoaderFunctionArgs): Promis
     }
     if (request.signal.aborted) throw error;
     // Same failed-state pattern as every sibling loader: the page shows its
-    // own retry instead of the router's bare error screen.
+    // own retry instead of the router's bare error screen. The role is
+    // unknowable here (this loader's own /users/me call is what failed) —
+    // the page reads the layout's role for its back link instead.
     return { state: "failed" };
   }
 }
@@ -106,10 +130,11 @@ function text(form: FormData, key: string): string {
 
 export async function meCreateJobAction({ request }: ActionFunctionArgs): Promise<CreateJobResult> {
   try {
-    const { token, me } = await requireConsoleRole(request, ["member"]);
+    const { token, me } = await requireConsoleRole(request, ["owner", "member"]);
+    const role = consoleRole(me) === "owner" ? "owner" : "member";
     const form = await request.formData();
     const scheduledStartRaw = text(form, "scheduledStart");
-    if (me.id === "" || scheduledStartRaw === "") {
+    if (scheduledStartRaw === "") {
       return { state: "error", message: "That could not be sent. Fill the form and try again." };
     }
     const scheduledStart = new Date(scheduledStartRaw);
@@ -120,8 +145,23 @@ export async function meCreateJobAction({ request }: ActionFunctionArgs): Promis
       };
     }
 
+    // An employee creates for themself only (the backend refuses anyone
+    // else); an owner names the employee the job goes to.
+    let technicianId: string;
+    if (role === "owner") {
+      technicianId = text(form, "technicianId");
+      if (technicianId === "") {
+        return { state: "error", message: "Pick who the job is for." };
+      }
+    } else {
+      if (me.id === "") {
+        return { state: "error", message: "That could not be sent. Fill the form and try again." };
+      }
+      technicianId = me.id;
+    }
+
     const job: MyNewJob = {
-      technicianId: me.id,
+      technicianId,
       skillId: text(form, "skillId"),
       serviceLocation: text(form, "serviceLocation"),
       scheduledStart: scheduledStart.toISOString(),

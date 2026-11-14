@@ -1,0 +1,60 @@
+/* The owner's approval pipeline strip — three stats and the oldest job's link. */
+
+.line {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding: var(--space-2) 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+}
+
+.big {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.overdue {
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.oldest {
+  color: var(--color-text-link);
+  font-weight: 500;
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.retry {
+  margin-left: var(--space-2);
+  border: none;
+  background: none;
+  color: var(--color-text-link);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}

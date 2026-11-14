@@ -24,7 +24,9 @@
 
 .meta {
   font-size: var(--font-size-2xs);
-  color: var(--color-text-disabled);
+  /* Muted, not disabled — a count is meaningful text, and #9CA3AF on white
+     reads at 2.5:1 (detector, critique 2026-11-14). */
+  color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -42,7 +44,11 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .card {
-    animation: card-rise var(--motion-duration-slow) var(--motion-ease-out) both;
+    /* `backwards`, not `both`: the final keyframe equals the natural style,
+       so once the rise finishes the animation releases the element — a
+       lingering fill keeps a transform alive and Chromium then renders a
+       <select>'s popup detached from the field (found live 2026-11-14). */
+    animation: card-rise var(--motion-duration-slow) var(--motion-ease-out) backwards;
     animation-delay: calc(var(--i, 0) * 60ms);
   }
 }

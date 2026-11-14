@@ -1,0 +1,208 @@
+/* One job's detail — facts, workflow steps, the activity timeline and the
+   photo/signature gallery. */
+
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.crumb {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.crumb a {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.crumb a:hover {
+  text-decoration: underline;
+}
+
+.failed {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.back {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-sm);
+}
+
+.back a {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.back a:hover {
+  text-decoration: underline;
+}
+
+.urgent {
+  margin-left: var(--space-2);
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3) var(--space-6);
+  margin: 0;
+}
+
+.fact {
+  min-width: 0;
+}
+
+.factLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 2px;
+}
+
+.factValue {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+/* Full-width entries read better across the whole card. */
+.fact:nth-child(n + 5) {
+  grid-column: 1 / -1;
+}
+
+.line {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.steps {
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.step {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.stepMark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border-default);
+}
+
+.step[data-state="done"] .stepMark {
+  background: var(--color-success);
+}
+
+.step[data-state="current"] .stepMark {
+  background: var(--color-info);
+}
+
+.step[data-state="current"] .stepLabel {
+  font-weight: var(--font-weight-semibold);
+}
+
+.stepLabel {
+  color: var(--color-text-strong);
+}
+
+.stepReq {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.timeline {
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.event {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.eventLabel {
+  color: var(--color-text-strong);
+}
+
+.eventMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.gallery {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+}
+
+.shot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.shot img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-sunken);
+}
+
+.noImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-default);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.shotMeta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+}

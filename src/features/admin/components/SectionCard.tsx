@@ -3,8 +3,9 @@ import styles from "./SectionCard.module.css";
 
 type SectionCardProps = {
   title: string;
-  /** Small right-aligned line, e.g. "2 of 11" or a raw identifier. */
-  meta?: string | null;
+  /** Small right-aligned line, e.g. "2 of 11" — usually text, but a header
+   *  may carry a status badge with it. */
+  meta?: ReactNode;
   children: ReactNode;
   /** Footer line, e.g. "and 12 more". */
   footer?: ReactNode;

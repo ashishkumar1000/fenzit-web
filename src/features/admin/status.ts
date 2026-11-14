@@ -14,6 +14,7 @@ const TONES: Record<string, BadgeTone> = {
   half_day: "scheduled",
   invited: "scheduled",
   pending: "scheduled",
+  pending_approval: "scheduled",
   queued: "scheduled",
   scheduled: "scheduled",
   upcoming: "scheduled",
