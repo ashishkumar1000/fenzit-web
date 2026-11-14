@@ -8,6 +8,8 @@ describe("messageForError: known codes", () => {
     ["INVALID_OTP", /code is not right/i],
     ["OTP_EXPIRED", /has expired/i],
     ["RATE_LIMIT_EXCEEDED", /too many attempts/i],
+    ["DUPLICATE_RESOURCE", /already exists/i],
+    ["ALREADY_IN_TEAM", /already on your team/i],
   ])("maps %s to its own copy", (code, expected) => {
     expect(messageForError(new ApiError(400, "technical", code))).toMatch(expected);
   });

@@ -1,0 +1,79 @@
+/* Hand-authored loader (2026-11-14) — modern dual-arc indeterminate spin:
+   a bright lead arc whose dash slides around the circle with an eased
+   speed pulse, plus a dimmer, shorter trail arc counter-rotating more
+   slowly. Dash maths uses pathLength 100, so the values below are
+   percentages of the circle, independent of the rendered size. */
+
+.spinner {
+  display: block;
+  flex: 0 0 auto;
+  overflow: visible;
+  color: inherit;
+}
+
+/* Both groups rotate about the viewBox centre (12, 12 user units). */
+.arcLead,
+.arcTrail {
+  transform-origin: 12px 12px;
+}
+
+.lead {
+  /* Fixed-length dash (62 of 100) so only stroke-dashoffset is animated —
+     Safari does not reliably interpolate dasharray between keyframes.
+     The offset ends at -100 (a full lap) so the loop is seamless; the
+     eased midpoint makes the arc surge and settle like a chase. */
+  stroke-dasharray: 62 38;
+  stroke-dashoffset: 0;
+  animation: spinner-lead-dash 1.4s ease-in-out infinite;
+}
+
+.arcTrail {
+  animation: spinner-trail-spin 2.2s linear infinite reverse;
+}
+
+.trail {
+  stroke-dasharray: 18 82;
+  stroke-dashoffset: 0;
+  opacity: 0.45;
+}
+
+@keyframes spinner-lead-dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  55% {
+    stroke-dashoffset: -78;
+  }
+
+  100% {
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes spinner-trail-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead,
+  .arcTrail {
+    animation: none;
+  }
+
+  .spinner {
+    animation: spinner-pulse 1.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes spinner-pulse {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0.35;
+    }
+  }
+}

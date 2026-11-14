@@ -1,176 +1,249 @@
-import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
-import { useId, useRef, useState } from "react";
+import { Link, useLoaderData, useLocation, useNavigation } from "react-router";
 import type { adminEmployeesLoader } from "../features/admin/adminBrowseLoaders";
-import type { JobSettingsResult } from "../features/admin/adminBrowseLoaders";
-import { humanize } from "../features/admin/status";
-import { SectionCard } from "../features/admin/components/SectionCard";
-import { DataTable, type TableCell } from "../features/admin/components/Table";
-import { fmtDay, fmtPhone } from "../features/admin/format";
+import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
+import { MembersTable } from "../features/admin/components/MembersTable";
+import { TableSkeleton } from "../features/admin/components/Table";
+import { AddEmployeeControl } from "../features/admin/components/AddEmployeeDialog";
+import { ExportCsvButton } from "../features/admin/components/EmployeesExport";
+import {
+  ClearAllButton,
+  SearchBox,
+  StatusChips,
+  FilterDropdown,
+} from "../features/admin/components/EmployeesFilterBar";
+import { Pager, RowsPerPage } from "../features/admin/components/EmployeesPager";
+import {
+  ApprovalTagIcon,
+  BellIcon,
+  ClipboardListIcon,
+  CrownIcon,
+  PowerIcon,
+  UserCheckIcon,
+  UsersIcon,
+  ZapIcon,
+} from "../components/ui/consoleIcons";
+import { JOB_WORDS, ROLE_WORDS, SORT_WORDS } from "../features/admin/employeesLabels";
 import styles from "./AdminEmployeesPage.module.css";
 
-const ROLE_LABEL: Record<string, string> = {
-  company_admin: "Owner",
-  employee: "Employee",
-  viewer: "Viewer",
-};
-
 /**
- * The full team, alphabetically by join order. Each employee row carries a
- * "Job settings" control (Epic 22, CAP-1): the two owner-set switches — may
- * this employee create jobs, and do those jobs need approval first. A change
- * applies to the next job they create; jobs already pending keep their state.
+ * The team page in the console's new design: a top bar (breadcrumb, search,
+ * invite), the greeting block with its actions, the four console tiles, then
+ * the team card — status chips, role / job-setting / sort dropdowns, the paged
+ * table, and the pager with rows-per-page and go-to. Every filter state is
+ * the URL's; the loader asks /members/page for exactly that view.
  */
 
 export function AdminEmployeesPage() {
   const data = useLoaderData<typeof adminEmployeesLoader>();
-  const action = useActionData<JobSettingsResult>();
+  const navigation = useNavigation();
+  const location = useLocation();
 
   if (data.state === "failed") {
     return (
-      <SectionCard title="Employees">
+      <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The team list could not load. Use the sidebar to retry this page.
+          The team list could not load. Try opening this page again from the menu.
         </p>
-      </SectionCard>
+      </div>
     );
   }
 
-  const actionError = action?.state === "error" ? action.message : null;
+  const { result, filters, countries, selfUserId, selfName } = data;
+  const from = (result.page - 1) * result.pageSize + 1;
+  const to = Math.min(result.page * result.pageSize, result.total);
+  const busy = navigation.state !== "idle";
+  // A different address is loading (a filter or page changed) — the table's
+  // rows are about to be replaced, so the skeleton stands in. A plain
+  // revalidation (an action's refetch) keeps the current rows on screen.
+  const navigating =
+    navigation.state === "loading" &&
+    (navigation.location?.pathname !== location.pathname ||
+      navigation.location?.search !== location.search);
+  const activePct =
+    result.stats.total > 0 ? Math.round((result.stats.active / result.stats.total) * 100) : 0;
+
+  const tiles: ConsoleTile[] = [
+    {
+      label: "Total employees",
+      value: result.stats.total,
+      icon: UsersIcon,
+      tone: "primary",
+      sub: `${result.stats.active} active, ${result.stats.invited} invited`,
+    },
+    {
+      label: "Active employees",
+      value: result.stats.active,
+      icon: UserCheckIcon,
+      tone: "done",
+      bar: activePct,
+      sub: `${activePct}% of all employees`,
+    },
+    {
+      label: "Pending invites",
+      value: result.stats.invited,
+      icon: BellIcon,
+      tone: "scheduled",
+      pill: { label: "Invited", tone: "scheduled" },
+      sub: "Waiting for their first sign-in",
+    },
+    {
+      label: "Needs approval",
+      value: result.stats.needsApproval,
+      icon: ClipboardListIcon,
+      tone: "violet",
+      pill: { label: "Approval pending", tone: "violet" },
+      sub: "Their new jobs need your approval",
+    },
+  ];
 
   return (
     <>
-      {actionError ? (
-        <p className={styles.actionError} role="alert">
-          {actionError}
-        </p>
-      ) : null}
-      <SectionCard title="Employees" meta={String(data.rows.length)}>
-        <DataTable
-          columns={["Name", "Phone", "Code", "Role", "Status", "Job settings", "Joined"]}
-          empty="Nobody on the team yet."
-          rows={data.rows.map((m): TableCell[] => [
-            { text: m.name ?? "(no name)" },
-            { text: fmtPhone(m.countryCode, m.phoneNumber), quiet: true },
-            { text: m.employeeCode },
-            { text: ROLE_LABEL[m.role] ?? humanize(m.role) },
-            { text: m.status, status: true },
-            m.role === "employee"
-              ? {
-                  text: "Change job settings",
-                  node: <JobSettingsCell key={m.userId} row={m} />,
-                }
-              : { text: "—" },
-            { text: fmtDay(m.createdAt), quiet: true },
-          ])}
-        />
-      </SectionCard>
+      <TopBar />
+      <header className={styles.pageHead}>
+        <div>
+          <h1 className={styles.heading}>
+            {selfName === null ? "Hello" : `Hello, ${selfName}`}
+            <span className={styles.rolePill}>
+              <CrownIcon size={13} className={styles.rolePillIcon} />
+              Owner
+            </span>
+          </h1>
+          <p className={styles.lede}>
+            Your team directory, their invites and their job approvals — all in one place.
+          </p>
+        </div>
+        <div className={styles.pageActions}>
+          <AddEmployeeControl countries={countries} />
+          <ExportCsvButton />
+        </div>
+      </header>
+      <ConsoleTiles tiles={tiles} />
+      <div className={styles.card}>
+        <div className={styles.filterBar}>
+          <StatusChips filters={filters} counts={result.stats} />
+          <div className={styles.filterControls}>
+            <ClearAllButton filters={filters} />
+            <SearchBox filters={filters} />
+            <FilterDropdown
+              label="Role"
+              field="role"
+              value={filters.role}
+              valueLabel={ROLE_WORDS[filters.role]}
+              defaultValue="all"
+              options={[
+                { value: "all", text: "All roles", count: result.stats.byRole.all },
+                { value: "company_admin", text: "Owner", count: result.stats.byRole.company_admin },
+                { value: "employee", text: "Employee", count: result.stats.byRole.employee },
+                { value: "viewer", text: "Viewer", count: result.stats.byRole.viewer },
+              ]}
+              searchPlaceholder="Filter roles…"
+              filters={filters}
+            />
+            <FilterDropdown
+              label="Job settings"
+              field="jobSetting"
+              value={filters.jobSetting}
+              valueLabel={JOB_WORDS[filters.jobSetting]}
+              defaultValue="all"
+              options={[
+                { value: "all", text: "All settings", count: result.stats.byJobSetting.all },
+                {
+                  value: "off",
+                  chip: { label: "Off", tone: "gray", Icon: PowerIcon },
+                  text: "Cannot create jobs",
+                  count: result.stats.byJobSetting.off,
+                },
+                {
+                  value: "create_only",
+                  chip: { label: "Creates jobs", tone: "green", Icon: ZapIcon },
+                  count: result.stats.byJobSetting.createOnly,
+                },
+                {
+                  value: "approval",
+                  chip: { label: "Create + approval", tone: "violet", Icon: ApprovalTagIcon },
+                  count: result.stats.byJobSetting.approval,
+                },
+              ]}
+              searchPlaceholder="Filter job settings…"
+              filters={filters}
+            />
+            <FilterDropdown
+              label="Sort"
+              field="sort"
+              value={filters.sort}
+              valueLabel={SORT_WORDS[filters.sort]}
+              defaultValue="joined_new"
+              showSearch={false}
+              options={[
+                { value: "joined_new", text: "Joined (newest)" },
+                { value: "joined_old", text: "Joined (oldest)" },
+                { value: "name_az", text: "Name (A–Z)" },
+                { value: "name_za", text: "Name (Z–A)" },
+                { value: "code_az", text: "Code (A–Z)" },
+                { value: "code_za", text: "Code (Z–A)" },
+              ]}
+              filters={filters}
+            />
+          </div>
+        </div>
+        {result.data.length === 0 ? (
+          <>
+            <p className={styles.empty}>
+              {result.total === 0
+                ? "Nobody on the team yet."
+                : "No employees match these filters, or this page is past the last one."}
+            </p>
+            {result.total > 0 ? (
+              <footer className={styles.tableFooter}>
+                <RowsPerPage filters={filters} />
+                <Pager filters={filters} page={result.page} pages={result.pages} />
+              </footer>
+            ) : null}
+          </>
+        ) : navigating ? (
+          <TableSkeleton rows={6} />
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <MembersTable
+                rows={result.data}
+                sort={filters.sort}
+                filters={filters}
+                selfUserId={selfUserId}
+              />
+            </div>
+            <footer className={styles.tableFooter}>
+              <p className={styles.showing}>
+                Showing {from}–{to} of {result.total}{" "}
+                {result.total === 1 ? "employee" : "employees"}
+                {busy ? " — updating…" : ""}
+              </p>
+              <RowsPerPage filters={filters} />
+              <Pager filters={filters} page={result.page} pages={result.pages} />
+            </footer>
+          </>
+        )}
+      </div>
     </>
   );
 }
 
-/** The row's settings control: a summary of the two switches that opens the
- *  change form. Employees only — owners and viewers do not create jobs. */
-function JobSettingsCell({
-  row,
-}: {
-  row: { userId: string; canCreateJobs: boolean; jobApprovalRequired: boolean };
-}) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  const action = useActionData<JobSettingsResult>();
-  const navigation = useNavigation();
-  const label = row.canCreateJobs
-    ? row.jobApprovalRequired
-      ? "Create + approval"
-      : "Create"
-    : "Off";
-  const busy =
-    navigation.state === "submitting" && navigation.formData?.get("userId") === row.userId;
-  const saved = action?.state === "done" && action.userId === row.userId;
-  const error = action?.state === "error" && action.userId === row.userId ? action.message : null;
-  // The mark belongs to the save that produced it. React's render-phase state
-  // adjustment: when a new action arrives, adopt it — so reopening the dialog
-  // with an old action does not claim "Saved." again, and a fresh save does.
-  const [seenAction, setSeenAction] = useState<unknown>(null);
-  const [markVisible, setMarkVisible] = useState(false);
-  if (action !== seenAction) {
-    setSeenAction(action);
-    setMarkVisible(saved);
-  }
+/** The page's top bar: the breadcrumb. The search lives in the filter strip;
+ *  the invite and export actions live in the greeting block. */
+function TopBar() {
   return (
-    <span className={styles.settingsCell}>
-      <button
-        type="button"
-        className={styles.settingsButton}
-        onClick={() => {
-          if (dialogRef.current && !dialogRef.current.open) dialogRef.current.showModal();
-        }}
-        aria-haspopup="dialog"
-      >
-        {label}
-      </button>
-      {/* A native dialog: modal focus, Escape-to-close and the dimmed backdrop
-          come from the element; a click on the backdrop also closes it. The
-          dialog stays open after a save so the "Saved." line is seen. */}
-      <dialog
-        ref={dialogRef}
-        className={styles.dialog}
-        aria-labelledby={titleId}
-        onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
-        }}
-      >
-        <Form method="post" className={styles.dialogForm}>
-          <input type="hidden" name="userId" value={row.userId} />
-          <h3 id={titleId} className={styles.dialogTitle}>
-            Job settings
-          </h3>
-          <p className={styles.dialogHint}>
-            Changes apply to the next job this employee creates. Jobs already waiting keep their
-            state.
-          </p>
-          <label className={styles.switchRow}>
-            <input type="checkbox" name="canCreateJobs" defaultChecked={row.canCreateJobs} />
-            <span>
-              Can create jobs
-              <small>They log their own visits and tasks.</small>
-            </span>
-          </label>
-          <label className={styles.switchRow}>
-            <input
-              type="checkbox"
-              name="jobApprovalRequired"
-              defaultChecked={row.jobApprovalRequired}
-            />
-            <span>
-              Approval needed
-              <small>New jobs wait for your approval first.</small>
-            </span>
-          </label>
-          {error ? (
-            <p className={styles.dialogError} role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className={styles.dialogActions}>
-            {markVisible ? (
-              <p className={styles.savedMark} role="status">
-                Saved.
-              </p>
-            ) : null}
-            <button
-              type="button"
-              className={styles.quietButton}
-              onClick={() => dialogRef.current?.close()}
-            >
-              Cancel
-            </button>
-            <button type="submit" className={styles.saveButton} disabled={busy === true}>
-              {busy === true ? "Saving…" : "Save"}
-            </button>
-          </div>
-        </Form>
-      </dialog>
-    </span>
+    <div className={styles.topBar}>
+      <nav className={styles.crumbs} aria-label="Breadcrumb">
+        <Link to="/admin" className={styles.crumbRoot}>
+          Console
+        </Link>
+        <span className={styles.crumbSep} aria-hidden="true">
+          ›
+        </span>
+        <span className={styles.crumbHere} aria-current="page">
+          Employees
+        </span>
+      </nav>
+    </div>
   );
 }

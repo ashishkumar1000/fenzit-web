@@ -1,0 +1,8 @@
+/* Decorative background layer for the console stat tiles. Positioned by the
+   tile's own CSS; the SVG inside fills this span and is clipped to it. */
+.art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

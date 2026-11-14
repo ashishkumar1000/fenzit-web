@@ -8,14 +8,28 @@ import {
   fetchHolidays,
   fetchJobs,
   fetchMembers,
+  fetchMembersPage,
   fetchMonthly,
+  inviteMember,
+  resendInviteSms,
   updateJobSettings,
   type CustomerRow,
   type HolidayRow,
   type JobRow,
-  type MemberRow,
+  type MembersPageResult,
+  type MembersRoleFilter,
+  type MembersSort,
+  type MembersStatusFilter,
+  type MembersJobSettingFilter,
   type MonthlyEmployeeRow,
 } from "./companyApi";
+import {
+  FALLBACK_COUNTRY_CODES,
+  fetchCountryCodes,
+  type CountryCode,
+} from "../../services/countryCodes";
+
+export type { MembersSort, MembersStatusFilter, MembersRoleFilter, MembersJobSettingFilter };
 import { fetchMyPendingJobs } from "./myJobsApi";
 import { fetchMyRejectedJobs, type RejectedJobRow } from "./meApi";
 import {
@@ -345,14 +359,95 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
   }
 }
 
-export type EmployeesData = { state: "ok"; rows: MemberRow[] } | BrowseFail;
+export type EmployeesData =
+  | {
+      state: "ok";
+      result: MembersPageResult;
+      filters: EmployeesFilters;
+      /** The signed-in owner's user id — the row that gets the "You" pill. */
+      selfUserId: string;
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
+      /** Country choices for the add-employee dialog's phone field. */
+      countries: CountryCode[];
+    }
+  | BrowseFail;
+
+/** The Employees page's filters, all carried in the URL. The loader owns the
+ *  reading and the defaults, so every link on the page can build a plain
+ *  address and leave the rest to navigation. */
+export type EmployeesFilters = {
+  q: string;
+  status: MembersStatusFilter;
+  role: MembersRoleFilter;
+  jobSetting: MembersJobSettingFilter;
+  sort: MembersSort;
+  page: number;
+  pageSize: number;
+};
+
+const STATUS_FILTERS = new Set(["all", "active", "invited"]);
+const ROLE_FILTERS = new Set(["all", "company_admin", "employee", "viewer"]);
+const JOB_FILTERS = new Set(["all", "off", "create_only", "approval"]);
+const SORTS = new Set(["joined_new", "joined_old", "name_az", "name_za", "code_az", "code_za"]);
+const PAGE_SIZES = new Set([10, 25, 50]);
+
+/** Reads the address into filters; anything unknown falls back to its
+ *  default, so a hand-edited URL never breaks the page. */
+export function readEmployeesFilters(url: URL): EmployeesFilters {
+  const params = url.searchParams;
+  const one = (key: string, allowed: Set<string>, fallback: string): string => {
+    const value = params.get(key) ?? "";
+    return allowed.has(value) ? value : fallback;
+  };
+  const page = Number(params.get("page") ?? "1");
+  const pageSize = Number(params.get("pageSize") ?? "10");
+  return {
+    q: (params.get("q") ?? "").trim().slice(0, 80),
+    status: one("status", STATUS_FILTERS, "all") as MembersStatusFilter,
+    role: one("role", ROLE_FILTERS, "all") as MembersRoleFilter,
+    jobSetting: one("jobSetting", JOB_FILTERS, "all") as MembersJobSettingFilter,
+    sort: one("sort", SORTS, "joined_new") as MembersSort,
+    page: Number.isInteger(page) && page >= 1 ? page : 1,
+    pageSize: PAGE_SIZES.has(pageSize) ? pageSize : 10,
+  };
+}
+
+/** The page size the table starts on. The rows-per-page select offers the
+ *  sizes the backend accepts (1–100); these three are the sensible ones. */
+export const EMPLOYEES_PAGE_SIZES = [10, 25, 50] as const;
+
+/** The country list for a form's dial-code select — the fallback (India) when
+ *  the public list cannot load, so the form still works. */
+function loadCountries(request: Request): Promise<CountryCode[]> {
+  return fetchCountryCodes(request.signal)
+    .then((list) => (list.length > 0 ? list : FALLBACK_COUNTRY_CODES))
+    .catch(() => FALLBACK_COUNTRY_CODES);
+}
 
 export async function adminEmployeesLoader({
   request,
 }: LoaderFunctionArgs): Promise<EmployeesData> {
   try {
-    const { token } = await requireConsoleRole(request, ["owner"]);
-    return { state: "ok", rows: await fetchMembers(token, request.signal) };
+    const { token, me } = await requireConsoleRole(request, ["owner"]);
+    const filters = readEmployeesFilters(new URL(request.url));
+    const [result, countries] = await Promise.all([
+      fetchMembersPage(
+        token,
+        {
+          page: filters.page,
+          pageSize: filters.pageSize,
+          ...(filters.q !== "" ? { search: filters.q } : {}),
+          ...(filters.status !== "all" ? { status: filters.status } : {}),
+          ...(filters.role !== "all" ? { role: filters.role } : {}),
+          ...(filters.jobSetting !== "all" ? { jobSetting: filters.jobSetting } : {}),
+          ...(filters.sort !== "joined_new" ? { sort: filters.sort } : {}),
+        },
+        request.signal,
+      ),
+      loadCountries(request),
+    ]);
+    return { state: "ok", result, filters, selfUserId: me.id, selfName: me.name, countries };
   } catch (error) {
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {
@@ -365,19 +460,107 @@ export async function adminEmployeesLoader({
 }
 
 export type JobSettingsResult =
-  { state: "done"; userId: string } | { state: "error"; userId: string; message: string };
+  | { kind: "job-settings"; state: "done"; userId: string }
+  | { kind: "job-settings"; state: "error"; userId: string; message: string };
 
-/** Save one employee's two job switches (Epic 22, CAP-1). The loader
- *  refetches after the action, so the saved values show on the row. */
+/** One invite from the add-employee dialog. `smsStatus` mirrors the backend:
+ *  sent, failed, refused_cap or not_configured — the invite is saved either
+ *  way, and the row already shows in the team list through the loader's
+ *  refetch after the action. */
+export type InviteResult =
+  | { kind: "invite"; state: "done"; smsStatus: string | null; employeeCode: string }
+  | { kind: "invite"; state: "error"; message: string };
+
+/** One resend from an Invited row's link. The SMS outcome rides back the same
+ *  way an invite's does; the row stays Invited either way. */
+export type ResendResult =
+  | { kind: "resend"; state: "done"; userId: string; smsStatus: string | null }
+  | { kind: "resend"; state: "error"; userId: string; message: string };
+
+export type EmployeesActionResult = JobSettingsResult | InviteResult | ResendResult;
+
+/** The employees page's action: save one employee's two job switches, invite
+ *  a new employee, or resend one invite SMS. The loader refetches after
+ *  either save, so the page shows the saved values and the new row. */
 export async function adminEmployeesAction({
   request,
-}: ActionFunctionArgs): Promise<JobSettingsResult> {
+}: ActionFunctionArgs): Promise<EmployeesActionResult> {
   const form = await request.formData();
+  const intent = form.get("intent");
+  if (intent === "invite") {
+    const name = typeof form.get("name") === "string" ? (form.get("name") as string).trim() : "";
+    const countryCode =
+      typeof form.get("countryCode") === "string" ? (form.get("countryCode") as string) : "";
+    const phoneNumber =
+      typeof form.get("phoneNumber") === "string"
+        ? (form.get("phoneNumber") as string).replace(/\s+/g, "")
+        : "";
+    if (name === "" || !/^\+\d{1,4}$/.test(countryCode) || !/^\d{6,15}$/.test(phoneNumber)) {
+      return {
+        kind: "invite",
+        state: "error",
+        message: "Enter a name and a phone number (6–15 digits) before sending the invite.",
+      };
+    }
+    try {
+      const { token } = await requireConsoleRole(request, ["owner"]);
+      const result = await inviteMember(token, { countryCode, phoneNumber, name }, request.signal);
+      return {
+        kind: "invite",
+        state: "done",
+        smsStatus: result.smsStatus,
+        employeeCode: result.employeeCode,
+      };
+    } catch (error) {
+      return withActionError(error, request.signal, (message) => ({
+        kind: "invite",
+        state: "error",
+        message,
+      }));
+    }
+  }
   const userId = typeof form.get("userId") === "string" ? (form.get("userId") as string) : "";
+  if (intent === "resend") {
+    try {
+      const { token } = await requireConsoleRole(request, ["owner"]);
+      if (userId === "") {
+        return {
+          kind: "resend",
+          state: "error",
+          userId,
+          message: "That resend could not be sent. Try again.",
+        };
+      }
+      const smsStatus = await resendInviteSms(token, userId, request.signal);
+      return { kind: "resend", state: "done", userId, smsStatus };
+    } catch (error) {
+      return withActionError(error, request.signal, (message) => ({
+        kind: "resend",
+        state: "error",
+        userId,
+        message,
+      }));
+    }
+  }
+  // Only the job-settings save is left, and it must say so: an unknown or
+  // missing intent is refused rather than written as job settings.
+  if (intent !== "job-settings") {
+    return {
+      kind: "job-settings",
+      state: "error",
+      userId,
+      message: "That save could not be sent. Try again.",
+    };
+  }
   try {
     const { token } = await requireConsoleRole(request, ["owner"]);
     if (userId === "") {
-      return { state: "error", userId, message: "That save could not be sent. Try again." };
+      return {
+        kind: "job-settings",
+        state: "error",
+        userId,
+        message: "That save could not be sent. Try again.",
+      };
     }
     await updateJobSettings(
       token,
@@ -388,16 +571,33 @@ export async function adminEmployeesAction({
       },
       request.signal,
     );
-    return { state: "done", userId };
+    return { kind: "job-settings", state: "done", userId };
   } catch (error) {
-    if (error instanceof Response) throw error;
-    if (isAuthError(error)) {
-      clearSession();
-      throw redirect("/login");
-    }
-    if (request.signal.aborted) throw error;
-    return { state: "error", userId, message: messageForError(error) };
+    return withActionError(error, request.signal, (message) => ({
+      kind: "job-settings",
+      state: "error",
+      userId,
+      message,
+    }));
   }
+}
+
+/** The action errors every intent shares: a hard redirect on session loss, a
+ *  pass-through on cancel (the request was aborted, so nothing is shown),
+ *  plain English otherwise. */
+function withActionError(
+  error: unknown,
+  signal: AbortSignal,
+  build: (message: string) => EmployeesActionResult,
+): EmployeesActionResult {
+  if (error instanceof Response) throw error;
+  if (isAuthError(error)) {
+    clearSession();
+    throw redirect("/login");
+  }
+  if (signal.aborted) throw error;
+  if (error instanceof DOMException && error.name === "AbortError") throw error;
+  return build(messageForError(error));
 }
 
 export type HolidaysData = { state: "ok"; rows: HolidayRow[] } | BrowseFail;

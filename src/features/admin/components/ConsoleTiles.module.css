@@ -1,0 +1,141 @@
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-strong) 6%, transparent);
+  padding: var(--space-4);
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+
+/* The tile's content sits above the background art layer. */
+.head,
+.valueRow,
+.barTrack,
+.sub {
+  position: relative;
+  z-index: 1;
+}
+
+.tile[data-tone="primary"] {
+  color: var(--color-primary);
+}
+
+.tile[data-tone="done"] {
+  color: var(--color-status-done-fg);
+}
+
+.tile[data-tone="scheduled"] {
+  color: var(--color-status-scheduled-fg);
+}
+
+.tile[data-tone="violet"] {
+  color: var(--color-primary);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.label {
+  margin: 0;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.iconChip {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  color: var(--color-text-strong);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.value {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extra);
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pill[data-pill="done"] {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+}
+
+.pill[data-pill="scheduled"] {
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+}
+
+.pill[data-pill="violet"] {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* The Active tile's share of the team: a slim track with a family-coloured fill. */
+.barTrack {
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+}
+
+/* The fill is a solid colour block, so it uses the family's -solid token even
+   though the tile's text/icon colour is the darker -fg token. */
+.tile[data-tone="done"] .barFill {
+  background: var(--color-status-done-solid);
+}
+
+.tile[data-tone="scheduled"] .barFill {
+  background: var(--color-status-scheduled-solid);
+}
+
+.sub {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

@@ -60,16 +60,48 @@ function respondDefault(url: string): Response | Promise<Response> {
       status: "active",
     });
   }
-  if (url.endsWith("/members")) {
+  if (url.endsWith("/members") || url.includes("/members/page")) {
     // The list reflects the saved switches after the post-action refetch —
     // "show the current value on the employee's record" (CAP-1).
-    return jsonResponse([
+    const rows = [
       member("u-owner", "Ravi Kumar", "company_admin", "active", false, false),
       member("u-a", "Asha V", "employee", "active", true, true),
       member("u-b", "Bunty R", "employee", "active", buntySaved, false),
       member("u-c", "Chitra D", "employee", "active", true, false),
       member("u-v", "Vikas T", "viewer", "active", false, false),
-    ]);
+    ];
+    if (url.includes("/members/page")) {
+      // The paged envelope the redesigned page reads; one page holds the
+      // whole five-person team, and the counters describe it whole.
+      return jsonResponse({
+        data: rows,
+        total: rows.length,
+        page: 1,
+        pageSize: 10,
+        pages: 1,
+        stats: {
+          total: rows.length,
+          active: rows.filter((m) => m.status === "active").length,
+          invited: rows.filter((m) => m.status === "invited").length,
+          needsApproval: rows.filter(
+            (m) => m.status === "active" && m.canCreateJobs && m.jobApprovalRequired,
+          ).length,
+          byRole: {
+            all: rows.length,
+            company_admin: rows.filter((m) => m.role === "company_admin").length,
+            employee: rows.filter((m) => m.role === "employee").length,
+            viewer: rows.filter((m) => m.role === "viewer").length,
+          },
+          byJobSetting: {
+            all: rows.length,
+            off: rows.filter((m) => !m.canCreateJobs).length,
+            createOnly: rows.filter((m) => m.canCreateJobs && !m.jobApprovalRequired).length,
+            approval: rows.filter((m) => m.canCreateJobs && m.jobApprovalRequired).length,
+          },
+        },
+      });
+    }
+    return jsonResponse(rows);
   }
   if (url.includes("job-settings")) {
     if (url.includes("/members/u-b/") && !patchFails) buntySaved = true;
@@ -116,7 +148,7 @@ async function openDialog(rowName: string): Promise<HTMLDialogElement> {
   const rowEl = screen.getByText(rowName).closest("tr");
   if (rowEl === null) throw new Error(`no row for ${rowName}`);
   const button = within(rowEl as HTMLElement).getByRole("button", {
-    name: /Change job settings|Create|Off/,
+    name: /Change job settings|Creates jobs|Create \+ approval|Off/,
   });
   fireEvent.click(button);
   const dialog = (rowEl as HTMLElement).querySelector("dialog");
@@ -135,11 +167,11 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     renderEmployees();
     await screen.findByText("Asha V");
     // The owner's name also shows in the sidebar chip; the row cell is scoped.
-    const ownerRow = screen.getByRole("cell", { name: "Ravi Kumar" }).closest("tr");
+    const ownerRow = screen.getByRole("cell", { name: /Ravi Kumar/ }).closest("tr");
     expect(within(ownerRow as HTMLElement).queryByRole("button")).toBeNull();
-    const viewerRow = screen.getByRole("cell", { name: "Vikas T" }).closest("tr");
+    const viewerRow = screen.getByRole("cell", { name: /Vikas T/ }).closest("tr");
     expect(within(viewerRow as HTMLElement).queryByRole("button")).toBeNull();
-    const ashaRow = screen.getByRole("cell", { name: "Asha V" }).closest("tr");
+    const ashaRow = screen.getByRole("cell", { name: /Asha V/ }).closest("tr");
     expect(
       within(ashaRow as HTMLElement).getByRole("button", { name: "Create + approval" }),
     ).toBeInTheDocument();
@@ -173,7 +205,7 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     patchDelay?.();
     const patch = sentRequests().find((r) => r.method === "PATCH");
     expect(patch?.body).toMatchObject({ canCreateJobs: true, jobApprovalRequired: false });
-    expect(await screen.findByText("Saved.")).toBeInTheDocument();
+    expect(await screen.findByText("Job settings saved.")).toBeInTheDocument();
   });
 
   it("keeps the Save busy while the save is in flight", async () => {
@@ -187,7 +219,7 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     // it through — the button comes back and the mark appears.
     await waitFor(() => expect(patchDelay).not.toBeNull());
     patchDelay?.();
-    await waitFor(() => expect(within(dialog).queryByText("Saved.")).not.toBeNull());
+    await waitFor(() => expect(within(dialog).queryByText("Job settings saved.")).not.toBeNull());
   });
 
   it("flips the row's label to the saved value after the refetch", async () => {
@@ -195,9 +227,9 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     const dialog = await openDialog("Bunty R");
     fireEvent.click(checkbox(dialog, "canCreateJobs"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
-    const row = screen.getByRole("cell", { name: "Bunty R" }).closest("tr") as HTMLElement;
+    const row = screen.getByRole("cell", { name: /Bunty R/ }).closest("tr") as HTMLElement;
     await waitFor(() =>
-      expect(within(row).getByRole("button", { name: "Create" })).toBeInTheDocument(),
+      expect(within(row).getByRole("button", { name: "Creates jobs" })).toBeInTheDocument(),
     );
   });
 
@@ -205,22 +237,40 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     renderEmployees();
     const bunty = await openDialog("Bunty R");
     fireEvent.click(within(bunty).getByRole("button", { name: "Save" }));
-    await screen.findByText("Saved.");
-    // Close Bunty's dialog and open Asha's — her dialog has nothing saved.
-    fireEvent.click(within(bunty).getByRole("button", { name: "Cancel" }));
+    await screen.findByText("Job settings saved.");
+    // Close Bunty's dialog (the saved state shows Close, not Cancel) and open
+    // Asha's — her dialog has nothing saved.
+    fireEvent.click(within(bunty).getByRole("button", { name: "Close" }));
     const asha = await openDialog("Asha V");
-    expect(within(asha).queryByText("Saved.")).toBeNull();
+    expect(within(asha).queryByText("Job settings saved.")).toBeNull();
   });
 
-  it("summarises create-on-approval-off as Create", async () => {
+  it("summarises create-on-approval-off as Creates jobs", async () => {
     renderEmployees();
     await screen.findByText("Asha V");
-    const chitraRow = screen.getByRole("cell", { name: "Chitra D" }).closest("tr") as HTMLElement;
-    expect(within(chitraRow).getByRole("button", { name: "Create" })).toBeInTheDocument();
+    const chitraRow = screen.getByRole("cell", { name: /Chitra D/ }).closest("tr") as HTMLElement;
+    expect(within(chitraRow).getByRole("button", { name: "Creates jobs" })).toBeInTheDocument();
   });
 
   it("shows the empty team line when nobody is on it yet", async () => {
     setRespond((url) => {
+      if (url.includes("/members/page")) {
+        return jsonResponse({
+          data: [],
+          total: 0,
+          page: 1,
+          pageSize: 10,
+          pages: 1,
+          stats: {
+            total: 0,
+            active: 0,
+            invited: 0,
+            needsApproval: 0,
+            byRole: { all: 0, company_admin: 0, employee: 0, viewer: 0 },
+            byJobSetting: { all: 0, off: 0, createOnly: 0, approval: 0 },
+          },
+        });
+      }
       if (url.endsWith("/members")) return jsonResponse([]);
       return respondDefault(url);
     });

@@ -24,12 +24,16 @@ export interface PulseResponse {
 export interface MemberRow {
   userId: string;
   name: string | null;
+  /** The linked login email, or null — shown under the name in the table. */
+  email?: string | null;
   countryCode: string;
   phoneNumber: string;
   employeeCode: string;
   role: string;
   status: "invited" | "active" | "removed";
   createdAt: string;
+  /** Short-lived link to the person's photo, or null. The paged list carries it. */
+  avatarUrl?: string | null;
   /** Job switches (Epic 22, CAP-1) — meaningful for employees. */
   canCreateJobs: boolean;
   jobApprovalRequired: boolean;
@@ -51,6 +55,40 @@ export function updateJobSettings(
     body: JSON.stringify(settings),
     signal,
   });
+}
+
+export interface InviteMemberResult {
+  /** The new membership's user id — the row the invite points at. */
+  inviteId: string;
+  /** The employee code the new member got, for example "EMP-006". */
+  employeeCode: string;
+  /** What happened to the invite SMS: sent, failed, refused_cap or
+   *  not_configured. The invite is saved either way. */
+  smsStatus: string | null;
+}
+
+/** Invite one person to the company (POST /auth/invite): the backend creates
+ *  the membership with its employee code and sends the invite SMS. The same
+ *  endpoint the mobile app's add-employee screen uses. */
+export function inviteMember(
+  token: string,
+  input: { countryCode: string; phoneNumber: string; name: string },
+  signal?: AbortSignal,
+): Promise<InviteMemberResult> {
+  return apiFetch<{
+    invite_id: string;
+    employee_code?: string | null;
+    sms_status?: string | null;
+  }>("/api/v1/auth/invite", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  }).then((row) => ({
+    inviteId: row.invite_id,
+    employeeCode: row.employee_code ?? "",
+    smsStatus: row.sms_status ?? null,
+  }));
 }
 
 export interface LeaveRow {
@@ -93,6 +131,81 @@ export function fetchMembers(token: string, signal?: AbortSignal): Promise<Membe
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
+}
+
+/** The whole-company counters the Employees page's stat tiles show. They count
+ *  the team before any filter, so the tiles stay stable while the table narrows.
+ *  `byRole` and `byJobSetting` feed the dropdowns' option-row counts. */
+export interface MembersStats {
+  total: number;
+  active: number;
+  invited: number;
+  /** Active employees whose jobs wait for the owner's approval first. */
+  needsApproval: number;
+  byRole: { all: number; company_admin: number; employee: number; viewer: number };
+  byJobSetting: { all: number; off: number; createOnly: number; approval: number };
+}
+
+export type MembersStatusFilter = "all" | "active" | "invited";
+export type MembersRoleFilter = "all" | "company_admin" | "employee" | "viewer";
+export type MembersJobSettingFilter = "all" | "off" | "create_only" | "approval";
+export type MembersSort =
+  "joined_new" | "joined_old" | "name_az" | "name_za" | "code_az" | "code_za";
+
+export type MembersPageQuery = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: MembersStatusFilter;
+  role?: MembersRoleFilter;
+  jobSetting?: MembersJobSettingFilter;
+  sort?: MembersSort;
+};
+
+export interface MembersPageResult {
+  data: MemberRow[];
+  /** How many rows the current filters keep, across all pages. */
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  stats: MembersStats;
+}
+
+/** GET /members/page — the console's paged team list. The endpoint answers
+ *  one page; `stats` always describes the whole company. */
+export function fetchMembersPage(
+  token: string,
+  query: MembersPageQuery,
+  signal?: AbortSignal,
+): Promise<MembersPageResult> {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    pageSize: String(query.pageSize),
+  });
+  if (query.search) params.set("search", query.search);
+  if (query.status && query.status !== "all") params.set("status", query.status);
+  if (query.role && query.role !== "all") params.set("role", query.role);
+  if (query.jobSetting && query.jobSetting !== "all") params.set("jobSetting", query.jobSetting);
+  if (query.sort && query.sort !== "joined_new") params.set("sort", query.sort);
+  return apiFetch<MembersPageResult>(`/api/v1/members/page?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** POST /auth/invite/:id/resend-sms — sends the invite text again. Returns the
+ *  new `sms_status` (sent, failed, refused_cap or not_configured); null when
+ *  the body carries none. */
+export function resendInviteSms(
+  token: string,
+  membershipUserId: string,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  return apiFetch<{ sms_status?: string | null }>(
+    `/api/v1/auth/invite/${encodeURIComponent(membershipUserId)}/resend-sms`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` }, signal },
+  ).then((row) => row.sms_status ?? null);
 }
 
 export function fetchCompanyLeave(token: string, signal?: AbortSignal): Promise<Page<LeaveRow>> {

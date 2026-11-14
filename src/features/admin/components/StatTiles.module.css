@@ -13,6 +13,44 @@
   min-width: 0;
 }
 
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* The coloured corner: a soft disc in the tile's colour family with the
+   family's icon. Colours come from the design-system tokens. */
+.iconChip {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+}
+
+.iconChip[data-tone="primary"] {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.iconChip[data-tone="done"] {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+}
+
+.iconChip[data-tone="scheduled"] {
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+}
+
+.iconChip[data-tone="progress"] {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
 .value {
   margin: 0;
   font-size: var(--font-size-2xl);

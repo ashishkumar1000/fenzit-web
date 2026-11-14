@@ -7,7 +7,10 @@ const MESSAGES_BY_CODE = new Map<string, string>([
   ["FORBIDDEN", "You do not have permission to do this."],
   ["VALIDATION_ERROR", "Check the highlighted fields and try again."],
   ["RESOURCE_NOT_FOUND", "We could not find that. It may have been removed."],
+  // Neutral on purpose: a duplicate on one screen must not say that another
+  // company holds the number. Screen-specific wording belongs at the call site.
   ["DUPLICATE_RESOURCE", "That already exists."],
+  ["ALREADY_IN_TEAM", "That person is already on your team."],
   ["RATE_LIMIT_EXCEEDED", "Too many attempts. Wait a few minutes and try again."],
   ["RATE_LIMITED", "Too many attempts. Wait a few minutes and try again."],
   ["INVALID_OTP", "That code is not right. Check it and try again."],

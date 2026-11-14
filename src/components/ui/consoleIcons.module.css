@@ -1,0 +1,5 @@
+/* The hand-drawn console icons' shared svg base: icons sit on the text
+   baseline's block so stray inline gaps never appear around them. */
+.icon {
+  display: block;
+}

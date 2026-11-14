@@ -28,6 +28,12 @@
   border-color: var(--color-status-scheduled-border);
 }
 
+.badge[data-tone="primary"] {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
 .badge[data-tone="cancelled"] {
   color: var(--color-status-cancelled-fg);
   background: var(--color-status-cancelled-bg);

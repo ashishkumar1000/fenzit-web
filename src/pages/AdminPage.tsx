@@ -159,6 +159,8 @@ export function AdminLayout() {
   const location = useLocation();
   // The inspect page uses the whole width: its import table is wide.
   const wide = location.pathname.startsWith("/admin/inspect");
+  // A trailing slash is the same page, so it gets the same header rule.
+  const ownHeader = PAGES_WITH_OWN_HEADER.has(location.pathname.replace(/\/+$/, ""));
   const navigation = useNavigation();
   const busy = navigation.state !== "idle" || revalidator.state !== "idle";
 
@@ -199,17 +201,30 @@ export function AdminLayout() {
         </div>
       </aside>
       <div className={wide ? styles.contentWide : styles.content}>
-        <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
-          <span className={busy ? styles.progressFillActive : styles.progressFill} />
-        </div>
+        {/* The loading line: always on the plain pages, and on the pages with
+            their own header only while a load runs — there it reads as a
+            loader, never as a static divider. */}
+        {!ownHeader || busy ? (
+          <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
+            <span className={busy ? styles.progressFillActive : styles.progressFill} />
+          </div>
+        ) : null}
         <main className={styles.main}>
-          <h1 className={styles.heading}>{data.name === null ? "Hello" : `Hello, ${data.name}`}</h1>
+          {ownHeader ? null : (
+            <h1 className={styles.heading}>
+              {data.name === null ? "Hello" : `Hello, ${data.name}`}
+            </h1>
+          )}
           <Outlet />
         </main>
       </div>
     </div>
   );
 }
+
+/** The pages that draw their own heading block (breadcrumb, greeting, page
+ *  actions) — the console h1 steps aside for them. */
+const PAGES_WITH_OWN_HEADER = new Set(["/admin/company/employees"]);
 
 /** One plain-English line per section, shown under its name on the landing
  *  index. Keyed by the section's route, the same key the glyphs use. */

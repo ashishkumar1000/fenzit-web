@@ -1,4 +1,4 @@
-export type BadgeTone = "done" | "progress" | "scheduled" | "cancelled" | "neutral";
+export type BadgeTone = "done" | "progress" | "scheduled" | "cancelled" | "neutral" | "primary";
 
 /** Domain status → the design system's fixed status vocabulary. The word
  *  always ships with the colour, never colour alone. */

@@ -1,0 +1,271 @@
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  white-space: nowrap;
+}
+
+.table th:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.table th:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* The sortable headers: the column name with its arrows; the active sort
+   reads in the accent colour. */
+.sortLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.sortLink:hover {
+  color: var(--color-text-strong);
+}
+
+.sortActive .sortLink {
+  color: var(--color-primary);
+}
+
+.sortArrows {
+  font-size: var(--font-size-3xs, 10px);
+  letter-spacing: -0.08em;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-strong);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, transparent);
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.nameText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* The mockup's "You" mark on the signed-in owner's own row. */
+.youPill {
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 1px 8px;
+}
+
+.email {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+  display: grid;
+  place-items: center;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-color);
+}
+
+/* The gradient avatar tile for people without a photo. */
+.avatarTile {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-gradient-start),
+    var(--color-primary-gradient-end)
+  );
+}
+
+.quiet {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* The employee code as a dashed tag, the design's ticket stub. */
+.codeTag {
+  display: inline-block;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* Role pills: owner primary with the crown, employee progress-blue with the person. */
+.rolePill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.rolePill[data-role="violet"] {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.rolePill[data-role="sky"] {
+  color: var(--color-status-progress-fg);
+  background: var(--color-status-progress-bg);
+}
+
+.rolePill[data-role="neutral"] {
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+}
+
+/* Status pills with the leading dot: Active emerald, Invited amber. */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.statusPill[data-status="active"] {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+}
+
+.statusPill[data-status="invited"] {
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.joined {
+  display: grid;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.joinedDay {
+  font-weight: var(--font-weight-medium);
+}
+
+.resendForm {
+  display: inline;
+}
+
+.resendButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-progress-fg);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-3);
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.resendButton:hover {
+  border-color: var(--color-status-progress-solid);
+}
+
+.resendButton:disabled {
+  cursor: default;
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subtle);
+}
+
+.sentMark {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-done-fg);
+}
+
+.resendNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.resendError {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
