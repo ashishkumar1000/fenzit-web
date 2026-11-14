@@ -120,8 +120,10 @@ export function MeJobActivity({
               />
               {rejectedMore && rejectedNext !== null ? (
                 <p className={styles.moreLine}>
+                  {/* The activity period rides along: walking the rejected
+                      history must not reset the report window. */}
                   <Link
-                    to={`/admin/me?rejectedCursor=${encodeURIComponent(rejectedNext)}`}
+                    to={`/admin/me?range=${encodeURIComponent(reportPreset)}&rejectedCursor=${encodeURIComponent(rejectedNext)}`}
                     className={styles.moreLink}
                   >
                     Load older rejections
