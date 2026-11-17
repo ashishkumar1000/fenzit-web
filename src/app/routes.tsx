@@ -224,6 +224,7 @@ export const routes: RouteObject[] = [
               return {
                 Component: page.AdminCustomersPage,
                 loader: loaderModule.adminCustomersLoader,
+                action: loaderModule.adminCustomersAction,
               };
             },
           },

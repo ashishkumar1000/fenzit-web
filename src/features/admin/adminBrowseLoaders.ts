@@ -1,10 +1,12 @@
 import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { clearSession } from "../../services/session";
+import { ApiError } from "../../services/api";
 import { consoleRole, isAuthError, requireConsoleRole } from "./adminLoader";
 import { messageForError } from "../../utils/errorMessages";
 import { loadApprovalQueueState, type QueueState } from "./approvalLoaders";
 import {
-  fetchCustomers,
+  createCustomer,
+  fetchCustomersPage,
   fetchHolidays,
   fetchJobs,
   fetchMembers,
@@ -13,7 +15,9 @@ import {
   inviteMember,
   resendInviteSms,
   updateJobSettings,
-  type CustomerRow,
+  type CustomerBucketFilter,
+  type CustomersPageResult,
+  type CustomersSort,
   type HolidayRow,
   type JobRow,
   type MembersPageResult,
@@ -30,6 +34,7 @@ import {
 } from "../../services/countryCodes";
 
 export type { MembersSort, MembersStatusFilter, MembersRoleFilter, MembersJobSettingFilter };
+export type { CustomersSort, CustomerBucketFilter };
 import { fetchMyPendingJobs } from "./myJobsApi";
 import { fetchMyRejectedJobs, type RejectedJobRow } from "./meApi";
 import {
@@ -59,20 +64,80 @@ function isoToday(): string {
 export type CustomersData =
   | {
       state: "ok";
-      rows: CustomerRow[];
-      nextCursor: string | null;
-      requested: string | null;
+      result: CustomersPageResult;
+      filters: CustomersFilters;
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
+      /** Country choices for the add-customer dialog's phone field. */
+      countries: CountryCode[];
     }
   | BrowseFail;
+
+/** The Customers page's filters, all carried in the URL — the same contract
+ *  as the Employees page: the loader owns the reading and the defaults, so
+ *  every link on the page can build a plain address. */
+export type CustomersFilters = {
+  q: string;
+  bucket: CustomerBucketFilter;
+  sort: CustomersSort;
+  page: number;
+  pageSize: number;
+};
+
+const BUCKET_FILTERS = new Set(["all", "new", "single", "repeat"]);
+const CUSTOMER_SORTS = new Set([
+  "created_new",
+  "created_old",
+  "name_az",
+  "name_za",
+  "recent_activity",
+]);
+const CUSTOMER_PAGE_SIZES_SET = new Set([10, 25, 50]);
+
+/** Reads the address into filters; anything unknown falls back to its
+ *  default, so a hand-edited URL never breaks the page. */
+export function readCustomersFilters(url: URL): CustomersFilters {
+  const params = url.searchParams;
+  const one = (key: string, allowed: Set<string>, fallback: string): string => {
+    const value = params.get(key) ?? "";
+    return allowed.has(value) ? value : fallback;
+  };
+  const page = Number(params.get("page") ?? "1");
+  const pageSize = Number(params.get("pageSize") ?? "10");
+  return {
+    q: (params.get("q") ?? "").trim().slice(0, 80),
+    bucket: one("bucket", BUCKET_FILTERS, "all") as CustomerBucketFilter,
+    sort: one("sort", CUSTOMER_SORTS, "created_new") as CustomersSort,
+    page: Number.isInteger(page) && page >= 1 ? page : 1,
+    pageSize: CUSTOMER_PAGE_SIZES_SET.has(pageSize) ? pageSize : 10,
+  };
+}
+
+/** The page size the table starts on. The rows-per-page select offers the
+ *  sizes the backend accepts (1–100); these three are the sensible ones. */
+export const CUSTOMERS_PAGE_SIZES = [10, 25, 50] as const;
 
 export async function adminCustomersLoader({
   request,
 }: LoaderFunctionArgs): Promise<CustomersData> {
   try {
-    const { token } = await requireConsoleRole(request, ["owner"]);
-    const requested = new URL(request.url).searchParams.get("cursor");
-    const page = await fetchCustomers(token, requested, request.signal);
-    return { state: "ok", rows: page.data, nextCursor: page.nextCursor, requested };
+    const { token, me } = await requireConsoleRole(request, ["owner"]);
+    const filters = readCustomersFilters(new URL(request.url));
+    const [result, countries] = await Promise.all([
+      fetchCustomersPage(
+        token,
+        {
+          page: filters.page,
+          pageSize: filters.pageSize,
+          ...(filters.q !== "" ? { search: filters.q } : {}),
+          ...(filters.bucket !== "all" ? { bucket: filters.bucket } : {}),
+          ...(filters.sort !== "created_new" ? { sort: filters.sort } : {}),
+        },
+        request.signal,
+      ),
+      loadCountries(request),
+    ]);
+    return { state: "ok", result, filters, selfName: me.name, countries };
   } catch (error) {
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {
@@ -81,6 +146,77 @@ export async function adminCustomersLoader({
     }
     if (request.signal.aborted) throw error;
     return { state: "failed" };
+  }
+}
+
+/** One add-customer from the dialog. The backend mints the code, and the row
+ *  appears in the list through the loader's refetch after the action. */
+export type CustomerCreateResult =
+  | { kind: "create"; state: "done"; customerCode: string }
+  | { kind: "create"; state: "error"; message: string };
+
+export type CustomersActionResult = CustomerCreateResult;
+
+/** The Customers page's action: create one customer. A duplicate phone is the
+ *  backend's 409 — the error mapping turns it into plain English. */
+export async function adminCustomersAction({
+  request,
+}: ActionFunctionArgs): Promise<CustomersActionResult> {
+  const form = await request.formData();
+  const intent = form.get("intent");
+  if (intent !== "create") {
+    return {
+      kind: "create",
+      state: "error",
+      message: "That save could not be sent. Try again.",
+    };
+  }
+  const name = typeof form.get("name") === "string" ? (form.get("name") as string).trim() : "";
+  const countryCode =
+    typeof form.get("countryCode") === "string" ? (form.get("countryCode") as string) : "";
+  const phoneNumber =
+    typeof form.get("phoneNumber") === "string"
+      ? (form.get("phoneNumber") as string).replace(/\s+/g, "")
+      : "";
+  const address = typeof form.get("address") === "string" ? (form.get("address") as string).trim() : "";
+  const city = typeof form.get("city") === "string" ? (form.get("city") as string).trim() : "";
+  if (name === "" || !/^\+\d{1,4}$/.test(countryCode) || !/^\d{6,15}$/.test(phoneNumber)) {
+    return {
+      kind: "create",
+      state: "error",
+      message: "Enter a name and a phone number (6–15 digits) to save the customer.",
+    };
+  }
+  try {
+    const { token } = await requireConsoleRole(request, ["owner"]);
+    const result = await createCustomer(
+      token,
+      {
+        name,
+        countryCode,
+        phoneNumber,
+        ...(address !== "" ? { address } : {}),
+        ...(city !== "" ? { city } : {}),
+      },
+      request.signal,
+    );
+    return { kind: "create", state: "done", customerCode: result.customerCode };
+  } catch (error) {
+    // The shared DUPLICATE_RESOURCE line ("That already exists.") says too
+    // little here — a customer's phone IS their identity, so the dialog says
+    // which one clashed. Still branching on the code, never the message.
+    if (error instanceof ApiError && error.errorCode === "DUPLICATE_RESOURCE") {
+      return {
+        kind: "create",
+        state: "error",
+        message: "That phone number is already a customer of your company.",
+      };
+    }
+    return withActionError<CustomerCreateResult>(error, request.signal, (message) => ({
+      kind: "create",
+      state: "error",
+      message,
+    }));
   }
 }
 
@@ -512,7 +648,7 @@ export async function adminEmployeesAction({
         employeeCode: result.employeeCode,
       };
     } catch (error) {
-      return withActionError(error, request.signal, (message) => ({
+      return withActionError<EmployeesActionResult>(error, request.signal, (message) => ({
         kind: "invite",
         state: "error",
         message,
@@ -534,7 +670,7 @@ export async function adminEmployeesAction({
       const smsStatus = await resendInviteSms(token, userId, request.signal);
       return { kind: "resend", state: "done", userId, smsStatus };
     } catch (error) {
-      return withActionError(error, request.signal, (message) => ({
+      return withActionError<EmployeesActionResult>(error, request.signal, (message) => ({
         kind: "resend",
         state: "error",
         userId,
@@ -573,7 +709,7 @@ export async function adminEmployeesAction({
     );
     return { kind: "job-settings", state: "done", userId };
   } catch (error) {
-    return withActionError(error, request.signal, (message) => ({
+    return withActionError<EmployeesActionResult>(error, request.signal, (message) => ({
       kind: "job-settings",
       state: "error",
       userId,
@@ -584,12 +720,13 @@ export async function adminEmployeesAction({
 
 /** The action errors every intent shares: a hard redirect on session loss, a
  *  pass-through on cancel (the request was aborted, so nothing is shown),
- *  plain English otherwise. */
-function withActionError(
+ *  plain English otherwise. Generic over the action's result shape, so each
+ *  action builds its own kind of error result. */
+function withActionError<R>(
   error: unknown,
   signal: AbortSignal,
-  build: (message: string) => EmployeesActionResult,
-): EmployeesActionResult {
+  build: (message: string) => R,
+): R {
   if (error instanceof Response) throw error;
   if (isAuthError(error)) {
     clearSession();

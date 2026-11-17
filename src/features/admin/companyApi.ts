@@ -224,26 +224,99 @@ export function fetchAudit(token: string, signal?: AbortSignal): Promise<AuditRo
 
 /** ── The owner's full-list drill-downs (existing endpoints) ─────────── */
 
+/** ── The console's paged customer list (GET /customers/page) ─────────── */
+
 export interface CustomerRow {
   id: string;
   name: string;
+  /** Display identity CST-001 — minted by the backend, never an authz key. */
+  customerCode: string;
   countryCode: string;
   phoneNumber: string;
   address: string | null;
+  city: string | null;
   jobCount: number;
   lastJobDate: string | null;
 }
 
-export function fetchCustomers(
+/** The whole-company bucket counters the Customers page's stat tiles show.
+ *  The buckets are disjoint over job history, so they sum to `total`; counted
+ *  before any filter, so tiles stay stable while the table narrows. */
+export interface CustomersStats {
+  total: number;
+  new: number;
+  single: number;
+  repeat: number;
+}
+
+export type CustomerBucketFilter = "all" | "new" | "single" | "repeat";
+export type CustomersSort =
+  "created_new" | "created_old" | "name_az" | "name_za" | "recent_activity";
+
+export type CustomersPageQuery = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  bucket?: CustomerBucketFilter;
+  sort?: CustomersSort;
+};
+
+export interface CustomersPageResult {
+  data: CustomerRow[];
+  /** How many rows the current filters keep, across all pages. */
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  stats: CustomersStats;
+}
+
+/** GET /customers/page — the console's paged customer list. The endpoint
+ *  answers one page; `stats` always describes the whole company. */
+export function fetchCustomersPage(
   token: string,
-  cursor: string | null,
+  query: CustomersPageQuery,
   signal?: AbortSignal,
-): Promise<Page<CustomerRow>> {
-  const query = cursor === null ? "?limit=25" : `?limit=25&cursor=${encodeURIComponent(cursor)}`;
-  return apiFetch<Page<CustomerRow>>(`/api/v1/customers${query}`, {
+): Promise<CustomersPageResult> {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    pageSize: String(query.pageSize),
+  });
+  if (query.search) params.set("search", query.search);
+  if (query.bucket && query.bucket !== "all") params.set("filter", query.bucket);
+  if (query.sort && query.sort !== "created_new") params.set("sort", query.sort);
+  return apiFetch<CustomersPageResult>(`/api/v1/customers/page?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
+}
+
+/** POST /customers — creates a customer from the add-customer dialog. The
+ *  response echoes the minted code, so the dialog can show it once. */
+export function createCustomer(
+  token: string,
+  body: {
+    name: string;
+    countryCode: string;
+    phoneNumber: string;
+    address?: string;
+    city?: string;
+  },
+  signal?: AbortSignal,
+): Promise<CustomerResponseEcho> {
+  return apiFetch<CustomerResponseEcho>("/api/v1/customers", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+/** The create response's fields the dialog reads. */
+export interface CustomerResponseEcho {
+  id: string;
+  name: string;
+  customerCode: string;
 }
 
 /** One step of a job's stamped workflow, as the list and detail responses

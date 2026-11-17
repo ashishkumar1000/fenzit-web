@@ -6,6 +6,7 @@ import { employeesUrl } from "../employeesUrl";
 import { CrownIcon, UserIcon, type ConsoleIconProps } from "../../../components/ui/consoleIcons";
 import { humanize } from "../status";
 import { JobSettingsCell } from "./JobSettingsDialog";
+import { Avatar } from "./Avatar";
 import { fmtPhone } from "../format";
 import { resendOutcomeLine } from "../smsOutcome";
 import { Spinner } from "../../../components/ui/Spinner";
@@ -23,25 +24,9 @@ const ROLE_PILL: Record<
 };
 
 /** The person's photo when one is set; otherwise their initials on the
- *  console's gradient tile. */
-function Avatar({ row }: { row: MemberRow }) {
-  const initials = (row.name ?? "?")
-    .split(/\s+/)
-    .filter((part: string) => part.length > 0)
-    .slice(0, 2)
-    .map((part: string) => part.charAt(0).toUpperCase())
-    .join("");
-  return (
-    <span className={styles.avatar}>
-      {row.avatarUrl ? (
-        <img src={row.avatarUrl} alt="" className={styles.avatarImage} />
-      ) : (
-        <span className={`${styles.avatarInitials} ${styles.avatarTile}`} aria-hidden="true">
-          {initials}
-        </span>
-      )}
-    </span>
-  );
+ *  console's gradient tile — the shared Avatar, fed from the member row. */
+function MemberAvatar({ row }: { row: MemberRow }) {
+  return <Avatar name={row.name} imageUrl={row.avatarUrl} />;
 }
 
 /** The Invited row's resend link: posts intent=resend, then says what
@@ -198,7 +183,7 @@ export function MembersTable({
             <tr key={m.userId}>
               <td>
                 <div className={styles.nameCell}>
-                  <Avatar row={m} />
+                  <MemberAvatar row={m} />
                   <div className={styles.nameText}>
                     <span className={styles.nameRow}>
                       <span className={styles.name}>{m.name ?? "(no name)"}</span>

@@ -1,9 +1,157 @@
+/* The Employees page in the console design: a top bar, a greeting block,
+   the four tiles, then the team card. Colours come from the design-system
+   tokens (src/styles/tokens.css); type, spacing and radius from the base tokens.
+   The filter bar, pager, export and invite dialog have their own modules. */
+
+/* ── Top bar ─────────────────────────────────────────────── */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.crumbRoot {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbRoot:hover {
+  color: var(--color-text-strong);
+}
+
+.crumbSep {
+  color: var(--color-text-disabled);
+}
+
+.crumbHere {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+/* ── Greeting block ──────────────────────────────────────── */
+
+.pageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  /* No margin: the console main grid already gaps the page's sections. */
+}
+
+.heading {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.02em;
+}
+
+.rolePill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+}
+
+.rolePillIcon {
+  flex: 0 0 auto;
+}
+
+.lede {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ── The team card ───────────────────────────────────────── */
+
+.card {
+  margin-top: var(--space-5);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-strong) 6%, transparent);
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* The filter strip's layout: chips on the left, controls on the right. */
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-5) 0;
+}
+
+.tableFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.showing {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
 .failed {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-danger);
 }
 
-.more {
-  display: flex;
+@media (max-width: 700px) {
+  .card {
+    padding: var(--space-4);
+  }
 }

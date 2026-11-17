@@ -1,0 +1,176 @@
+/* The customers table — same design language as the team table. */
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  white-space: nowrap;
+}
+
+.table th:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.table th:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* The sortable headers: the column name with its arrows; the active sort
+   reads in the accent colour. */
+.sortLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.sortLink:hover {
+  color: var(--color-text-strong);
+}
+
+.sortActive .sortLink {
+  color: var(--color-primary);
+}
+
+.sortArrows {
+  font-size: var(--font-size-3xs, 10px);
+  letter-spacing: -0.08em;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-strong);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, transparent);
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.nameText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* The customer code as a dashed tag, the design's ticket stub — the mockup
+   shows it as the caption under the name. */
+.codeTag {
+  justify-self: start;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+/* The repeat-customer badge — violet, the console's high-value tone. */
+.vipPill {
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-status-violet-bg) 70%, transparent);
+  color: var(--color-status-violet-fg);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+/* Phone with its one-tap copy: the label is a quiet verb that swaps to
+   "Copied" for a beat after the click. */
+.phoneWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.copyButton {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  padding: 1px 8px;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  color: var(--color-primary);
+  border-color: var(--color-border-strong);
+}
+
+.quiet {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* The job count as a pill — gray for no jobs yet, accent when the customer
+   has reached the VIP band. */
+.jobsChip {
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 9px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.jobsChip[data-hot] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* The activity stamp: the day carries it, the time sits under it. */
+.activity {
+  display: grid;
+  gap: 1px;
+}
+
+.activityDay {
+  white-space: nowrap;
+}
+
+.activityTime {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}

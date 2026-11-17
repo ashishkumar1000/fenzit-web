@@ -1,0 +1,39 @@
+/* The Employees "Invite employee" control and its saved block. The dialog
+   chrome itself comes from the shared JobSettingsDialog module. */
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-gradient-start),
+    var(--color-primary-gradient-end)
+  );
+  color: var(--color-text-on-color);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2) var(--space-4);
+  min-height: 38px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+/* A deeper shadow on hover gives the control feedback without changing its fill. */
+.addButton:hover {
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.addButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.savedBlock {
+  display: grid;
+  gap: var(--space-1);
+}
