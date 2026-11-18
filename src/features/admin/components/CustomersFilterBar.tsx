@@ -11,16 +11,13 @@ import styles from "./CustomersFilterBar.module.css";
  *  set, and always back to page 1. */
 export function ClearAllButton({ filters }: { filters: CustomersFilters }) {
   const navigate = useNavigate();
-  const dirty =
-    filters.q !== "" || filters.bucket !== "all" || filters.sort !== "created_new";
+  const dirty = filters.q !== "" || filters.bucket !== "all" || filters.sort !== "created_new";
   if (!dirty) return null;
   return (
     <button
       type="button"
       className={styles.clearAll}
-      onClick={() =>
-        navigate(customersUrl(filters, { q: "", bucket: "all", sort: "created_new" }))
-      }
+      onClick={() => navigate(customersUrl(filters, { q: "", bucket: "all", sort: "created_new" }))}
     >
       Clear all
     </button>

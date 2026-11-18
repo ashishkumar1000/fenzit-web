@@ -178,7 +178,8 @@ export async function adminCustomersAction({
     typeof form.get("phoneNumber") === "string"
       ? (form.get("phoneNumber") as string).replace(/\s+/g, "")
       : "";
-  const address = typeof form.get("address") === "string" ? (form.get("address") as string).trim() : "";
+  const address =
+    typeof form.get("address") === "string" ? (form.get("address") as string).trim() : "";
   const city = typeof form.get("city") === "string" ? (form.get("city") as string).trim() : "";
   if (name === "" || !/^\+\d{1,4}$/.test(countryCode) || !/^\d{6,15}$/.test(phoneNumber)) {
     return {
@@ -722,11 +723,7 @@ export async function adminEmployeesAction({
  *  pass-through on cancel (the request was aborted, so nothing is shown),
  *  plain English otherwise. Generic over the action's result shape, so each
  *  action builds its own kind of error result. */
-function withActionError<R>(
-  error: unknown,
-  signal: AbortSignal,
-  build: (message: string) => R,
-): R {
+function withActionError<R>(error: unknown, signal: AbortSignal, build: (message: string) => R): R {
   if (error instanceof Response) throw error;
   if (isAuthError(error)) {
     clearSession();

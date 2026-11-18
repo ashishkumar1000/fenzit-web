@@ -10,29 +10,26 @@ import styles from "./CustomersTable.module.css";
 /** A repeat customer — the design's VIP badge sits beside their name. */
 const VIP_JOBS = 10;
 
-/** Each sortable column's ascending and descending sorts. Added reads
- *  oldest-first as ascending, so newest-first (the default) is descending;
- *  "recent activity" is the descending arm of the activity pair. */
-const SORT_ORDER: Record<"name" | "activity", { asc: CustomersSort; desc: CustomersSort }> = {
-  name: { asc: "name_az", desc: "name_za" },
-  activity: { asc: "created_new", desc: "recent_activity" },
+/** The next sort when a header is clicked. Name is a true two-direction
+ *  pair (A→Z, Z→A). Activity has only one direction on the backend — most
+ *  recent job first — so its click turns that sort on, then off again,
+ *  back to the page's default order. */
+const NEXT_SORT: Record<"name" | "activity", (sort: CustomersSort) => CustomersSort> = {
+  name: (sort) => (sort === "name_az" ? "name_za" : "name_az"),
+  activity: (sort) => (sort === "recent_activity" ? "created_new" : "recent_activity"),
 };
 
 /** One sortable column header: the column name, then the toggle. The active
  *  sort reads in the accent colour; the <th> carries aria-sort. */
 function SortHeader({
   label,
-  column,
-  sort,
+  next,
   filters,
 }: {
   label: string;
-  column: "name" | "activity";
-  sort: CustomersSort;
+  next: CustomersSort;
   filters: CustomersFilters;
 }) {
-  const { asc, desc } = SORT_ORDER[column];
-  const next = sort === asc ? desc : asc;
   return (
     <Link to={customersUrl(filters, { sort: next })} className={styles.sortLink}>
       {label}
@@ -44,11 +41,16 @@ function SortHeader({
 }
 
 /** The aria-sort value for a sortable column: the direction when it is the
- *  active sort, "none" otherwise. Newest-first counts as descending. */
+ *  active sort, "none" otherwise. Newest-first counts as descending, and
+ *  the default order (newest added) sorts no visible column, so no header
+ *  claims it. */
 function sortStateFor(column: "name" | "activity", sort: CustomersSort) {
-  const { asc, desc } = SORT_ORDER[column];
-  if (sort === asc) return "ascending" as const;
-  if (sort === desc) return "descending" as const;
+  if (column === "name") {
+    if (sort === "name_az") return "ascending" as const;
+    if (sort === "name_za") return "descending" as const;
+  } else if (sort === "recent_activity") {
+    return "descending" as const;
+  }
   return "none" as const;
 }
 
@@ -65,8 +67,10 @@ function CopyPhone({ countryCode, phoneNumber }: { countryCode: string; phoneNum
         className={styles.copyButton}
         aria-label={`Copy phone number ${full}`}
         onClick={() => {
+          // A non-secure origin (LAN testing) exposes no clipboard API — the
+          // click must never throw, so it quietly does nothing there.
           navigator.clipboard
-            .writeText(full)
+            ?.writeText(full)
             .then(() => {
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
@@ -101,9 +105,7 @@ function ActivityCell({ at }: { at: string | null }) {
   return (
     <div className={styles.activity}>
       <span className={styles.activityDay}>{invalid ? at : ACTIVITY_DAY.format(when)}</span>
-      {!invalid ? (
-        <span className={styles.activityTime}>{ACTIVITY_TIME.format(when)}</span>
-      ) : null}
+      {!invalid ? <span className={styles.activityTime}>{ACTIVITY_TIME.format(when)}</span> : null}
     </div>
   );
 }
@@ -131,7 +133,7 @@ export function CustomersTable({
             aria-sort={sortStateFor("name", sort)}
             className={sort === "name_az" || sort === "name_za" ? styles.sortActive : undefined}
           >
-            <SortHeader label="Customer name" column="name" sort={sort} filters={filters} />
+            <SortHeader label="Customer name" next={NEXT_SORT.name(sort)} filters={filters} />
           </th>
           <th scope="col">Phone</th>
           <th scope="col">Address</th>
@@ -139,11 +141,13 @@ export function CustomersTable({
           <th
             scope="col"
             aria-sort={sortStateFor("activity", sort)}
-            className={
-              sort === "recent_activity" || sort === "created_new" ? styles.sortActive : undefined
-            }
+            className={sort === "recent_activity" ? styles.sortActive : undefined}
           >
-            <SortHeader label="Last job activity" column="activity" sort={sort} filters={filters} />
+            <SortHeader
+              label="Last job activity"
+              next={NEXT_SORT.activity(sort)}
+              filters={filters}
+            />
           </th>
         </tr>
       </thead>
@@ -156,9 +160,7 @@ export function CustomersTable({
                 <div className={styles.nameText}>
                   <span className={styles.nameRow}>
                     <span className={styles.name}>{c.name}</span>
-                    {c.jobCount >= VIP_JOBS ? (
-                      <span className={styles.vipPill}>VIP</span>
-                    ) : null}
+                    {c.jobCount >= VIP_JOBS ? <span className={styles.vipPill}>VIP</span> : null}
                   </span>
                   <span className={styles.codeTag}>{c.customerCode}</span>
                 </div>
@@ -167,9 +169,7 @@ export function CustomersTable({
             <td>
               <CopyPhone countryCode={c.countryCode} phoneNumber={c.phoneNumber} />
             </td>
-            <td className={styles.quiet}>
-              {c.address ?? "—"}
-            </td>
+            <td className={styles.quiet}>{c.address ?? "—"}</td>
             <td>
               <span className={styles.jobsChip} data-hot={c.jobCount >= VIP_JOBS || undefined}>
                 {c.jobCount} {c.jobCount === 1 ? "job" : "jobs"}

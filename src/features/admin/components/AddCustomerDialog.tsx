@@ -71,9 +71,7 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
   const saved =
     fetcher.data?.kind === "create" && fetcher.data.state === "done" ? fetcher.data : null;
   const error =
-    fetcher.data?.kind === "create" && fetcher.data.state === "error"
-      ? fetcher.data.message
-      : null;
+    fetcher.data?.kind === "create" && fetcher.data.state === "error" ? fetcher.data.message : null;
   return (
     <>
       {saved ? (
@@ -83,9 +81,10 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
           </h3>
           <div className={styles.savedBlock} role="status">
             <p className={dialogStyles.savedMark}>Customer saved.</p>
-            <p className={dialogStyles.dialogHint}>
-              Their customer code is {saved.customerCode}. They appear in the list below.
-            </p>
+            {/* Only the code is promised: active bucket/search filters can
+                hide a brand-new customer (0 jobs never shows under Repeat),
+                so the message must not claim the list shows them. */}
+            <p className={dialogStyles.dialogHint}>Their customer code is {saved.customerCode}.</p>
           </div>
           <div className={dialogStyles.dialogActions}>
             <button type="button" className={dialogStyles.saveButton} onClick={close}>

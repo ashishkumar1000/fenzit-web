@@ -224,10 +224,7 @@ export function AdminLayout() {
 
 /** The pages that draw their own heading block (breadcrumb, greeting, page
  *  actions) — the console h1 steps aside for them. */
-const PAGES_WITH_OWN_HEADER = new Set([
-  "/admin/company/employees",
-  "/admin/company/customers",
-]);
+const PAGES_WITH_OWN_HEADER = new Set(["/admin/company/employees", "/admin/company/customers"]);
 
 /** One plain-English line per section, shown under its name on the landing
  *  index. Keyed by the section's route, the same key the glyphs use. */

@@ -103,8 +103,7 @@ export function AdminCustomersPage() {
             </span>
           </h1>
           <p className={styles.lede}>
-            Your customer book — contacts, addresses and the jobs booked for them, all in one
-            place.
+            Your customer book — contacts, addresses and the jobs booked for them, all in one place.
           </p>
         </div>
         <div className={styles.pageActions}>
