@@ -57,10 +57,6 @@ import { settle, type Slice } from "./slice";
 
 export type BrowseFail = { state: "failed" };
 
-function isoToday(): string {
-  return new Date().toLocaleDateString("en-CA");
-}
-
 export type CustomersData =
   | {
       state: "ok";
@@ -779,7 +775,10 @@ export async function adminAttendanceLoader({
       const history = await settle(() => fetchReportHistory(token, request.signal));
       return { state: "ok", tab, history };
     }
-    const to = isoToday();
+    // The window runs on IST days — the house istToday (a plain en-CA
+    // locale date follows the MACHINE's timezone, so between 00:00 and
+    // 05:30 IST it hands the attendance page yesterday).
+    const to = istToday();
     const from = `${to.slice(0, 7)}-01`;
     const month = await fetchMonthly(token, from, to, request.signal);
     return {

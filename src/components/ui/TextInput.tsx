@@ -4,12 +4,14 @@ import styles from "./TextInput.module.css";
 
 type TextInputProps = {
   id: string;
-  name: string;
+  /** Only needed when the field posts inside a form; controlled fields that
+   *  submit programmatically may omit it. */
+  name?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "password" | "email" | "tel" | "url" | "search";
-  inputMode?: "text" | "tel" | "numeric" | "email";
+  type?: "text" | "password" | "email" | "tel" | "url" | "search" | "date" | "month";
+  inputMode?: "text" | "tel" | "numeric" | "email" | "decimal";
   autoComplete?: string;
   placeholder?: string;
   /** Content drawn inside the field before the text, such as a country code choice. */

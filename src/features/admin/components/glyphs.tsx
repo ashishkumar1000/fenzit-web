@@ -102,6 +102,19 @@ export function GlyphHolidays({ size = 20 }: GlyphProps) {
   );
 }
 
+/** A rupee note with the ₹ mark — the Payroll section. */
+export function GlyphPayroll({ size = 20 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M10.2 9.2v6" />
+      <path d="M8.6 9.2h5.4M9.1 11.6h4.3" />
+      <path d="M10.2 12.4l3.6 2.8" />
+      <path d="M6 12h.01M18 12h.01" />
+    </svg>
+  );
+}
+
 /** A clock with a pulse tail — the Attendance section. */
 export function GlyphAttendance({ size = 20 }: GlyphProps) {
   return (

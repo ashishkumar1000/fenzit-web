@@ -1,0 +1,79 @@
+/* The Components tab: one card with the library table and its add control.
+   Dialog chrome is shared with JobSettingsDialog.module.css. */
+
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.panelLede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.addButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.addButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.editButton {
+  border: none;
+  background: none;
+  color: var(--color-text-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
+
+.editButton:hover {
+  text-decoration: underline;
+}
+
+.componentRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.basicPill {
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}

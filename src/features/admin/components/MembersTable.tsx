@@ -6,6 +6,7 @@ import { employeesUrl } from "../employeesUrl";
 import { CrownIcon, UserIcon, type ConsoleIconProps } from "../../../components/ui/consoleIcons";
 import { humanize } from "../status";
 import { JobSettingsCell } from "./JobSettingsDialog";
+import { EmploymentCell } from "./payroll/EmploymentDialog";
 import { Avatar } from "./Avatar";
 import { fmtPhone } from "../format";
 import { resendOutcomeLine } from "../smsOutcome";
@@ -125,8 +126,9 @@ function JoinedCell({ row }: { row: MemberRow }) {
 /**
  * The team table: the person (gradient tile, name, "You", email), their
  * contact, the owner's job-settings column (resend link for invited rows,
- * chip for active employees) and sortable Name / Code / Joined columns.
- * The page owns paging and filters; sorting rides the same URL params.
+ * chip for active employees), the employment dialog's cell (payroll's
+ * PAN/DOB/bank form) and sortable Name / Code / Joined columns. The page
+ * owns paging and filters; sorting rides the same URL params.
  */
 export function MembersTable({
   rows,
@@ -161,6 +163,7 @@ export function MembersTable({
           <th scope="col">Role</th>
           <th scope="col">Status</th>
           <th scope="col">Job settings</th>
+          <th scope="col">Employment</th>
           <th
             scope="col"
             aria-sort={sortStateFor("joined", sort)}
@@ -214,6 +217,13 @@ export function MembersTable({
                   <ResendCell row={m} />
                 ) : m.role === "employee" ? (
                   <JobSettingsCell key={m.userId} row={m} />
+                ) : (
+                  <span className={styles.quiet}>—</span>
+                )}
+              </td>
+              <td>
+                {m.status === "active" && m.role === "employee" ? (
+                  <EmploymentCell userId={m.userId} name={m.name} />
                 ) : (
                   <span className={styles.quiet}>—</span>
                 )}

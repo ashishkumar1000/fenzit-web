@@ -243,6 +243,37 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            // The employment dialog's resource route: loader for the open
+            // read, action for the save, no page of its own. It carries one
+            // member's PAN/DOB/bank, so the owner gate sits inside both.
+            path: "company/employees/employment",
+            lazy: async () => {
+              const module = await import("../features/admin/payrollLoaders");
+              return {
+                loader: module.payrollEmploymentLoader,
+                action: module.payrollEmploymentAction,
+              };
+            },
+          },
+          {
+            // Payroll configuration — components, structures, deductions,
+            // statutory switches, calendar. Owner only, tabs like the jobs
+            // page.
+            path: "company/payroll",
+            lazy: async () => {
+              const [page, loaderModule, actionModule] = await Promise.all([
+                import("../pages/AdminPayrollPage"),
+                import("../features/admin/payrollLoaders"),
+                import("../features/admin/payrollAction"),
+              ]);
+              return {
+                Component: page.AdminPayrollPage,
+                loader: loaderModule.adminPayrollLoader,
+                action: actionModule.adminPayrollAction,
+              };
+            },
+          },
+          {
             path: "company/jobs",
             action: adminJobsAction,
             lazy: async () => {

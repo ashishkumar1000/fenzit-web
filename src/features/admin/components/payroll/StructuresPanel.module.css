@@ -1,0 +1,134 @@
+/* The Structures tab: a picker card and the revision list. The editor card
+   that slides in beneath lives in StructureEditor.module.css. */
+
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
+.panelLede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.pickerRow {
+  max-width: 420px;
+}
+
+.addButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.addButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.editButton {
+  border: none;
+  background: none;
+  color: var(--color-text-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
+
+.editButton:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.revisions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.revision {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.revisionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.revisionDate {
+  color: var(--color-text-strong);
+}
+
+.linesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.linesTable th {
+  text-align: left;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.linesTable td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-body);
+}
+
+.computedCell {
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+}

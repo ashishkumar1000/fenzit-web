@@ -1,0 +1,172 @@
+/* The structure editor card: dated revision, one line per component, the
+   builder controls, and the save row. Shared card/button vocabulary with
+   the Structures panel's own css. */
+
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.panelLede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.savedMark {
+  margin: 0;
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.editorGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lineList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lineRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.lineName {
+  min-width: 140px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.lineControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.modeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+}
+
+.formulaControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.formulaWord {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ofSelect,
+.adjustSelect {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+}
+
+.pinnedNote {
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+}
+
+.removeButton {
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
+
+.addRow {
+  display: flex;
+}
+
+.addRow .ofSelect {
+  max-width: 320px;
+}
+
+.editorActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.editorActions .hint {
+  margin: 0;
+}
+
+.saveForm {
+  display: inline-flex;
+}
+
+.quietButton {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+}
+
+.saveButton {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.errorLine {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}

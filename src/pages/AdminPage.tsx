@@ -30,6 +30,7 @@ import {
   GlyphInspect,
   GlyphJobs,
   GlyphMe,
+  GlyphPayroll,
   GlyphShield,
 } from "../features/admin/components/glyphs";
 import logo from "../assets/brand/logo.png";
@@ -66,6 +67,7 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company": GlyphCompany,
   "/admin/company/customers": GlyphCustomers,
   "/admin/company/employees": GlyphMe,
+  "/admin/company/payroll": GlyphPayroll,
   "/admin/company/jobs": GlyphJobs,
   "/admin/company/holidays": GlyphHolidays,
   "/admin/company/attendance": GlyphAttendance,
@@ -224,7 +226,11 @@ export function AdminLayout() {
 
 /** The pages that draw their own heading block (breadcrumb, greeting, page
  *  actions) — the console h1 steps aside for them. */
-const PAGES_WITH_OWN_HEADER = new Set(["/admin/company/employees", "/admin/company/customers"]);
+const PAGES_WITH_OWN_HEADER = new Set([
+  "/admin/company/employees",
+  "/admin/company/customers",
+  "/admin/company/payroll",
+]);
 
 /** One plain-English line per section, shown under its name on the landing
  *  index. Keyed by the section's route, the same key the glyphs use. */
@@ -237,6 +243,7 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/company": "Today's team pulse and your recent activity.",
   "/admin/company/customers": "The people you serve, and the jobs booked for them.",
   "/admin/company/employees": "Your team, their details and their offices.",
+  "/admin/company/payroll": "Salary structures, deductions and the statutory switches.",
   "/admin/company/jobs": "Create jobs, assign them and follow them to the finish.",
   "/admin/company/holidays": "The days your team is off.",
   "/admin/company/attendance": "Who checked in, where and when.",

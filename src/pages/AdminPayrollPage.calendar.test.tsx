@@ -1,0 +1,100 @@
+import { describe, expect, it } from "bun:test";
+import { fireEvent, screen } from "@testing-library/react";
+import {
+  lastSent,
+  payroll,
+  renderPayrollAt,
+  setUpPayrollPageTests,
+} from "../testing/payrollPageKit";
+
+setUpPayrollPageTests();
+
+describe("Payroll: the calendar tab", () => {
+  it("names the defaults while no rows exist", async () => {
+    renderPayrollAt("/admin/company/payroll?tab=calendar");
+    await screen.findByText(/months run on the defaults/);
+    expect(screen.getByText(/fixed 26 divisor/)).toBeTruthy();
+  });
+
+  it("saves a row sending only the filled fields — absent fields mean default", async () => {
+    renderPayrollAt("/admin/company/payroll?tab=calendar");
+    await screen.findByText("Save calendar row");
+    fireEvent.change(screen.getByLabelText("Applies from"), { target: { value: "2026-12-01" } });
+    fireEvent.change(screen.getByLabelText("Attendance cut-off day"), { target: { value: "22" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save calendar row" }));
+    await screen.findByText("Calendar row saved.");
+    const sent = lastSent("/payroll/calendar", "PUT");
+    expect(sent.body).toEqual({ effectiveFrom: "2026-12-01", cutoffDay: 22 });
+    const body = sent.body as Record<string, unknown>;
+    expect(body.divisorConvention).toBeUndefined();
+    expect(body.payDate).toBeUndefined();
+  });
+
+  it("shows the BE's February refusal verbatim", async () => {
+    payroll.refusals = {
+      "PUT /payroll/calendar": {
+        status: 422,
+        body: {
+          error_code: "VALIDATION_ERROR",
+          message:
+            "The cut-off day must fall between 1 and 28 — February never has a 29th to cut off.",
+        },
+      },
+    };
+    renderPayrollAt("/admin/company/payroll?tab=calendar");
+    await screen.findByText("Save calendar row");
+    fireEvent.change(screen.getByLabelText("Applies from"), { target: { value: "2026-12-01" } });
+    fireEvent.change(screen.getByLabelText("Attendance cut-off day"), { target: { value: "29" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save calendar row" }));
+    await screen.findByText(/February never has a 29th/);
+    expect(screen.getByRole("alert")).toBeTruthy();
+  });
+
+  it("lists the saved rows with their policy", async () => {
+    payroll.calendar = [
+      {
+        effectiveFrom: "2026-10-01",
+        divisorConvention: "fixed-30",
+        cutoffDay: 25,
+        payDate: 1,
+        createdAt: "2026-01-01T00:00:00Z",
+        updatedAt: "2026-01-01T00:00:00Z",
+      },
+    ];
+    renderPayrollAt("/admin/company/payroll?tab=calendar");
+    await screen.findByText("From");
+    expect(screen.getAllByText("Fixed 30 days").length).toBeGreaterThan(0);
+    expect(screen.getByText("Cut-off 25")).toBeTruthy();
+    expect(screen.getByText("Pay on 1")).toBeTruthy();
+  });
+
+  it("probes a month and shows what governs it and why it cannot run", async () => {
+    payroll.monthStatus = {
+      month: "2026-10",
+      divisorConvention: "fixed-26",
+      cutoffDay: 25,
+      payDate: 1,
+      effectiveFrom: null,
+      locked: false,
+      firstPayrollMonth: "2026-09",
+      notRunnableReason: "Attendance runs to October 25 — ask again after the cut-off.",
+    };
+    renderPayrollAt("/admin/company/payroll?tab=calendar&month=2026-10");
+    await screen.findByText("Governed by");
+    expect(screen.getByText("The defaults")).toBeTruthy();
+    expect(screen.getByText("2026-09")).toBeTruthy();
+    expect(
+      screen.getByText("Attendance runs to October 25 — ask again after the cut-off."),
+    ).toBeTruthy();
+  });
+
+  it("saves the state rules flag", async () => {
+    renderPayrollAt("/admin/company/payroll?tab=calendar");
+    await screen.findByText("State rules");
+    fireEvent.click(screen.getByLabelText(/The state has notified its rules/));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await screen.findByText("Saved.");
+    const sent = lastSent("/payroll/state-rules", "PUT");
+    expect(sent.body).toEqual({ notified: true });
+  });
+});
