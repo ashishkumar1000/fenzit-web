@@ -1,0 +1,70 @@
+/* The month's off-cycle lines, read-only: one card with a dense table. */
+
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.panelLede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.linesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.linesTable th {
+  text-align: left;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.linesTable td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-body);
+}
+
+.amountCell {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-strong);
+}
+
+.statePill {
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.statePill[data-staged="true"] {
+  background: var(--color-status-scheduled-bg, var(--color-surface-sunken));
+  color: var(--color-status-scheduled-fg, var(--color-text-muted));
+}
+
+.statePill[data-staged="false"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}

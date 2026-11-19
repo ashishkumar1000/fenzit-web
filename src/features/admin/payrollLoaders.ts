@@ -31,6 +31,7 @@ import type {
   SalaryStructureView,
   TdsConfigView,
 } from "./payrollViews";
+import { loadRunsTab, loadAuditTab, type PayrollRunTabData } from "./payrollRunLoaders";
 
 /**
  * Loaders for the payroll page and the employment resource route. The page
@@ -41,7 +42,8 @@ import type {
  * an action to save through, no page of its own.
  */
 
-export type PayrollTab = "components" | "structures" | "deductions" | "statutory" | "calendar";
+export type PayrollTab =
+  "components" | "structures" | "deductions" | "statutory" | "calendar" | "runs" | "audit";
 
 const TABS = new Set<PayrollTab>([
   "components",
@@ -49,6 +51,8 @@ const TABS = new Set<PayrollTab>([
   "deductions",
   "statutory",
   "calendar",
+  "runs",
+  "audit",
 ]);
 
 /** The address's tab — the first tab when the address is bare. */
@@ -61,6 +65,7 @@ const MONTH_SHAPE = /^\d{4}-(?:0[1-9]|1[0-2])$/;
 
 export type PayrollData =
   | { state: "failed"; tab: PayrollTab }
+  | PayrollRunTabData
   | {
       state: "ok";
       tab: "components";
@@ -108,6 +113,9 @@ export async function adminPayrollLoader({ request }: LoaderFunctionArgs): Promi
   const tab = readPayrollTab(url);
   try {
     const { token } = await requireConsoleRole(request, ["owner"]);
+    // The run tabs' data lives in its own module — same loader, one dispatch.
+    if (tab === "runs") return await loadRunsTab(request, token, tab);
+    if (tab === "audit") return await loadAuditTab(request, token, tab);
     switch (tab) {
       case "components": {
         return {

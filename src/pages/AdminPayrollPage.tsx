@@ -7,13 +7,15 @@ import { StructuresPanel } from "../features/admin/components/payroll/Structures
 import { DeductionsPanel } from "../features/admin/components/payroll/DeductionsPanel";
 import { StatutoryPanel } from "../features/admin/components/payroll/StatutoryPanel";
 import { CalendarPanel } from "../features/admin/components/payroll/CalendarPanel";
+import { RunsPanel } from "../features/admin/components/payroll/RunsPanel";
+import { AuditPanel } from "../features/admin/components/payroll/AuditPanel";
 import styles from "./AdminPayrollPage.module.css";
 
 /**
- * The payroll configuration page: five tabs, one per concern — the jobs
- * page's idiom, where the URL's `?tab=` picks the section and the loader
- * fetches only what the section shows. Configuration only: runs, locks and
- * off-cycle lines live in the run story's own surfaces.
+ * The payroll page: seven tabs, one per concern — the jobs page's idiom,
+ * where the URL's `?tab=` picks the section and the loader fetches only
+ * what the section shows. Components/Structures/Deductions/Statutory/
+ * Calendar configure payroll; Runs and Audit are its day-two record.
  */
 
 const TAB_LIST = [
@@ -22,6 +24,8 @@ const TAB_LIST = [
   { value: "deductions", label: "Deductions" },
   { value: "statutory", label: "Statutory" },
   { value: "calendar", label: "Calendar" },
+  { value: "runs", label: "Runs" },
+  { value: "audit", label: "Audit" },
 ];
 
 export function AdminPayrollPage() {
@@ -83,6 +87,19 @@ export function AdminPayrollPage() {
           stateRules={data.stateRules}
         />
       ) : null}
+      {data.tab === "runs" ? (
+        <RunsPanel
+          month={data.month}
+          monthStatus={data.monthStatus}
+          run={data.run}
+          runStale={data.runStale}
+          history={data.history}
+          lock={data.lock}
+          offCycleLines={data.offCycleLines}
+          members={data.members}
+        />
+      ) : null}
+      {data.tab === "audit" ? <AuditPanel entries={data.entries} members={data.members} /> : null}
     </>
   );
 }

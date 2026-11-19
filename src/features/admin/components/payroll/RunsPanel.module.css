@@ -1,0 +1,260 @@
+/* The Runs tab: month card, run card, summary, lock card, off-cycle lines,
+   history. Dialog chrome is shared with JobSettingsDialog.module.css. */
+
+.stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
+.failedCopy {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.panelLede {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.monthHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.calendarLink,
+.monthLink {
+  color: var(--color-text-link);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.calendarLink:hover,
+.monthLink:hover {
+  text-decoration: underline;
+}
+
+.policyFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.policyFacts div {
+  display: grid;
+  gap: 2px;
+}
+
+.policyFacts dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.policyFacts dd {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-sm);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lockedLine {
+  margin: 0;
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.errorLine {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.saveForm {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.saveButton {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inFlight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.probeButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.probeButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusPill[data-status="completed"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.statusPill[data-status="failed"] {
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+}
+
+.statusPill[data-status="queued"],
+.statusPill[data-status="running"] {
+  background: var(--color-status-progress-bg);
+  color: var(--color-status-progress-fg);
+}
+
+.listBlock {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.listTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.lineItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lineItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+}
+
+.itemName {
+  color: var(--color-text-strong);
+}
+
+.itemDetail {
+  color: var(--color-text-body);
+}
+
+.skipPill {
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--palette-gray-100, var(--color-surface-sunken));
+  color: var(--color-text-muted);
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.historyTable th {
+  text-align: left;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.historyTable td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-body);
+}
+
+.quietCell {
+  color: var(--color-text-muted);
+}

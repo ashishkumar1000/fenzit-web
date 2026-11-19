@@ -1,4 +1,5 @@
 import { redirect, type ActionFunctionArgs } from "react-router";
+import { adminPayrollRunAction, isRunIntent } from "./payrollRunAction";
 import { ApiError } from "../../services/api";
 import { clearSession } from "../../services/session";
 import { messageForError } from "../../utils/errorMessages";
@@ -70,7 +71,7 @@ export function beActionError(error: unknown): string {
 /** The shared catch shape (the employees action's withActionError, pointing
  *  at the payroll copy): session loss redirects, aborts stay quiet, anything
  *  else becomes the caller's error result. */
-function withPayrollError<R>(
+export function withPayrollError<R>(
   error: unknown,
   signal: AbortSignal,
   build: (message: string) => R,
@@ -99,11 +100,16 @@ const flag = (form: FormData, key: string): boolean | null => {
 
 const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
-export async function adminPayrollAction({
-  request,
-}: ActionFunctionArgs): Promise<PayrollActionResult> {
+export async function adminPayrollAction(
+  args: ActionFunctionArgs,
+): Promise<PayrollActionResult | ReturnType<typeof adminPayrollRunAction>> {
+  const { request } = args;
   const form = await request.formData();
   const intent = text(form, "intent");
+  // The runs/lock/override intents live in their own module — same route
+  // action, one dispatch. The parsed form rides along: a Request's form
+  // body is single-use, so the run action must not read it again.
+  if (isRunIntent(intent)) return adminPayrollRunAction(args, form);
   try {
     const { token } = await requireConsoleRole(request, ["owner"]);
     switch (intent) {

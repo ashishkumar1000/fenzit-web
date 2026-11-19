@@ -1,0 +1,44 @@
+/* The statutory override control: a quiet card action + a dialog wider
+   than the shared 420px box (the picker needs room). Chrome is shared
+   with JobSettingsDialog.module.css. */
+
+.wideDialog {
+  max-width: 560px;
+}
+
+.controlButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.controlButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pickerRow {
+  max-width: 420px;
+}
+
+.fieldLabel {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.select {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+}

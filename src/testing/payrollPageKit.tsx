@@ -26,6 +26,12 @@ import type {
   SalaryStructureView,
   TdsConfigView,
 } from "../features/admin/payrollViews";
+import type {
+  AuditEntryView,
+  LockView,
+  OffCycleLineView,
+  PayrollRunView,
+} from "../features/admin/payrollRunApi";
 
 /**
  * Fixtures and the honest fake for the payroll page tests. Reads answer
@@ -101,6 +107,22 @@ const TDS: TdsConfigView = {
 
 const EPOCH = "1970-01-01T00:00:00.000Z";
 
+/** A fresh company's month status: no calendar row yet, nobody with a
+ *  joining date — the BE's real shape for an unconfigured month. */
+function defaultMonthStatus(): PayrollMonthStatusView {
+  return {
+    month: "2026-11",
+    divisorConvention: "fixed-26",
+    cutoffDay: 25,
+    payDate: 1,
+    effectiveFrom: null,
+    locked: false,
+    firstPayrollMonth: null,
+    notRunnableReason:
+      "Nobody has a joining date yet — set join dates in the employee records to start running payroll",
+  };
+}
+
 /** The mutable fixture state the fake serves. */
 export const payroll = {
   components: [] as SalaryComponentView[],
@@ -110,14 +132,60 @@ export const payroll = {
   pfExclusions: {} as Record<string, PayrollPfExclusionView>,
   tds: TDS,
   calendar: [] as PayrollCalendarView[],
-  monthStatus: null as PayrollMonthStatusView | null,
+  /** GET /payroll/months/:month — the calendar probe and the runs tab both
+   *  read this one endpoint, so they share this one knob. */
+  monthStatus: defaultMonthStatus(),
   stateRules: { notified: false, updatedAt: EPOCH } as PayrollStateRulesView,
   employment: {} as Record<string, EmploymentView>,
-  /** When set, the named endpoint answers with this status + body — for
-   *  refusal-copy tests. Keyed by `METHOD <path substring>` so a refusal on
-   *  POST never poisons the GET. */
-  refusals: {} as Record<string, { status: number; body: { error_code: string; message: string } }>,
+  /** When set, the named endpoint answers with this status + body — refusals
+   *  carry the error envelope; a success-shaped entry (e.g. a POST answered
+   *  200 with the view it created) carries the view itself. Keyed by
+   *  `METHOD <path substring>` so an entry on POST never poisons the GET. */
+  refusals: {} as Record<string, { status: number; body: Record<string, unknown> }>,
+  runs: {
+    /** Newest first, as the BE answers. */
+    history: [] as PayrollRunView[],
+    /** The month's lock confirmation; null answers 404 (unlocked). */
+    lock: null as LockView | null,
+    offCycleLines: [] as OffCycleLineView[],
+    audit: [] as AuditEntryView[],
+  },
 };
+
+export function runRow(overrides: Partial<PayrollRunView> & { month: string }): PayrollRunView {
+  return {
+    id: `run-${overrides.month}`,
+    status: "completed",
+    summary: {
+      month: overrides.month,
+      employees: 5,
+      payslips: 5,
+      skips: [],
+      warnings: [],
+      offCycle: { staged: 0, applied: 0, orphaned: [] },
+      recovery: { outstandingBefore: "0.00", outstandingAfter: "0.00", raisedThisRun: "0.00" },
+    },
+    errorMessage: null,
+    startedAt: "2026-11-25T03:10:00.000Z",
+    finishedAt: "2026-11-25T03:12:00.000Z",
+    ...overrides,
+  };
+}
+
+export function offCycleRow(overrides: Partial<OffCycleLineView>): OffCycleLineView {
+  return {
+    id: "oc-1",
+    membershipId: "m-1",
+    employeeName: "Asha V",
+    month: "2026-11",
+    label: "Festival bonus",
+    amount: 5000,
+    tag: "bonus",
+    status: "staged",
+    createdAt: "2026-11-20T00:00:00Z",
+    ...overrides,
+  };
+}
 
 export const BASIC_ID = "c-basic";
 export const HRA_ID = "c-hra";
@@ -170,8 +238,22 @@ function answerGet(path: string, pathname: string, method: string): Response | u
   }
   if (pathname.endsWith("/payroll/tds-config")) return jsonResponse(payroll.tds);
   if (pathname.endsWith("/payroll/calendar")) return jsonResponse(payroll.calendar);
+  if (/\/payroll\/months\/[\d-]+\/lock$/.test(pathname)) {
+    return payroll.runs.lock === null
+      ? jsonResponse({ error_code: "RESOURCE_NOT_FOUND", message: "not locked" }, 404)
+      : jsonResponse(payroll.runs.lock);
+  }
   if (/\/payroll\/months\/[\d-]+$/.test(pathname)) {
     return jsonResponse(payroll.monthStatus);
+  }
+  if (/\/payroll\/runs\/?$/.test(pathname) && method === "GET") {
+    return jsonResponse(payroll.runs.history);
+  }
+  if (/\/payroll\/off-cycle-lines/.test(pathname)) {
+    return jsonResponse(payroll.runs.offCycleLines);
+  }
+  if (/\/payroll\/audit$/.test(pathname)) {
+    return jsonResponse(payroll.runs.audit);
   }
   if (pathname.endsWith("/payroll/state-rules")) return jsonResponse(payroll.stateRules);
   if (/\/members\/[^/]+\/employment$/.test(pathname)) {
@@ -254,10 +336,16 @@ export function setUpPayrollPageTests(): void {
     payroll.pfExclusions = {};
     payroll.tds = TDS;
     payroll.calendar = [];
-    payroll.monthStatus = null;
     payroll.stateRules = { notified: false, updatedAt: EPOCH };
     payroll.employment = { "u-a": employment("u-a") };
     payroll.refusals = {};
+    payroll.monthStatus = defaultMonthStatus();
+    payroll.runs = {
+      history: [],
+      lock: null,
+      offCycleLines: [],
+      audit: [],
+    };
     team.rows = defaultTeam();
     setRespond(payrollStandard);
   });
