@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { writeSession } from "../services/session";
@@ -33,13 +33,49 @@ afterAll(() => {
   clearApiBase();
 });
 
+let ownerConsole: boolean;
+
 beforeEach(() => {
+  ownerConsole = false;
   installFetchMock();
   setRespond(respondDefault);
 });
 
+function jobsPageEnvelope(rows: Record<string, unknown>[]): Response {
+  return jsonResponse({
+    data: rows,
+    total: 30,
+    page: 1,
+    pageSize: 10,
+    pages: 3,
+    stats: {
+      total: 30,
+      scheduled: 18,
+      inProgress: 1,
+      pendingApproval: 0,
+      completed: 5,
+      cancelled: 1,
+      rejected: 5,
+      completed30d: 5,
+    },
+  });
+}
+
 function respondDefault(url: string): Response {
   if (url.endsWith("/users/me")) {
+    if (ownerConsole) {
+      return jsonResponse({
+        id: "u-own",
+        role: "company_admin",
+        name: "Beta Yela",
+        platformAdmin: false,
+        email: "beta@example.com",
+        countryCode: "+91",
+        phoneNumber: "9900000001",
+        employeeCode: null,
+        status: "active",
+      });
+    }
     return jsonResponse({
       id: "u-emp",
       role: "employee",
@@ -54,6 +90,30 @@ function respondDefault(url: string): Response {
       jobApprovalRequired: state.jobApprovalRequired,
     });
   }
+  if (url.includes("/jobs/page")) return jobsPageEnvelope([ownerJobRow()]);
+  if (url.endsWith("/skills")) return jsonResponse({ skills: [{ id: "s-1", name: "AC Service" }] });
+  // The owner Activity tab's feed: one real alert so the tab renders content.
+  if (url.includes("/notifications")) {
+    return jsonResponse({
+      data: [
+        {
+          id: "n-1",
+          jobId: "j-9",
+          eventType: "job.submitted",
+          payload: {
+            job_number: "JOB-21",
+            employee_name: "Priya Nair",
+            customer_name: "Sharma Traders",
+          },
+          readAt: null,
+          createdAt: "2026-11-19T10:00:00+05:30",
+        },
+      ],
+    });
+  }
+  // The owner Report tab's history and employee roster — empty but well-formed.
+  if (url.includes("/reports")) return jsonResponse({ data: [] });
+  if (url.endsWith("/members")) return jsonResponse({ data: [] });
   if (url.includes("/attendance/me/monthly")) {
     return jsonResponse({
       from: "2026-11-01",
@@ -161,6 +221,29 @@ function jobRow(overrides: Record<string, unknown> = {}): Record<string, unknown
     decidedAt: null,
     rejectionReason: null,
     currentStepIndex: null,
+    workflowTemplate: null,
+    ...overrides,
+  };
+}
+
+function ownerJobRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: "j-1",
+    jobNumber: "JB-2026-0030",
+    status: "scheduled",
+    priority: "normal",
+    scheduledStart: "2026-11-20T09:00:00+05:30",
+    currentStep: null,
+    currentStepIndex: null,
+    skill: { id: "s-1", name: "AC Service" },
+    technician: { id: "u-1", name: "Amit Sharma" },
+    customer: { id: "c-1", name: "Sharma General Store" },
+    description: "Split AC not cooling",
+    serviceLocation: "Nehru Road",
+    completedAt: null,
+    createdAt: "2026-11-19T10:00:00+05:30",
+    decidedAt: null,
+    rejectionReason: null,
     workflowTemplate: null,
     ...overrides,
   };
@@ -608,3 +691,228 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     expect(within(jobs).queryByText(/Step \d+ of 5/)).toBeNull();
   });
 });
+
+describe("AdminJobsPage: the owner's console jobs tab", () => {
+  /** The owner greeting + paged table, awaited. */
+  async function renderOwnerJobs(entry = "/admin/company/jobs"): Promise<void> {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    renderJobs(entry);
+    await screen.findByText("Split AC not cooling");
+  }
+
+  it("greets the owner, wears the Owner pill and breadcrumbs the console with a single h1", async () => {
+    await renderOwnerJobs();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Beta Yela");
+    expect(screen.getByText("Owner")).toBeTruthy();
+    expect(screen.getByLabelText("Breadcrumb").textContent).toBe("Console›Jobs");
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("shows the four tiles and the whole-company counts on the status chips", async () => {
+    await renderOwnerJobs();
+    for (const tile of ["Total jobs", "In progress", "Job approvals", "Completed (30 days)"]) {
+      // "In progress" is both a tile label and a status chip — any hit counts.
+      expect(screen.getAllByText(tile).length).toBeGreaterThanOrEqual(1);
+    }
+    const group = screen.getByRole("group", { name: "Filter jobs by status" });
+    expect(group.textContent).toContain("All30");
+    expect(group.textContent).toContain("Scheduled18");
+    expect(group.textContent).toContain("Pending approval0");
+    expect(group.textContent).toContain("Rejected5");
+  });
+
+  it("renders the row: work, number, customer, place, status, skill, employee", async () => {
+    await renderOwnerJobs();
+    const row = screen.getByText("Split AC not cooling").closest("tr");
+    expect(row?.textContent).toContain("JB-2026-0030");
+    expect(row?.textContent).toContain("Sharma General Store");
+    expect(row?.textContent).toContain("Nehru Road");
+    expect(row?.textContent).toContain("AC Service");
+    expect(row?.textContent).toContain("Amit Sharma");
+  });
+
+  it("reads the DB-paged endpoint, never the four-scope merge, and fetches the skill catalog", async () => {
+    await renderOwnerJobs();
+    expect(sentRequests().filter((r) => r.url.includes("/jobs/page")).length).toBe(1);
+    expect(sentRequests().some((r) => r.url.includes("/jobs?scope="))).toBe(false);
+    expect(sentRequests().some((r) => r.url.endsWith("/skills"))).toBe(true);
+  });
+
+  it("says what is showing and offers the pager", async () => {
+    await renderOwnerJobs();
+    expect(screen.getByText(/Showing 1–10 of 30 jobs/)).toBeTruthy();
+    expect(screen.getByLabelText("Pages")).toBeTruthy();
+  });
+
+  it("turns a search submit into a paged call carrying the term", async () => {
+    await renderOwnerJobs();
+    const input = screen.getByLabelText("Search jobs");
+    fireEvent.change(input, { target: { value: "leak" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => {
+      const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+      expect(paged.some((r) => new URL(r.url).searchParams.get("search") === "leak")).toBe(true);
+    });
+  });
+
+  it("a status chip click navigates with the status param", async () => {
+    await renderOwnerJobs();
+    const group = screen.getByRole("group", { name: "Filter jobs by status" });
+    const completed = Array.from(group.querySelectorAll("a")).find((a) =>
+      (a.textContent ?? "").startsWith("Completed"),
+    );
+    fireEvent.click(completed!);
+    await waitFor(() => {
+      const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+      expect(paged.some((r) => new URL(r.url).searchParams.get("status") === "completed")).toBe(
+        true,
+      );
+    });
+  });
+
+  it("both the banner and the greeting offer the one create path", async () => {
+    await renderOwnerJobs();
+    const links = screen.getAllByRole("link", { name: "Create a job" });
+    expect(links.length).toBe(2);
+    for (const link of links) expect(link.getAttribute("href")).toBe("/admin/company/jobs/new");
+    expect(screen.getByRole("button", { name: /Download list/ })).toBeTruthy();
+  });
+
+  it("an empty filtered view says so and keeps the pager; an empty company says create one", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    setRespond((url) =>
+      url.includes("/jobs/page")
+        ? jsonResponse({
+            data: [],
+            total: 0,
+            page: 1,
+            pageSize: 10,
+            pages: 1,
+            stats: {
+              total: 0,
+              scheduled: 0,
+              inProgress: 0,
+              pendingApproval: 0,
+              completed: 0,
+              cancelled: 0,
+              rejected: 0,
+              completed30d: 0,
+            },
+          })
+        : respondDefault(url),
+    );
+    renderJobs();
+    expect(await screen.findByText(/No jobs yet. Create the first one/)).toBeTruthy();
+
+    // A filtered view whose total is non-zero keeps the pager: the empty
+    // page may simply be past the last one.
+    setRespond((url) =>
+      url.includes("/jobs/page")
+        ? jsonResponse({
+            data: [],
+            total: 30,
+            page: 99,
+            pageSize: 10,
+            pages: 3,
+            stats: {
+              total: 30,
+              scheduled: 18,
+              inProgress: 1,
+              pendingApproval: 0,
+              completed: 5,
+              cancelled: 1,
+              rejected: 5,
+              completed30d: 5,
+            },
+          })
+        : respondDefault(url),
+    );
+    renderAt2("/admin/company/jobs?page=99");
+    expect(await screen.findByText(/No jobs match these filters/)).toBeTruthy();
+    expect(screen.getByLabelText("Pages")).toBeTruthy();
+  });
+
+  it("the Jobs tab wears the whole-company total as its badge", async () => {
+    await renderOwnerJobs();
+    expect(screen.getByRole("link", { name: "Jobs 30" })).toBeTruthy();
+  });
+
+  it("the pager's next page and go-to keep the active filters on the address", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    renderJobs("/admin/company/jobs?status=scheduled");
+    await screen.findByText("Split AC not cooling");
+    fireEvent.click(screen.getByLabelText("Next page"));
+    await waitFor(() => {
+      const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+      const target = paged.find((r) => new URL(r.url).searchParams.get("page") === "2");
+      expect(target).toBeTruthy();
+      expect(new URL(target!.url).searchParams.get("status")).toBe("scheduled");
+    });
+    // The go-to form rejects a page outside the real range, then jumps.
+    const input = screen.getByLabelText("Go to page");
+    fireEvent.change(input, { target: { value: "9" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(await screen.findByText("Enter a page from 1 to 3.")).toBeTruthy();
+    fireEvent.change(input, { target: { value: "3" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => {
+      const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+      expect(paged.some((r) => new URL(r.url).searchParams.get("page") === "3")).toBe(true);
+    });
+  });
+
+  it("a skill the catalog doesn't list says Chosen skill, never All", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    renderJobs("/admin/company/jobs?skill=s-9");
+    await screen.findByText("Split AC not cooling");
+    expect(screen.getByRole("button", { name: "Skill: Chosen skill" })).toBeTruthy();
+    // And the filter still rides the paged call.
+    const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+    expect(new URL(paged[0].url).searchParams.get("skillId")).toBe("s-9");
+  });
+
+  it("the owner's Activity tab renders the feed under the same shell", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    renderJobs("/admin/company/jobs?tab=activity");
+    expect(await screen.findByText("Latest job activity")).toBeTruthy();
+    expect(screen.getByText("Priya Nair submitted JOB-21 for Sharma Traders")).toBeTruthy();
+    // The rewritten non-jobs branch keeps the greeting and the tab strip.
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Beta Yela");
+    expect(screen.getByLabelText("Page sections").textContent).toContain("Approval");
+  });
+
+  it("the owner's Report tab renders the report card under the same shell", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    renderJobs("/admin/company/jobs?tab=report");
+    expect(await screen.findByText("Job activity report")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Beta Yela");
+    expect(screen.getByLabelText("Page sections").textContent).toContain("Activity");
+  });
+});
+
+describe("AdminJobsPage: a failed load keeps the role's tab strip", () => {
+  it("a failed member load shows the member's tabs, never the owner's", async () => {
+    defaultState();
+    setRespond((url) =>
+      url.includes("/jobs?scope=") ? jsonResponse({}, 500) : respondDefault(url),
+    );
+    writeSession({ token: "tok-1", name: "Priya" });
+    renderJobs();
+    expect(await screen.findByText("The job list could not load.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "My report" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Approval" })).toBeNull();
+  });
+});
+
+/** A second render in the same file must clean up first — the helper keeps
+ *  the navigation entry honest for follow-up renders in one test. */
+function renderAt2(path: string): void {
+  cleanup();
+  renderJobs(path);
+}

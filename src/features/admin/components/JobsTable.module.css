@@ -1,0 +1,106 @@
+/* The jobs table — same design language as the customers table. */
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  white-space: nowrap;
+}
+
+.table th:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.table th:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-strong);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, transparent);
+}
+
+/* The job cell: the work leads, the number sits under it. */
+.jobLink {
+  display: grid;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+  min-width: 220px;
+}
+
+.jobLink:hover .jobTitle {
+  color: var(--color-primary);
+}
+
+.jobTitle {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.jobSub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* The customer cell: avatar, name, and the visit's place under it. */
+.customerCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 180px;
+}
+
+.customerText {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.customerName {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.customerPlace {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* The dispatch priority: only Urgent wears a chip — normal is the quiet
+   default and needs no badge of its own. */
+.urgentPill {
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.quiet {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}

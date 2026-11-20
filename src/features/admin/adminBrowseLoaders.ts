@@ -9,6 +9,7 @@ import {
   fetchCustomersPage,
   fetchHolidays,
   fetchJobs,
+  fetchJobsPage,
   fetchMembers,
   fetchMembersPage,
   fetchMonthly,
@@ -20,6 +21,10 @@ import {
   type CustomersSort,
   type HolidayRow,
   type JobRow,
+  type JobsPageResult,
+  type JobsPriorityFilter,
+  type JobsSort,
+  type JobsStatusFilter,
   type MembersPageResult,
   type MembersRoleFilter,
   type MembersSort,
@@ -46,6 +51,7 @@ import {
 import { fetchNotifications, type NotificationRow } from "./notificationsApi";
 import { fetchReportHistory, type ReportHistoryRow, type RosterPerson } from "./jobExportApi";
 import type { ApprovalQueueItem } from "./approvalApi";
+import { fetchSkillOptions, type PickOption } from "./approvalApi";
 import { istEndOfLastMonth, istFirstOfMonth, istShifted, istToday, fmtPhone } from "./format";
 import { settle, type Slice } from "./slice";
 
@@ -112,6 +118,60 @@ export function readCustomersFilters(url: URL): CustomersFilters {
 /** The page size the table starts on. The rows-per-page select offers the
  *  sizes the backend accepts (1–100); these three are the sensible ones. */
 export const CUSTOMERS_PAGE_SIZES = [10, 25, 50] as const;
+
+/** The Jobs page's filters, all carried in the URL — the same contract as the
+ *  Customers page: the loader owns the reading and the defaults, so every
+ *  link on the page can build a plain address. `status` "" is All. */
+export type JobsFilters = {
+  q: string;
+  status: JobsStatusFilter;
+  /** The skill catalog's id; "" is All. */
+  skill: string;
+  priority: JobsPriorityFilter;
+  sort: JobsSort;
+  page: number;
+  pageSize: number;
+};
+
+const JOB_STATUSES = new Set([
+  "",
+  "scheduled",
+  "in_progress",
+  "pending_approval",
+  "completed",
+  "cancelled",
+  "rejected",
+]);
+const JOB_PRIORITIES = new Set(["", "normal", "urgent"]);
+const JOB_SORTS = new Set(["latest", "soonest"]);
+const JOBS_PAGE_SIZES_SET = new Set([10, 25, 50]);
+
+/** Reads the address into filters; anything unknown falls back to its
+ *  default, so a hand-edited URL never breaks the page. */
+export function readJobsFilters(url: URL): JobsFilters {
+  const params = url.searchParams;
+  const one = (key: string, allowed: Set<string>, fallback: string): string => {
+    const value = params.get(key) ?? "";
+    return allowed.has(value) ? value : fallback;
+  };
+  const page = Number(params.get("page") ?? "1");
+  const pageSize = Number(params.get("pageSize") ?? "10");
+  return {
+    q: (params.get("q") ?? "").trim().slice(0, 80),
+    status: one("status", JOB_STATUSES, "") as JobsStatusFilter,
+    skill: (params.get("skill") ?? "").trim().slice(0, 64),
+    priority: one("priority", JOB_PRIORITIES, "") as JobsPriorityFilter,
+    sort: one("sort", JOB_SORTS, "latest") as JobsSort,
+    // The top clamp keeps a hand-edited astronomic page inside what the
+    // backend accepts (its own 422 ceiling is 10000) — the endpoint then
+    // answers an empty page with an honest total, never a 500.
+    page: Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1,
+    pageSize: JOBS_PAGE_SIZES_SET.has(pageSize) ? pageSize : 10,
+  };
+}
+
+/** The page size the jobs table starts on — the same three as customers. */
+export const JOBS_PAGE_SIZES = [10, 25, 50] as const;
 
 export async function adminCustomersLoader({
   request,
@@ -230,8 +290,14 @@ export type JobsData =
       state: "ok";
       role: "owner";
       tab: "jobs";
-      rows: JobRow[];
-      status: string;
+      /** One DB-paged page of the company's jobs — filters ride the URL. */
+      result: JobsPageResult;
+      filters: JobsFilters;
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
+      /** The skill catalog for the filter dropdown; a catalog failure
+       *  degrades to an empty dropdown, never a failed page. */
+      skills: Slice<PickOption[]>;
       pipeline: Slice<OwnerPipeline>;
     }
   | {
@@ -239,6 +305,8 @@ export type JobsData =
       role: "owner";
       tab: "approval";
       queue: Slice<QueueState>;
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
       /** Fetched on every owner tab so the Approval tab can badge its
        *  waiting count without opening it. */
       pipeline: Slice<OwnerPipeline>;
@@ -248,6 +316,7 @@ export type JobsData =
       role: "owner";
       tab: "activity";
       activity: Slice<NotificationRow[]>;
+      selfName: string | null;
       pipeline: Slice<OwnerPipeline>;
     }
   | {
@@ -256,6 +325,7 @@ export type JobsData =
       tab: "report";
       history: Slice<ReportHistoryRow[]>;
       employees: Slice<RosterPerson[]>;
+      selfName: string | null;
       pipeline: Slice<OwnerPipeline>;
     }
   | {
@@ -264,6 +334,7 @@ export type JobsData =
       tab: "jobs";
       rows: JobRow[];
       status: string;
+      selfName: string | null;
       canCreateJobs: boolean;
       jobApprovalRequired: boolean;
       pending: Slice<ApprovalQueueItem[]>;
@@ -275,6 +346,7 @@ export type JobsData =
       tab: "report";
       report: Slice<EmployeeReportResponse>;
       reportPreset: string;
+      selfName: string | null;
     }
   | {
       state: "ok";
@@ -285,8 +357,15 @@ export type JobsData =
       rejectedNext: string | null;
       /** The activity period, kept for the rejected-history's paging link. */
       reportPreset: string;
+      selfName: string | null;
     }
-  | { state: "ok"; role: "member"; tab: "activity"; activity: Slice<NotificationRow[]> };
+  | {
+      state: "ok";
+      role: "member";
+      tab: "activity";
+      activity: Slice<NotificationRow[]>;
+      selfName: string | null;
+    };
 
 /** The tab a jobs-page address names — the first tab when the address is
  *  bare. Old deep links keep working: the queue's own params imply the
@@ -391,7 +470,14 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
           settle(() => loadApprovalQueueState(request, token)),
           ownerPipeline(token, request.signal),
         ]);
-        return { state: "ok", role: "owner", tab, queue, pipeline };
+        return {
+          state: "ok",
+          role: "owner",
+          tab,
+          queue,
+          pipeline,
+          selfName: me.name,
+        };
       }
       case "activity": {
         if (role === "owner") {
@@ -399,10 +485,10 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
             settle(() => fetchNotifications(token, request.signal)),
             ownerPipeline(token, request.signal),
           ]);
-          return { state: "ok", role, tab, activity, pipeline };
+          return { state: "ok", role, tab, activity, pipeline, selfName: me.name };
         }
         const activity = await settle(() => fetchNotifications(token, request.signal));
-        return { state: "ok", role, tab, activity };
+        return { state: "ok", role, tab, activity, selfName: me.name };
       }
       case "report": {
         if (role === "owner") {
@@ -421,12 +507,27 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
             }),
             ownerPipeline(token, request.signal),
           ]);
-          return { state: "ok", role, tab, history, employees, pipeline };
+          return {
+            state: "ok",
+            role,
+            tab,
+            history,
+            employees,
+            pipeline,
+            selfName: me.name,
+          };
         }
         const report = await settle(() =>
           fetchEmployeeReport(token, memberRange(memberPreset(request)), request.signal),
         );
-        return { state: "ok", role, tab, report, reportPreset: memberPreset(request) };
+        return {
+          state: "ok",
+          role,
+          tab,
+          report,
+          reportPreset: memberPreset(request),
+          selfName: me.name,
+        };
       }
       case "rejected": {
         const rejectedCursor = new URL(request.url).searchParams.get("rejectedCursor") ?? undefined;
@@ -441,21 +542,38 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
           rejectedMore: rejectedPage.ok ? rejectedPage.data.hasMore : false,
           rejectedNext: rejectedPage.ok ? rejectedPage.data.nextCursor : null,
           reportPreset: memberPreset(request),
+          selfName: me.name,
         };
       }
       default: {
         if (role === "owner") {
-          const [rows, pipeline] = await Promise.all([
-            fetchJobs(token, request.signal, status),
+          const filters = readJobsFilters(new URL(request.url));
+          const [result, skills, pipeline] = await Promise.all([
+            fetchJobsPage(
+              token,
+              {
+                page: filters.page,
+                pageSize: filters.pageSize,
+                ...(filters.q !== "" ? { search: filters.q } : {}),
+                ...(filters.status !== "" ? { status: filters.status } : {}),
+                ...(filters.skill !== "" ? { skillId: filters.skill } : {}),
+                ...(filters.priority !== "" ? { priority: filters.priority } : {}),
+                ...(filters.sort !== "latest" ? { sort: filters.sort } : {}),
+              },
+              request.signal,
+            ),
+            settle(() => fetchSkillOptions(token, request.signal)),
             ownerPipeline(token, request.signal),
           ]);
           return {
             state: "ok",
             role,
             tab,
-            rows,
-            status,
+            result,
+            filters,
+            skills,
             pipeline,
+            selfName: me.name,
           };
         }
         const [rows, pendingPage] = await Promise.all([
@@ -468,6 +586,7 @@ export async function adminJobsLoader({ request }: LoaderFunctionArgs): Promise<
           tab,
           rows,
           status,
+          selfName: me.name,
           canCreateJobs: me.canCreateJobs ?? false,
           jobApprovalRequired: me.jobApprovalRequired ?? false,
           pending: pendingPage.ok ? { ok: true, data: pendingPage.data.data } : { ok: false },

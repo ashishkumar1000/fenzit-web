@@ -1,0 +1,71 @@
+/* The create banner: the dark gradient strip above the list. */
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  background:
+    radial-gradient(
+      120% 180% at 100% 0%,
+      color-mix(in srgb, var(--color-primary) 55%, transparent) 0%,
+      transparent 55%
+    ),
+    linear-gradient(120deg, var(--color-text-strong) 0%, #1f2937 100%);
+  color: #ffffff;
+}
+
+.copy {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.lede {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: color-mix(in srgb, #ffffff 78%, transparent);
+  max-width: 60ch;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2) var(--space-5);
+  min-height: 38px;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px color-mix(in srgb, #000000 30%, transparent);
+}
+
+.cta:hover {
+  filter: brightness(1.08);
+}
+
+.cta:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

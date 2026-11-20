@@ -1,0 +1,142 @@
+/* The Jobs filter strip: the status chips, the search field, the skill /
+   priority / sort dropdowns and the "Clear all" control. Colours and
+   spacing come from the design-system tokens. */
+
+/* ── Search field ───────────────────────────────────────── */
+
+.topSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 230px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  padding: var(--space-1) var(--space-3);
+  min-height: 38px;
+}
+
+.topSearch:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-text-strong);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.searchKbd {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: var(--font-size-2xs);
+  padding: 1px 6px;
+}
+
+/* ── Status chips ───────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.chip,
+.chipActive {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  min-height: 32px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+}
+
+.chip:focus-visible,
+.chipActive:focus-visible,
+.clearAll:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.chipActive {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.chipCount {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+/* Full-strength text on the primary fill: the count is no fainter than the label. */
+.chipActive .chipCount {
+  color: var(--color-text-on-color);
+}
+
+/* ── Clear all ──────────────────────────────────────────── */
+
+/* A quiet control beside the search, shown only while some filter or search
+   text is set. */
+.clearAll {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.clearAll:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-strong);
+}
+
+@media (max-width: 700px) {
+  .topSearch {
+    width: 100%;
+  }
+}

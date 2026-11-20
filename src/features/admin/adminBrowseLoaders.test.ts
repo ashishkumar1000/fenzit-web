@@ -106,6 +106,26 @@ function respondDefault(url: string): Response {
   // The owner's queue — anything on /approval-queue that is not /mine.
   if (url.includes("/approval-queue"))
     return jsonResponse({ data: [], nextCursor: null, hasMore: false });
+  if (url.includes("/jobs/page")) {
+    return jsonResponse({
+      data: [{ id: "j-1", jobNumber: "JB-1", status: "completed", scheduledStart: null }],
+      total: 1,
+      page: 1,
+      pageSize: 10,
+      pages: 1,
+      stats: {
+        total: 1,
+        scheduled: 0,
+        inProgress: 0,
+        pendingApproval: 0,
+        completed: 1,
+        cancelled: 0,
+        rejected: 0,
+        completed30d: 1,
+      },
+    });
+  }
+  if (url.endsWith("/skills")) return jsonResponse({ skills: [{ id: "s-1", name: "AC Service" }] });
   if (url.includes("/jobs?scope="))
     return page([{ id: "j-1", jobNumber: "JB-1", status: "completed", scheduledStart: null }]);
   if (url.includes("/members")) return jsonResponse([memberRow()]);
@@ -154,7 +174,7 @@ async function expectRedirect(loader: Promise<unknown>, to: string): Promise<voi
 }
 
 describe("adminJobsLoader: the address decides the owner's tab", () => {
-  it("the bare jobs address fetches the jobs list and the pipeline badge", async () => {
+  it("the bare jobs address fetches the paged list, the skill catalog and the pipeline badge", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
     const data = (await adminJobsLoader(jobsArgs("/admin/company/jobs"))) as Extract<
       Awaited<ReturnType<typeof adminJobsLoader>>,
@@ -162,13 +182,17 @@ describe("adminJobsLoader: the address decides the owner's tab", () => {
     >;
     expect(data.tab).toBe("jobs");
     expect(data.role).toBe("owner");
-    expect(callsTo("/jobs?scope=")).toBeGreaterThan(0);
+    expect(callsTo("/jobs/page")).toBe(1);
+    expect(callsTo("/skills")).toBe(1);
     // The badge data rides every owner tab, so the Approval tab shows its
     // waiting count without being opened.
     expect(callsTo("/job-reports/owner")).toBe(1);
     if (data.tab === "jobs" && data.role === "owner") {
       expect(data.pipeline.ok).toBe(true);
       expect(data.pipeline.ok && data.pipeline.data.pending).toBe(3);
+      expect(data.result.total).toBe(1);
+      expect(data.filters.status).toBe("");
+      expect(data.skills.ok).toBe(true);
     }
   });
 
@@ -227,7 +251,7 @@ describe("adminJobsLoader: the address decides the owner's tab", () => {
       { state: "ok" }
     >;
     expect(data.tab).toBe("jobs");
-    expect(callsTo("/jobs?scope=")).toBeGreaterThan(0);
+    expect(callsTo("/jobs/page")).toBe(1);
   });
 
   it("a hand-typed status outside the whitelist is read as All", async () => {
@@ -236,21 +260,49 @@ describe("adminJobsLoader: the address decides the owner's tab", () => {
       jobsArgs("/admin/company/jobs?tab=jobs&status=banana"),
     )) as Extract<Awaited<ReturnType<typeof adminJobsLoader>>, { state: "ok" }>;
     expect(data.tab).toBe("jobs");
-    if (data.tab === "jobs") expect(data.status).toBe("");
+    if (data.tab === "jobs" && data.role === "owner") expect(data.filters.status).toBe("");
+    // All means the request carries no status param at all.
+    const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+    expect(new URL(paged[0]?.url ?? "").searchParams.get("status")).toBe(null);
   });
 
-  it("a real status filter is one server-filtered call, not the four-scope merge", async () => {
+  it("a real status filter rides the paged call, not the four-scope merge", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
     const data = (await adminJobsLoader(
       jobsArgs("/admin/company/jobs?tab=jobs&status=scheduled"),
     )) as Extract<Awaited<ReturnType<typeof adminJobsLoader>>, { state: "ok" }>;
     expect(data.tab).toBe("jobs");
-    if (data.tab === "jobs") expect(data.status).toBe("scheduled");
-    const jobsCalls = sentRequests().filter((r) => r.url.includes("/jobs?scope="));
-    expect(jobsCalls.length).toBe(1);
-    const query = new URL(jobsCalls[0]?.url ?? "").searchParams;
-    expect(query.get("scope")).toBe("all");
+    if (data.tab === "jobs" && data.role === "owner") expect(data.filters.status).toBe("scheduled");
+    expect(callsTo("/jobs?scope=")).toBe(0);
+    const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+    expect(paged.length).toBe(1);
+    const query = new URL(paged[0]?.url ?? "").searchParams;
     expect(query.get("status")).toBe("scheduled");
+  });
+
+  it("search, skill, priority, sort and paging ride the paged call", async () => {
+    writeSession({ token: "tok-1", name: "Beta" });
+    await adminJobsLoader(
+      jobsArgs(
+        "/admin/company/jobs?tab=jobs&q=leak&skill=s-1&priority=urgent&sort=soonest&page=2&pageSize=25",
+      ),
+    );
+    const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+    expect(paged.length).toBe(1);
+    const query = new URL(paged[0]?.url ?? "").searchParams;
+    expect(query.get("search")).toBe("leak");
+    expect(query.get("skillId")).toBe("s-1");
+    expect(query.get("priority")).toBe("urgent");
+    expect(query.get("sort")).toBe("soonest");
+    expect(query.get("page")).toBe("2");
+    expect(query.get("pageSize")).toBe("25");
+  });
+
+  it("a hand-typed astronomic page clamps to the backend's ceiling", async () => {
+    writeSession({ token: "tok-1", name: "Beta" });
+    await adminJobsLoader(jobsArgs("/admin/company/jobs?tab=jobs&page=1e21"));
+    const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
+    expect(new URL(paged[0]?.url ?? "").searchParams.get("page")).toBe("10000");
   });
 });
 
@@ -332,6 +384,21 @@ describe("adminJobsLoader: the address decides the member's tab", () => {
 });
 
 describe("adminJobsLoader: degradation, not blank screens", () => {
+  it("a dead skill catalog degrades to an empty dropdown, never a failed page", async () => {
+    writeSession({ token: "tok-1", name: "Beta" });
+    setRespond((url) => (url.endsWith("/skills") ? jsonResponse({}, 500) : respondDefault(url)));
+    const data = (await adminJobsLoader(jobsArgs("/admin/company/jobs"))) as Extract<
+      Awaited<ReturnType<typeof adminJobsLoader>>,
+      { state: "ok" }
+    >;
+    expect(data.state).toBe("ok");
+    if (data.tab === "jobs" && data.role === "owner") {
+      expect(data.skills.ok).toBe(false);
+      // The list itself is untouched — the outage dims one dropdown.
+      expect(data.result.total).toBe(1);
+    }
+  });
+
   it("a dead pipeline leaves the approval tab working, minus its badge", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
     setRespond((url) =>
@@ -370,9 +437,7 @@ describe("adminJobsLoader: degradation, not blank screens", () => {
 
   it("a dead jobs list fails the page loudly, but the tab strip survives", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
-    setRespond((url) =>
-      url.includes("/jobs?scope=") ? jsonResponse({}, 500) : respondDefault(url),
-    );
+    setRespond((url) => (url.includes("/jobs/page") ? jsonResponse({}, 500) : respondDefault(url)));
     const data = await adminJobsLoader(jobsArgs("/admin/company/jobs"));
     expect(data.state).toBe("failed");
     if (data.state === "failed") {

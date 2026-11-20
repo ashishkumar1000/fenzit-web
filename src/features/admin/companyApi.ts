@@ -395,6 +395,68 @@ export async function fetchJobs(
   return merged.sort((a, b) => ((b.scheduledStart ?? "") < (a.scheduledStart ?? "") ? -1 : 1));
 }
 
+/** The whole-company job counters the Jobs page's stat tiles and status
+ *  chips show — one per status, so every chip's count is honest; counted
+ *  before any filter, so they stay stable while the table narrows. */
+export interface JobsStats {
+  total: number;
+  scheduled: number;
+  inProgress: number;
+  pendingApproval: number;
+  completed: number;
+  cancelled: number;
+  rejected: number;
+  /** Jobs completed in the last 30 days. */
+  completed30d: number;
+}
+
+export type JobsStatusFilter =
+  "" | "scheduled" | "in_progress" | "pending_approval" | "completed" | "cancelled" | "rejected";
+export type JobsPriorityFilter = "" | "normal" | "urgent";
+export type JobsSort = "latest" | "soonest";
+
+export type JobsPageQuery = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: JobsStatusFilter;
+  skillId?: string;
+  priority?: JobsPriorityFilter;
+  sort?: JobsSort;
+};
+
+export interface JobsPageResult {
+  data: JobRow[];
+  /** How many rows the current filters keep, across all pages. */
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  stats: JobsStats;
+}
+
+/** GET /jobs/page — the console's paged jobs table. The endpoint answers one
+ *  page; `stats` always describes the whole company. */
+export function fetchJobsPage(
+  token: string,
+  query: JobsPageQuery,
+  signal?: AbortSignal,
+): Promise<JobsPageResult> {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    pageSize: String(query.pageSize),
+  });
+  if (query.search) params.set("search", query.search);
+  if (query.status) params.set("status", query.status);
+  if (query.skillId) params.set("skillId", query.skillId);
+  if (query.priority) params.set("priority", query.priority);
+  if (query.sort && query.sort !== "latest") params.set("sort", query.sort);
+  return apiFetch<JobsPageResult>(`/api/v1/jobs/page?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
 export interface HolidayRow {
   id: string;
   date: string;
