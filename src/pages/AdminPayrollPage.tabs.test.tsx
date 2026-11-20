@@ -111,11 +111,12 @@ function memberOnly(url: string): Response {
 describe("Payroll: who may open it", () => {
   it("sends a member home instead of rendering the page", async () => {
     setRespond(memberOnly);
-    // The redirect is the observable: the address must BE /admin — a bare
-    // "no fetch fired" waitFor would pass on its first tick, gate or no gate.
+    // The redirect is the observable: the gate bounces to /admin, whose index
+    // forwards a member to Me — the FINAL address must be /admin/me (a bare
+    // "no fetch fired" waitFor would pass on its first tick, gate or no gate).
     const router = renderPayrollAt("/admin/company/payroll");
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/admin");
+      expect(router.state.location.pathname).toBe("/admin/me");
     });
     expect(sentRequests().some((r) => r.url.includes("/payroll/"))).toBe(false);
   });
@@ -124,7 +125,7 @@ describe("Payroll: who may open it", () => {
     setRespond(memberOnly);
     const router = renderPayrollAt("/admin/company/employees/employment?userId=u-a");
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/admin");
+      expect(router.state.location.pathname).toBe("/admin/me");
     });
     expect(sentRequests().some((r) => r.url.includes("/members/u-a/employment"))).toBe(false);
   });

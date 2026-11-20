@@ -11,7 +11,6 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import { Flag } from "lucide-react";
-import { AdminOwnerDashboard } from "./AdminOwnerDashboard";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
@@ -58,7 +57,6 @@ function GlyphReports({ size = 20 }: { size?: number }) {
 }
 
 const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
-  "/admin": GlyphAttendance,
   "/admin/inspect": GlyphInspect,
   "/admin/account": GlyphAccount,
   "/admin/reports": GlyphReports,
@@ -127,9 +125,9 @@ function NavLinks({ role, landing }: { role: ConsoleRole; landing: boolean }) {
         // below opens with it, so the sidebar says so too. Visual only: no
         // aria-current, because the URL is still /admin.
         const leadsLanding = landing && index === 0;
-        // Landing sections own their address exactly: /admin must not stay
-        // lit on /admin/company/jobs, nor Overview on every sub-list.
-        const exact = section.to === "/admin" || section.to === "/admin/company";
+        // Landing sections own their address exactly: Overview must not stay
+        // lit on /admin/company/jobs or any other sub-list.
+        const exact = section.to === "/admin/company";
         return (
           <NavLink
             key={section.to}
@@ -227,6 +225,7 @@ export function AdminLayout() {
 /** The pages that draw their own heading block (breadcrumb, greeting, page
  *  actions) — the console h1 steps aside for them. */
 const PAGES_WITH_OWN_HEADER = new Set([
+  "/admin/company",
   "/admin/company/employees",
   "/admin/company/customers",
   "/admin/company/jobs",
@@ -242,7 +241,7 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/reports": "Job photos people flagged, ready to hide or dismiss.",
   "/admin/deletion-requests": "People asking us to erase their data, and what we did.",
   "/admin/config": "App-wide settings — the force-update rule and the support contact.",
-  "/admin/company": "Today's team pulse and your recent activity.",
+  "/admin/company": "Today's pulse, the job report and every list in your company.",
   "/admin/company/customers": "The people you serve, and the jobs booked for them.",
   "/admin/company/employees": "Your team, their details and their offices.",
   "/admin/company/payroll": "Salary structures, deductions and the statutory switches.",
@@ -292,12 +291,14 @@ function SectionIndex({ role }: { role: IndexRole }) {
   );
 }
 
-/** The landing: an owner gets the job-reports dashboard (Epic 22, CAP-8 —
- *  the landing view after sign-in); everyone else sees this role's sections
- *  as an index, with the console art beside it. A member's console IS the Me
- *  section — no welcome screen to click past. */
+/** The landing: an owner is sent straight to the merged Overview (the
+ *  dashboard and the overview were two pages saying the same things — they
+ *  are one page now); everyone else sees this role's sections as an index,
+ *  with the console art beside it. A member's console IS the Me section — no
+ *  welcome screen to click past. */
 export function AdminHome() {
   const data = useRouteLoaderData<typeof adminLoader>("admin");
+  const location = useLocation();
 
   if (data === undefined) {
     return (
@@ -318,8 +319,11 @@ export function AdminHome() {
     return <Navigate to="/admin/me" replace />;
   }
 
-  if (data.role === "owner" && data.dashboard !== null) {
-    return <AdminOwnerDashboard dashboard={data.dashboard} />;
+  if (data.role === "owner") {
+    // The dashboard's old deep links carried their report window in this
+    // address's query — ride it over instead of landing on the default
+    // period (the approvals redirect's rule: keep filters and cursors).
+    return <Navigate to={`/admin/company${location.search}`} replace />;
   }
 
   return (

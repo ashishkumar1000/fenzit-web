@@ -92,10 +92,10 @@ export const routes: RouteObject[] = [
             Component: AdminLayout,
             loader: adminLoader,
             HydrateFallback: AdminChecking,
-            // The layout loader fetches /users/me and — for an owner — the full
-            // reports dashboard. Those only matter when /admin itself is on
-            // screen, so a navigation to any other console section (or an
-            // action on one) skips the refetch; returning to /admin revalidates.
+            // The layout loader fetches /users/me only — the role and name the
+            // whole console shares. It does not change while a session lasts,
+            // so a navigation to any console section (or an action on one)
+            // skips the refetch; returning to /admin revalidates.
             shouldRevalidate: ({ nextUrl }) => nextUrl.pathname === "/admin",
           };
         },

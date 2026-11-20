@@ -130,9 +130,8 @@ describe("sectionsFor", () => {
     ]);
   });
 
-  it("gives an owner the dashboard, the overview and the browse lists", () => {
+  it("gives an owner the overview and the browse lists — the dashboard merged into Overview", () => {
     expect(sectionsFor("owner").map((s) => s.to)).toEqual([
-      "/admin",
       "/admin/company",
       "/admin/company/customers",
       "/admin/company/employees",
@@ -200,40 +199,50 @@ describe("Console: access", () => {
     meAnswers.push(() => {
       throw new TypeError("network down");
     });
-    meAnswers.push(me());
+    // After the check passes, the owner is redirected to the merged Overview,
+    // whose loader asks who the person is once more.
+    meAnswers.push(me(), me());
 
     renderAdmin();
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
 
-    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
+    // The greeting now comes from the merged Overview's own header — waited
+    // on the Owner pill, which only that page renders.
+    expect(await screen.findByText("Owner")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Ravi Kumar");
   });
 });
 
 describe("Console: who sees what", () => {
-  it("welcomes a company owner to their reports dashboard and Company sections", async () => {
+  it("sends a company owner straight to the merged Overview, with no Dashboard link", async () => {
     writeSession({ token: "tok-1", name: "Ravi Kumar" });
-    meAnswers.push(me());
+    // The layout's check, then the overview loader's own.
+    meAnswers.push(me(), me());
 
     renderAdmin();
 
-    expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
-    // The role lives in the sidebar user chip now, not a sign-in line.
+    // The redirect lands on /admin/company, which draws its own header —
+    // awaited on the Owner pill, which only that page renders.
+    expect(await screen.findByText("Owner")).toBeInTheDocument();
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1).toHaveTextContent("Hello, Ravi Kumar");
+    expect(screen.getByLabelText("Breadcrumb").textContent).toBe("Console›Overview");
+    // The role lives in the sidebar user chip.
     expect(screen.getByText("Company owner")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Customers" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Approvals" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
-    // Epic 22 (CAP-8): the owner's landing IS the reports dashboard — the
-    // section index is gone for owners, the report failing degrades to a
-    // retry line inside it (this test's fetch mock is offline).
+    // The dashboard merged into Overview: its failing slices degrade to
+    // their own retry lines (this test's fetch mock is offline).
     expect(
       await screen.findByText("The report could not load for this period."),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Who checked in, where and when/ })).toBeNull();
+    expect(screen.getByText("The pulse could not load.")).toBeInTheDocument();
+    // The sidebar: one Overview section, no separate Dashboard.
+    expect(screen.queryByRole("link", { name: "Dashboard" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Customers" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
@@ -341,7 +350,8 @@ describe("Console: section gating", () => {
 describe("Console: logging out", () => {
   it("clears the saved sign-in and returns to the home page", async () => {
     writeSession({ token: "tok-1", name: "Ravi" });
-    meAnswers.push(me());
+    // The layout's check, then the overview loader the owner is redirected to.
+    meAnswers.push(me(), me());
 
     renderAdmin();
     fireEvent.click(await screen.findByRole("button", { name: "Log out" }));

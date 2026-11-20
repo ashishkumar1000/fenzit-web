@@ -104,15 +104,6 @@ export interface LeaveRow {
   totalDays: number;
 }
 
-export interface AuditRow {
-  id: string;
-  createdAt: string;
-  actorUserId: string;
-  actorIsPlatformAdmin: boolean;
-  action: string;
-  targetUserId: string | null;
-}
-
 export interface Page<T> {
   data: T[];
   nextCursor: string | null;
@@ -210,13 +201,6 @@ export function resendInviteSms(
 
 export function fetchCompanyLeave(token: string, signal?: AbortSignal): Promise<Page<LeaveRow>> {
   return apiFetch<Page<LeaveRow>>("/api/v1/attendance/leave?limit=8", {
-    headers: { Authorization: `Bearer ${token}` },
-    signal,
-  });
-}
-
-export function fetchAudit(token: string, signal?: AbortSignal): Promise<AuditRow[]> {
-  return apiFetch<AuditRow[]>("/api/v1/audit-log?limit=8", {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });

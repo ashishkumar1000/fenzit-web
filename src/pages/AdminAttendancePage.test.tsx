@@ -489,7 +489,7 @@ describe("AdminAttendancePage: the pager over a wide roster", () => {
 });
 
 describe("AdminAttendancePage: only owners get in", () => {
-  it("bounces a member back to the console index", async () => {
+  it("bounces a member back to their own console (Me)", async () => {
     setRespond((url) => {
       if (url.endsWith("/users/me")) {
         return jsonResponse({
@@ -506,8 +506,10 @@ describe("AdminAttendancePage: only owners get in", () => {
     writeSession({ token: "tok-1", name: "Priya" });
     const router = createMemoryRouter(routes, { initialEntries: ["/admin/company/attendance"] });
     render(<RouterProvider router={router} />);
+    // The gate bounces to /admin, whose index forwards a member to Me — the
+    // final address, not the intermediate hop.
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe("/admin");
+      expect(router.state.location.pathname).toBe("/admin/me");
     });
   });
 });

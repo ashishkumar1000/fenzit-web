@@ -1,7 +1,91 @@
+/* The overview page's console shell — the attendance page's shell classes
+   plus the merged job-report block's pieces (the old dashboard's range
+   pills, facts and name list). Colours and spacing come from the
+   design-system tokens. */
+
 .stack {
   display: grid;
   gap: var(--space-5);
 }
+
+/* ── The page shell ─────────────────────────────────────── */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.crumbRoot {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbRoot:hover {
+  color: var(--color-text-strong);
+}
+
+.crumbSep {
+  color: var(--color-text-disabled);
+}
+
+.crumbHere {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.pageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.heading {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.02em;
+}
+
+.rolePill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+}
+
+.rolePillIcon {
+  flex: 0 0 auto;
+}
+
+.lede {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Today's pulse and the shared pieces ────────────────── */
 
 .dateLine {
   margin: 0;
@@ -12,6 +96,12 @@
 
 .flagLine {
   color: var(--color-status-scheduled-fg);
+}
+
+.cards {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
 .pair {
@@ -47,8 +137,94 @@
   text-decoration: underline;
 }
 
-.cards {
+/* ── The job report (the merged dashboard's body) ───────── */
+
+.rangeNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rangeLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  min-height: 32px;
+}
+
+.rangeLink:hover {
+  color: var(--color-text-strong);
+  border-color: var(--color-border-strong);
+}
+
+.rangeLink[aria-current="page"] {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.factGrid {
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+.fact {
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  min-width: 0;
+}
+
+.factLabel {
+  margin: 0;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.factValue {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.queueLink {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+}
+
+.nameList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+}
+
+.nameList li {
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.quiet {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
