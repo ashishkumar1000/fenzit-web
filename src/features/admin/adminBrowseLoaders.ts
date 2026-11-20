@@ -874,13 +874,60 @@ export type AttendanceData =
       from: string;
       to: string;
       rows: MonthlyEmployeeRow[];
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
     }
   | {
       state: "ok";
       tab: "report";
+      /** The signed-in owner's display name for the greeting. */
+      selfName: string | null;
       /** The attendance card's report history (this page's own type). */
       history: Slice<ReportHistoryRow[]>;
     };
+
+/** The month table's chip/office/sort/pager state. The roster arrives whole
+ *  (bounded by headcount) and the monthly endpoint is expensive, so the
+ *  chips, office filter, sort and pager are the browser's work: the page
+ *  reads this state from the address itself (the route's shouldRevalidate
+ *  skips refetching when only these params move), while the URL keeps every
+ *  view shareable. */
+export interface AttendanceFilters {
+  /** "" = all employees; present/late/absent = the tally chips. */
+  chip: "" | "present" | "late" | "absent";
+  /** "" = all offices; the ATTENDANCE_NO_OFFICE sentinel = employees with no
+   *  office; else the office's name as the roster spells it. */
+  office: string;
+  /** "absent" = most absent first (the mockup's default); "az" = name A–Z. */
+  sort: "absent" | "az";
+  page: number;
+  pageSize: number;
+}
+
+const ATTENDANCE_CHIPS = new Set(["", "present", "late", "absent"]);
+const ATTENDANCE_SORTS = new Set(["absent", "az"]);
+const ATTENDANCE_PAGE_SIZES_SET = new Set([10, 25, 50]);
+
+/** The page sizes the attendance table starts on — the same three as jobs. */
+export const ATTENDANCE_PAGE_SIZES = [10, 25, 50] as const;
+
+export function readAttendanceFilters(params: URLSearchParams): AttendanceFilters {
+  const one = (key: string, allowed: Set<string>, fallback: string): string => {
+    const value = params.get(key) ?? "";
+    return allowed.has(value) ? value : fallback;
+  };
+  const page = Number(params.get("page") ?? "1");
+  const pageSize = Number(params.get("pageSize") ?? "10");
+  return {
+    chip: one("chip", ATTENDANCE_CHIPS, "") as AttendanceFilters["chip"],
+    // The office is a name the row set decides — the reader only trims and
+    // caps it; an unknown office simply filters to nothing.
+    office: (params.get("office") ?? "").trim().slice(0, 120),
+    sort: one("sort", ATTENDANCE_SORTS, "absent") as AttendanceFilters["sort"],
+    page: Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1,
+    pageSize: ATTENDANCE_PAGE_SIZES_SET.has(pageSize) ? pageSize : 10,
+  };
+}
 
 /** The attendance page's two tabs — the running month's table, and the
  *  attendance report PDF. Only the active tab's data is fetched. */
@@ -889,10 +936,10 @@ export async function adminAttendanceLoader({
 }: LoaderFunctionArgs): Promise<AttendanceData> {
   const tab = new URL(request.url).searchParams.get("tab") === "report" ? "report" : "month";
   try {
-    const { token } = await requireConsoleRole(request, ["owner"]);
+    const { token, me } = await requireConsoleRole(request, ["owner"]);
     if (tab === "report") {
       const history = await settle(() => fetchReportHistory(token, request.signal));
-      return { state: "ok", tab, history };
+      return { state: "ok", tab, selfName: me.name, history };
     }
     // The window runs on IST days — the house istToday (a plain en-CA
     // locale date follows the MACHINE's timezone, so between 00:00 and
@@ -906,6 +953,7 @@ export async function adminAttendanceLoader({
       from: month.from,
       to: month.to,
       rows: month.employees,
+      selfName: me.name,
     };
   } catch (error) {
     if (error instanceof Response) throw error;

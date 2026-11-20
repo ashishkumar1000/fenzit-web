@@ -347,6 +347,13 @@ export const routes: RouteObject[] = [
           },
           {
             path: "company/attendance",
+            // The month table's chip/office/sort/pager live in the address but
+            // are client-side (the roster arrives whole and the monthly
+            // endpoint is expensive) — refetch only when the tab changes or
+            // the address itself did not move (a manual retry revalidation).
+            shouldRevalidate: ({ currentUrl, nextUrl }) =>
+              (currentUrl.pathname === nextUrl.pathname && currentUrl.search === nextUrl.search) ||
+              currentUrl.searchParams.get("tab") !== nextUrl.searchParams.get("tab"),
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([
                 import("../pages/AdminAttendancePage"),

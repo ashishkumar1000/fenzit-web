@@ -230,6 +230,7 @@ const PAGES_WITH_OWN_HEADER = new Set([
   "/admin/company/employees",
   "/admin/company/customers",
   "/admin/company/jobs",
+  "/admin/company/attendance",
   "/admin/company/payroll",
 ]);
 

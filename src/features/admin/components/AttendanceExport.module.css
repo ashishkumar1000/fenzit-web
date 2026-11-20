@@ -1,0 +1,39 @@
+/* The Jobs "Download list" control and its error line. */
+
+.exportWrap {
+  display: inline-grid;
+  gap: var(--space-1);
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2) var(--space-4);
+  min-height: 38px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.exportError {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
