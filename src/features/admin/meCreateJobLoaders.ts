@@ -34,6 +34,9 @@ export type NewJobFormData =
       customers: Slice<PickOption[]>;
       /** Owner only: the active employees a job can be assigned to. */
       technicians: Slice<PickOption[]>;
+      /** The `?technician=` deep link (the profile's Assign Job button) —
+       *  prefilled only when it names a real active technician. */
+      technicianPrefill: string | null;
       /** The create's idempotency key, minted once and reused until a create
        *  succeeds — a retry after a lost response cannot mint a second job. */
       idempotencyKey: string;
@@ -80,9 +83,11 @@ export async function meCreateJobLoader({ request }: LoaderFunctionArgs): Promis
         skills: { ok: false },
         customers: { ok: false },
         technicians: { ok: false },
+        technicianPrefill: null,
         idempotencyKey: "",
       };
     }
+    const prefillId = new URL(request.url).searchParams.get("technician") ?? "";
     const [skills, customers, technicians] = await Promise.all([
       settle(() => fetchSkillOptions(token, request.signal)),
       settle(() => fetchCustomerOptions(token, request.signal)),
@@ -102,6 +107,10 @@ export async function meCreateJobLoader({ request }: LoaderFunctionArgs): Promis
       skills,
       customers,
       technicians,
+      technicianPrefill:
+        prefillId !== "" && technicians.ok && technicians.data.some((t) => t.id === prefillId)
+          ? prefillId
+          : null,
       idempotencyKey: readIdempotencyKey(),
     };
   } catch (error) {

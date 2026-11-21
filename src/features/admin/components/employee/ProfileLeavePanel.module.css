@@ -1,0 +1,57 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.balanceRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.balanceCard {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+}
+
+.balanceName {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.balanceValue {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.balanceUnit {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: normal;
+}
+
+.balanceCaption {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-sm);
+}

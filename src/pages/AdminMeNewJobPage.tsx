@@ -206,7 +206,7 @@ export function AdminMeNewJobPage() {
                     No active employees to assign yet. Add employees first.
                   </p>
                 ) : (
-                  <select name="technicianId" required defaultValue="">
+                  <select name="technicianId" required defaultValue={data.technicianPrefill ?? ""}>
                     <option value="">Pick an employee</option>
                     {data.technicians.data.map((t) => (
                       <option key={t.id} value={t.id}>

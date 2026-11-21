@@ -30,7 +30,7 @@ export interface MemberRow {
   phoneNumber: string;
   employeeCode: string;
   role: string;
-  status: "invited" | "active" | "removed";
+  status: "invited" | "active" | "deactivated" | "removed";
   createdAt: string;
   /** Short-lived link to the person's photo, or null. The paged list carries it. */
   avatarUrl?: string | null;
@@ -131,13 +131,15 @@ export interface MembersStats {
   total: number;
   active: number;
   invited: number;
+  /** Members parked by the owner (status `deactivated`). */
+  deactivated: number;
   /** Active employees whose jobs wait for the owner's approval first. */
   needsApproval: number;
   byRole: { all: number; company_admin: number; employee: number; viewer: number };
   byJobSetting: { all: number; off: number; createOnly: number; approval: number };
 }
 
-export type MembersStatusFilter = "all" | "active" | "invited";
+export type MembersStatusFilter = "all" | "active" | "invited" | "deactivated";
 export type MembersRoleFilter = "all" | "company_admin" | "employee" | "viewer";
 export type MembersJobSettingFilter = "all" | "off" | "create_only" | "approval";
 export type MembersSort =
@@ -407,6 +409,9 @@ export type JobsPageQuery = {
   skillId?: string;
   priority?: JobsPriorityFilter;
   sort?: JobsSort;
+  /** One employee's jobs (the profile page's Jobs tab). When set, `stats`
+   *  describes THAT employee's jobs, not the whole company. */
+  technicianId?: string;
 };
 
 export interface JobsPageResult {
@@ -435,6 +440,7 @@ export function fetchJobsPage(
   if (query.skillId) params.set("skillId", query.skillId);
   if (query.priority) params.set("priority", query.priority);
   if (query.sort && query.sort !== "latest") params.set("sort", query.sort);
+  if (query.technicianId) params.set("technicianId", query.technicianId);
   return apiFetch<JobsPageResult>(`/api/v1/jobs/page?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
     signal,

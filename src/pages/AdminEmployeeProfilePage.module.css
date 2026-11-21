@@ -1,0 +1,174 @@
+/* The employee profile's own header — the shell the other own-header pages
+   draw (breadcrumb, then the page's own heading block). */
+
+.topBar {
+  padding-block: var(--space-4);
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.crumbRoot {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbRoot:hover {
+  color: var(--color-text-body);
+  text-decoration: underline;
+}
+
+.crumbSep {
+  color: var(--color-text-muted);
+}
+
+.crumbHere {
+  color: var(--color-text-strong);
+}
+
+.pageHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4) var(--space-6);
+  align-items: start;
+  padding-block-end: var(--space-5);
+}
+
+.identity {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.identityText {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.codeChip {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.quietAction {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-link);
+  cursor: pointer;
+}
+
+.quietAction:hover {
+  text-decoration: underline;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.confirmPair {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.confirmDanger {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-danger);
+  color: var(--color-text-on-color);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.confirmDanger:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.reinstateButton {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.reinstateButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.actionError {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.main {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
+.dialog {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  background: var(--color-surface-card);
+}
+
+.dialog::backdrop {
+  background: var(--color-backdrop-dark);
+}

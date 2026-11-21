@@ -1,0 +1,54 @@
+.card {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.chipRow span {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.chipRow strong {
+  color: var(--color-text-strong);
+}
+
+.chipPrimary {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.chipDone {
+  border-color: var(--color-status-done-border);
+  background: var(--color-status-done-bg);
+}
+
+.jobLink {
+  color: var(--color-text-link);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.jobLink:hover {
+  text-decoration: underline;
+}
+
+.more {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-text-body);
+}

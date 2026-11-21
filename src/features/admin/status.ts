@@ -20,6 +20,7 @@ const TONES: Record<string, BadgeTone> = {
   upcoming: "scheduled",
   absent: "cancelled",
   cancelled: "cancelled",
+  deactivated: "neutral",
   disabled: "cancelled",
   failed: "cancelled",
   rejected: "cancelled",

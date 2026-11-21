@@ -189,7 +189,11 @@ export function MembersTable({
                   <MemberAvatar row={m} />
                   <div className={styles.nameText}>
                     <span className={styles.nameRow}>
-                      <span className={styles.name}>{m.name ?? "(no name)"}</span>
+                      {/* The name opens the person's profile — the row's
+                          quick-edit cells stay for the fast path. */}
+                      <Link className={styles.name} to={`/admin/company/employees/${m.userId}`}>
+                        {m.name ?? "(no name)"}
+                      </Link>
                       {m.userId === selfUserId ? <span className={styles.youPill}>You</span> : null}
                     </span>
                     {m.email ? <span className={styles.email}>{m.email}</span> : null}
@@ -215,14 +219,16 @@ export function MembersTable({
               <td>
                 {m.status === "invited" ? (
                   <ResendCell row={m} />
-                ) : m.role === "employee" ? (
+                ) : m.role === "employee" && m.status === "active" ? (
+                  // The settings write requires an active membership — a
+                  // deactivated row shows no live switch that would 404.
                   <JobSettingsCell key={m.userId} row={m} />
                 ) : (
                   <span className={styles.quiet}>—</span>
                 )}
               </td>
               <td>
-                {m.status === "active" && m.role === "employee" ? (
+                {(m.status === "active" || m.status === "deactivated") && m.role === "employee" ? (
                   <EmploymentCell userId={m.userId} name={m.name} />
                 ) : (
                   <span className={styles.quiet}>—</span>

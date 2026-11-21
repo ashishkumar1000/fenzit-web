@@ -243,6 +243,31 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            // One employee's profile — five tabs (Master Record, Jobs,
+            // Attendance, Leave, Payroll); the tab and the attendance month
+            // ride the address, and only that tab's data is fetched. The
+            // route's own action (deactivate/reinstate) always refetches so
+            // the status pill never lies.
+            path: "company/employees/:userId",
+            shouldRevalidate: ({ currentUrl, nextUrl, formMethod }) =>
+              // Any submission to this route (the activate fetcher) refetches.
+              formMethod !== undefined ||
+              (currentUrl.pathname === nextUrl.pathname && currentUrl.search === nextUrl.search) ||
+              currentUrl.searchParams.get("tab") !== nextUrl.searchParams.get("tab") ||
+              currentUrl.searchParams.get("month") !== nextUrl.searchParams.get("month"),
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminEmployeeProfilePage"),
+                import("../features/admin/employeeProfileLoaders"),
+              ]);
+              return {
+                Component: page.AdminEmployeeProfilePage,
+                loader: loaderModule.employeeProfileLoader,
+                action: loaderModule.employeeProfileAction,
+              };
+            },
+          },
+          {
             // The employment dialog's resource route: loader for the open
             // read, action for the save, no page of its own. It carries one
             // member's PAN/DOB/bank, so the owner gate sits inside both.

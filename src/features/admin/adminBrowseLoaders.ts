@@ -638,7 +638,7 @@ export type EmployeesFilters = {
   pageSize: number;
 };
 
-const STATUS_FILTERS = new Set(["all", "active", "invited"]);
+const STATUS_FILTERS = new Set(["all", "active", "invited", "deactivated"]);
 const ROLE_FILTERS = new Set(["all", "company_admin", "employee", "viewer"]);
 const JOB_FILTERS = new Set(["all", "off", "create_only", "approval"]);
 const SORTS = new Set(["joined_new", "joined_old", "name_az", "name_za", "code_az", "code_za"]);

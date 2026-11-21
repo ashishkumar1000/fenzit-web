@@ -65,7 +65,7 @@ export function EmploymentCell({ userId, name }: { userId: string; name: string 
   );
 }
 
-function EmploymentDialog({
+export function EmploymentDialog({
   result,
   close,
 }: {

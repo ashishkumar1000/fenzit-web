@@ -86,6 +86,7 @@ const STATUS_CHIPS: Array<{ value: EmployeesFilters["status"]; label: string }> 
   { value: "all", label: "All" },
   { value: "active", label: "Active" },
   { value: "invited", label: "Invited" },
+  { value: "deactivated", label: "Deactivated" },
 ];
 
 /** The status chip row: links, so a chip change is a navigation and the
@@ -96,12 +97,13 @@ export function StatusChips({
   counts,
 }: {
   filters: EmployeesFilters;
-  counts: { total: number; active: number; invited: number };
+  counts: { total: number; active: number; invited: number; deactivated: number };
 }) {
   const chipValue: Record<string, number> = {
     all: counts.total,
     active: counts.active,
     invited: counts.invited,
+    deactivated: counts.deactivated,
   };
   return (
     <div className={styles.chips} role="group" aria-label="Filter by status">

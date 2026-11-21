@@ -160,7 +160,9 @@ export function AdminLayout() {
   // The inspect page uses the whole width: its import table is wide.
   const wide = location.pathname.startsWith("/admin/inspect");
   // A trailing slash is the same page, so it gets the same header rule.
-  const ownHeader = PAGES_WITH_OWN_HEADER.has(location.pathname.replace(/\/+$/, ""));
+  // A trailing slash is the same page, so it gets the same header rule. The
+  // employee profile's param'd address draws its own header too.
+  const ownHeader = pageHasOwnHeader(location.pathname);
   const navigation = useNavigation();
   const busy = navigation.state !== "idle" || revalidator.state !== "idle";
 
@@ -223,7 +225,13 @@ export function AdminLayout() {
 }
 
 /** The pages that draw their own heading block (breadcrumb, greeting, page
- *  actions) — the console h1 steps aside for them. */
+ *  actions) — the console h1 steps aside for them. The employee profile's
+ *  address carries the member id, so it matches by prefix. */
+function pageHasOwnHeader(pathname: string): boolean {
+  const clean = pathname.replace(/\/+$/, "");
+  return PAGES_WITH_OWN_HEADER.has(clean) || clean.startsWith("/admin/company/employees/");
+}
+
 const PAGES_WITH_OWN_HEADER = new Set([
   "/admin/company",
   "/admin/company/employees",
