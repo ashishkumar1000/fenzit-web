@@ -138,11 +138,15 @@ describe("LoginForm: the code step", () => {
       phoneNumber: "9876543210",
     });
 
-    // The retry verifies against the NEW session, not the expired one.
+    // The retry verifies against the NEW session, not the expired one. The
+    // console this lands on fetches its sections (pulse, members, leave,
+    // report) — anything beyond the sign-in contract answers 404, so those
+    // sections settle to their own failed state instead of handing the page
+    // a malformed `200 {}` payload to crash on.
     setRespond((url) => {
       if (url.endsWith("/auth/otp/verify")) return signedIn();
       if (url.endsWith("/users/me")) return meResponse();
-      return jsonResponse({});
+      return jsonResponse({ error_code: "RESOURCE_NOT_FOUND" }, 404);
     });
     change("4-digit code", "1234");
     fireEvent.click(loginButton());
@@ -183,10 +187,14 @@ describe("LoginForm: the code step", () => {
 
   it("lands on the admin page after the right code", async () => {
     await renderAtCodeStep();
+    // The owner console auto-redirects into the Overview and fetches its
+    // sections — those answer 404 here (this test owns the sign-in contract,
+    // not the Overview's), so the landing renders with degraded sections
+    // instead of a malformed `200 {}` payload crashing the pulse tiles.
     setRespond((url) => {
       if (url.endsWith("/auth/otp/verify")) return signedIn();
       if (url.endsWith("/users/me")) return meResponse();
-      return jsonResponse({});
+      return jsonResponse({ error_code: "RESOURCE_NOT_FOUND" }, 404);
     });
 
     change("4-digit code", "1234");

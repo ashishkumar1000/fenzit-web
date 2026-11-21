@@ -206,7 +206,13 @@ describe("LoginForm: the sign-in step", () => {
     let release: (() => void) | undefined;
     setRespond((url) => {
       if (url.endsWith("/users/me")) return meResponse();
-      if (!url.endsWith("/auth/email/login")) return jsonResponse({});
+      // Everything beyond the sign-in contract (the landing Overview's pulse,
+      // members, leave, report) answers 404 — those sections settle to their
+      // own failed state instead of handing the page a malformed `200 {}`
+      // payload to crash on while the landing redirect races the assertions.
+      if (!url.endsWith("/auth/email/login")) {
+        return jsonResponse({ error_code: "RESOURCE_NOT_FOUND" }, 404);
+      }
       return new Promise((resolve) => {
         release = () => resolve(signedIn());
       });
