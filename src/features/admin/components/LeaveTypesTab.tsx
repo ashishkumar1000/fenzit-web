@@ -89,7 +89,7 @@ export function LeaveTypesTab({ rows }: { rows: LeaveTypeRow[] }) {
             <button
               key={row.id}
               type="button"
-              className={active ? styles.cardActive : styles.card}
+              className={`${active ? styles.cardActive : styles.card}${row.enabled ? "" : ` ${styles.cardOff}`}`}
               aria-pressed={active}
               onClick={() => setSelectedId(row.id)}
             >

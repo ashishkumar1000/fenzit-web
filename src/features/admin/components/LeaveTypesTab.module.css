@@ -66,6 +66,59 @@
   transform: rotate(45deg);
 }
 
+/* The off card (enabled: false) wears the gray theme so it reads as turned
+   off at a glance: every primary- or status-tinted child drops to grays.
+   It stays clickable — the editor below is how the owner turns it back on —
+   so the cursor, hover affordance and focus ring all remain, and a selected
+   off card keeps its notch in neutral gray instead of primary. */
+.cardOff {
+  background: var(--color-surface-sunken);
+}
+
+.cardOff:hover {
+  border-color: var(--color-border-default);
+  box-shadow: var(--shadow-xs);
+}
+
+.cardOff .glyph,
+.cardOff .glyphActive {
+  background: var(--palette-gray-200);
+  /* gray-500, not the disabled text tone: #9CA3AF on gray-200 sits at ~2:1,
+     under the 3:1 graphics floor — the tile would read as a blank square. */
+  color: var(--palette-gray-500);
+}
+
+.cardOff .badgeEdit,
+.cardOff .badgeEditing {
+  background: var(--palette-gray-200);
+  color: var(--color-text-muted);
+}
+
+.cardOff .cardName,
+.cardOff.cardActive .cardName {
+  color: var(--color-text-muted);
+}
+
+.cardOff .cardMode,
+.cardOff .cardModeEvent {
+  background: var(--palette-gray-200);
+  color: var(--color-text-muted);
+}
+
+.cardOff .footOff,
+.cardOff .footArrow {
+  color: var(--color-text-muted);
+}
+
+.cardOff.cardActive {
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+}
+
+.cardOff.cardActive::after {
+  background: var(--palette-gray-400);
+}
+
 .cardTop {
   display: flex;
   align-items: center;
