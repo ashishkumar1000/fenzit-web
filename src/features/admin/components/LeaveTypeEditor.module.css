@@ -1,35 +1,61 @@
-/* The selected leave type's rules editor — the design's detail half: a wide
-   card with the name-and-chips header, full-width toggle rows, the rate
-   block with quick-set presets, and a right-aligned save. */
+/* The selected leave type's rules editor — the design's detail half: a
+   sheet whose header carries the tile icon, the Active-Type and mode
+   chips, the Schema ID pill and the enable switch; the form below sleeps
+   (rows dim, controls go inert) while the switch sits at off. */
 
 .editor {
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--space-5);
   box-shadow: var(--shadow-xs);
+  overflow: hidden;
 }
 
 .head {
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: color-mix(in srgb, var(--color-primary-soft) 55%, var(--color-surface-card));
+}
+
+.headGlyph {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  box-shadow: var(--shadow-primary);
+  flex: none;
+}
+
+.headText {
+  display: grid;
+  gap: 2px;
+  min-width: 200px;
+  flex: 1 1 260px;
+}
+
+.headTitleRow {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border-subtle);
-  margin-bottom: var(--space-4);
 }
 
 .title {
   margin: 0;
-  margin-right: var(--space-2);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-strong);
   letter-spacing: -0.01em;
 }
 
-.stateChip,
+.activeChip,
 .modeChip {
   display: inline-flex;
   align-items: center;
@@ -37,16 +63,17 @@
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
   padding: 2px var(--space-2);
+  white-space: nowrap;
 }
 
-.stateChip {
+.activeChip {
   background: var(--color-status-neutral-bg);
   color: var(--color-status-neutral-fg);
 }
 
-.stateChip[data-live] {
-  background: var(--color-status-done-bg);
-  color: var(--color-status-done-fg);
+.activeChip[data-live] {
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
 }
 
 .modeChip {
@@ -54,31 +81,250 @@
   color: var(--color-primary);
 }
 
-.form {
-  display: grid;
-  gap: var(--space-4);
+.blurb {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
-/* The design's red banner: shown while the toggle sits at off (pre-save),
-   so the owner sees the consequence before it is one. */
-.offWarning {
-  margin: 0;
-  border: 1px solid var(--color-status-cancelled-border);
+.headEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.schema {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+/* The pill switch — the knob slides on `data-on`; the track takes the
+   primary tint while on and falls back to the border grey while off. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-border-default);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.switch[data-on] {
+  background: var(--color-primary);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.switchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.switch[data-on] .switchKnob {
+  transform: translateX(18px);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+/* A setting row — glyph tile, title (+ optional state chip), description,
+   and the switch. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  background: var(--color-status-cancelled-bg);
-  color: var(--color-status-cancelled-fg);
-  font-size: var(--font-size-xs);
-  line-height: var(--leading-snug);
+  background: var(--color-surface-card);
   padding: var(--space-3);
 }
 
+.row[data-disabled] {
+  opacity: 0.55;
+}
+
+.rowGlyph {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex: none;
+}
+
+.rowText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.rowChip {
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 1px var(--space-2);
+}
+
+.rowDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+/* The rate block — the design's boxed section: header row with the ×12
+   chip on the right, the stepper + presets row, then the info hint. */
 .rateBlock {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
   background: var(--color-surface-page);
+  padding: var(--space-4);
+}
+
+.rateBlock[data-disabled] {
+  opacity: 0.55;
+}
+
+.rateHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.rateConvert {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+.rateInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-left: calc(32px + var(--space-3));
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+}
+
+.stepper:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.step {
+  width: 36px;
+  border: none;
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.step:hover:not(:disabled) {
+  background: var(--color-surface-page);
+}
+
+.step:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The stepper's own focus-within ring is the focus indicator here — an
+   extra outline on the ± buttons would draw two rings around one box. */
+.step:focus-visible,
+.rateInput:focus-visible {
+  outline: none;
+}
+
+.rateInput {
+  width: 52px;
+  padding: var(--space-2) 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-strong);
+  font: inherit;
+  /* 16px, deliberately off the type scale: iOS Safari zooms the whole page
+     when a focused input is smaller than 16px (same exception as the
+     decision dialogs' reason field). */
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.rateInput:disabled {
+  cursor: not-allowed;
+}
+
+.rateUnit {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
 .presets {
@@ -86,6 +332,12 @@
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.presetsLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 .preset,
@@ -102,7 +354,7 @@
   cursor: pointer;
 }
 
-.preset:hover {
+.preset:hover:not(:disabled) {
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
@@ -119,11 +371,56 @@
   color: var(--color-text-on-color);
 }
 
-.convert {
+.preset:disabled,
+.presetActive:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rateError {
   margin: 0;
+  padding-left: calc(32px + var(--space-3));
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
+  color: var(--color-danger);
+}
+
+.rateHint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary-soft) 55%, transparent);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.rateHint svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* The design's red banner: shown while the switch sits at off (pre-save),
+   so the owner sees the consequence before it is one. */
+.offWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  border: 1px solid var(--color-status-cancelled-border);
+  border-radius: var(--radius-md);
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+  font-size: var(--font-size-xs);
+  line-height: var(--leading-snug);
+  padding: var(--space-3);
+}
+
+.offWarning svg {
+  flex: none;
+  margin-top: 2px;
 }
 
 .noRate {

@@ -59,7 +59,9 @@ function leaveType(
 function leaveTypeRows(): LeaveTypeRow[] {
   return [
     leaveType({ id: "t-earned", name: "Earned Leave", code: "earned", carryForward: true }),
-    leaveType({ id: "t-sick", name: "Sick Leave", code: "sick", accrualDays: 0 }),
+    // Sick sits off in this fixture — the card row's "Turned Off" footer and
+    // the asleep header chip need a type the suite never switches on.
+    leaveType({ id: "t-sick", name: "Sick Leave", code: "sick", accrualDays: 0, enabled: false }),
     leaveType({
       id: "t-bereave",
       name: "Bereavement Leave",
@@ -228,7 +230,21 @@ describe("AdminLeavePage: the types tab", () => {
         screen.getByRole("button", { name: new RegExp(name), pressed: false }),
       ).toBeInTheDocument();
     }
+    // Each card carries its state in copy: the pressed one is "Editing Now"
+    // over "Active Policy", the rest "Click to Edit" over "Switch to …",
+    // with the type's annualized rate on the card itself.
+    const earnedCard = screen.getByRole("button", { name: /Earned Leave/, pressed: true });
+    expect(earnedCard).toHaveTextContent("Editing Now");
+    expect(earnedCard).toHaveTextContent("Active Policy");
+    expect(earnedCard).toHaveTextContent("12 days / year");
+    const sickCard = screen.getByRole("button", { name: /Sick Leave/, pressed: false });
+    expect(sickCard).toHaveTextContent("Click to Edit");
+    expect(sickCard).toHaveTextContent("Switch to Sick Leave");
     expect(screen.getByText("Earned Leave rules")).toBeInTheDocument();
+    // The editor header carries the live chip and the schema pill.
+    const earnedEditor = screen.getByText("Earned Leave rules").closest("section")!;
+    expect(within(earnedEditor).getByText("Active Type")).toBeInTheDocument();
+    expect(within(earnedEditor).getByText(/Schema ID/)).toBeInTheDocument();
     expect(
       screen.getByText("No rate — days come from approved comp-off earns, not a rate."),
     ).toBeInTheDocument();
@@ -249,6 +265,11 @@ describe("AdminLeavePage: the types tab", () => {
       screen.getByRole("button", { name: /Earned Leave/, pressed: false }),
     ).toBeInTheDocument();
     expect(screen.getByText("Sick Leave rules").closest("[hidden]")).toBeNull();
+    // The selected card's footer follows the server truth — sick sits off in
+    // the fixture, so its footer reads "Turned Off".
+    expect(screen.getByRole("button", { name: /Sick Leave/, pressed: true })).toHaveTextContent(
+      "Turned Off",
+    );
   });
 
   it("the PATCH carries changed fields only", async () => {
@@ -261,6 +282,47 @@ describe("AdminLeavePage: the types tab", () => {
       expect(patch).toBeDefined();
       expect(patch?.url.endsWith("/attendance/leave/types/t-earned")).toBe(true);
       expect(patch?.body).toEqual({ accrualDays: 2 });
+    });
+  });
+
+  it("the stepper nudges the rate and the chip annualizes it", async () => {
+    renderLeave();
+    // The ×12 chip previews the annual figure for the monthly rate.
+    expect(await screen.findByText("1 day/mo = 12 days/yr")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Increase days" }));
+    expect(screen.getByText("1.5 day/mo = 18 days/yr")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Save Earned Leave" }));
+    await waitFor(() => {
+      const patch = sentRequests().find((request) => request.method === "PATCH");
+      expect(patch?.url.endsWith("/attendance/leave/types/t-earned")).toBe(true);
+      expect(patch?.body).toEqual({ accrualDays: 1.5 });
+    });
+  });
+
+  it("the header switch turns a type off — the form sleeps and the save posts enabled only", async () => {
+    renderLeave();
+    const onOff = await screen.findByRole("switch", { name: "Turn Earned Leave on or off" });
+    fireEvent.click(onOff);
+    // The header chip flips with the local state — the editor is asleep.
+    const earnedEditor = screen.getByText("Earned Leave rules").closest("section")!;
+    expect(within(earnedEditor).getByText("inactive")).toBeInTheDocument();
+    // Off means the rules sleep: rate input, stepper and quick-sets, and the
+    // other switches all go inert — only the header switch and the save
+    // (which now carries just the enabled change) still work.
+    expect(screen.getAllByLabelText("Days given each month")[0]).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Decrease days" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Increase days" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "1 day" })).toBeDisabled();
+    expect(screen.getByRole("switch", { name: "Paid time off" })).toBeDisabled();
+    expect(screen.getByRole("switch", { name: "Move unused days to next year" })).toBeDisabled();
+    expect(screen.getByRole("switch", { name: "Allow taking extra days" })).toBeDisabled();
+    expect(screen.getByRole("switch", { name: "Turn Earned Leave on or off" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save Earned Leave" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Save Earned Leave" }));
+    await waitFor(() => {
+      const patch = sentRequests().find((request) => request.method === "PATCH");
+      expect(patch?.url.endsWith("/attendance/leave/types/t-earned")).toBe(true);
+      expect(patch?.body).toEqual({ enabled: false });
     });
   });
 });

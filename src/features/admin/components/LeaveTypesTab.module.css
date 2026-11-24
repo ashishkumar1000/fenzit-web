@@ -1,52 +1,44 @@
-/* The types tab, the design's master-detail: summary cards on top, the
-   selected type's editor below, and a rates rail on the right. */
-
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: var(--space-5);
-  align-items: start;
-}
-
-@media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .rail {
-    order: 1;
-  }
-}
+/* The types tab — the design's master-detail: the four type cards on top
+   (the selected one wears the notch that points at its editor) and the
+   selected type's editor below. Every type's rate lives on its own card,
+   so there is no separate rates rail. */
 
 .main {
   display: grid;
   gap: var(--space-4);
 }
 
-/* The summary-card row — buttons styled as cards, one per configurable type. */
+/* The card row — buttons styled as the design's type cards: glyph tile and
+   Editing-Now badge on top, name, rate beside the mode chip, then the
+   footer row (Active Policy / Turned Off / Switch to …). */
 .cardRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-3);
 }
 
 .card,
 .cardActive {
+  position: relative;
   display: grid;
   gap: var(--space-2);
-  justify-items: start;
+  align-content: start;
   text-align: left;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   background: var(--color-surface-card);
-  padding: var(--space-4);
+  padding: var(--space-3);
   font: inherit;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .card:hover {
   border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .card:focus-visible,
@@ -57,46 +49,150 @@
 
 .cardActive {
   border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+/* The design's notch — a filled diamond under the active card, pointing at
+   the editor below. */
+.cardActive::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: calc(50% - 6px);
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.glyph,
+.glyphActive {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex: none;
+}
+
+.glyphActive {
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+.badgeEditing,
+.badgeEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+.badgeEditing {
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+.badgeEdit {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .cardName {
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-strong);
+  letter-spacing: -0.01em;
 }
 
-.cardRate {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-strong);
-  letter-spacing: -0.01em;
+.cardActive .cardName {
+  color: var(--color-primary);
 }
 
 .cardMeta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
-  flex-wrap: wrap;
+}
+
+.cardRate {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .cardMode,
-.cardOff {
+.cardModeEvent {
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-pill);
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
   padding: 2px var(--space-2);
+  white-space: nowrap;
 }
 
 .cardMode {
-  background: var(--color-status-neutral-bg);
-  color: var(--color-status-neutral-fg);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
-.cardOff {
-  background: var(--color-status-cancelled-bg);
-  color: var(--color-status-cancelled-fg);
+.cardModeEvent {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+}
+
+.footPolicy,
+.footOff,
+.footSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.footPolicy {
+  color: var(--color-primary);
+}
+
+.footOff {
+  color: var(--color-danger);
+}
+
+.footArrow {
+  color: var(--color-primary);
+}
+
+.footChevron {
+  color: var(--color-text-muted);
 }
 
 .remnants {
@@ -107,40 +203,6 @@
 
 .editors {
   display: grid;
-}
-
-.rail {
-  display: grid;
-  gap: var(--space-4);
-  position: sticky;
-  top: var(--space-5);
-}
-
-.rates {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-2);
-}
-
-.ratesRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.ratesRow strong {
-  color: var(--color-text-strong);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-}
-
-.ratesOff {
-  text-decoration: line-through;
 }
 
 .empty {
