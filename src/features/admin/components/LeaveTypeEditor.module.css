@@ -1,0 +1,141 @@
+/* The selected leave type's rules editor — the design's detail half: a wide
+   card with the name-and-chips header, full-width toggle rows, the rate
+   block with quick-set presets, and a right-aligned save. */
+
+.editor {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  margin-right: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.01em;
+}
+
+.stateChip,
+.modeChip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-2);
+}
+
+.stateChip {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.stateChip[data-live] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.modeChip {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* The design's red banner: shown while the toggle sits at off (pre-save),
+   so the owner sees the consequence before it is one. */
+.offWarning {
+  margin: 0;
+  border: 1px solid var(--color-status-cancelled-border);
+  border-radius: var(--radius-md);
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+  font-size: var(--font-size-xs);
+  line-height: var(--leading-snug);
+  padding: var(--space-3);
+}
+
+.rateBlock {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface-page);
+}
+
+.presets {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.preset,
+.presetActive {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.preset:focus-visible,
+.presetActive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.presetActive {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+.convert {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.noRate {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+}

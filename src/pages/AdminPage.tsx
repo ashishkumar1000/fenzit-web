@@ -10,7 +10,7 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "react-router";
-import { Flag } from "lucide-react";
+import { Flag, Palmtree } from "lucide-react";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
@@ -56,6 +56,11 @@ function GlyphReports({ size = 20 }: { size?: number }) {
   return <Flag size={size} strokeWidth={1.75} aria-hidden="true" />;
 }
 
+/** Leave uses the lucide palm — time off, the same icon family. */
+function GlyphLeave({ size = 20 }: { size?: number }) {
+  return <Palmtree size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
+
 const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
   "/admin/inspect": GlyphInspect,
   "/admin/account": GlyphAccount,
@@ -68,6 +73,7 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company/payroll": GlyphPayroll,
   "/admin/company/jobs": GlyphJobs,
   "/admin/company/holidays": GlyphHolidays,
+  "/admin/company/leave": GlyphLeave,
   "/admin/company/attendance": GlyphAttendance,
   "/admin/me": GlyphMe,
 };
@@ -237,6 +243,7 @@ const PAGES_WITH_OWN_HEADER = new Set([
   "/admin/company/employees",
   "/admin/company/customers",
   "/admin/company/jobs",
+  "/admin/company/leave",
   "/admin/company/attendance",
   "/admin/company/payroll",
 ]);
@@ -255,6 +262,7 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/company/payroll": "Salary structures, deductions and the statutory switches.",
   "/admin/company/jobs": "Create jobs, assign them and follow them to the finish.",
   "/admin/company/holidays": "The days your team is off.",
+  "/admin/company/leave": "Leave types and time off requests.",
   "/admin/company/attendance": "Who checked in, where and when.",
 };
 

@@ -10,6 +10,10 @@ describe("messageForError: known codes", () => {
     ["RATE_LIMIT_EXCEEDED", /too many attempts/i],
     ["DUPLICATE_RESOURCE", /already exists/i],
     ["ALREADY_IN_TEAM", /already on your team/i],
+    ["LEAVE_TYPE_NOT_CONFIGURABLE", /kept for history/i],
+    ["LEAVE_NOT_PENDING", /no longer waiting/i],
+    ["LEAVE_NOT_REVOKABLE", /not started yet/i],
+    ["LEAVE_INVALID_TRANSITION", /already moved on/i],
   ])("maps %s to its own copy", (code, expected) => {
     expect(messageForError(new ApiError(400, "technical", code))).toMatch(expected);
   });

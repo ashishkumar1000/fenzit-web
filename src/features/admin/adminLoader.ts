@@ -44,6 +44,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/company/payroll", label: "Payroll" },
       { to: "/admin/company/jobs", label: "Jobs" },
       { to: "/admin/company/holidays", label: "Holidays" },
+      { to: "/admin/company/leave", label: "Leave" },
       { to: "/admin/company/attendance", label: "Attendance" },
     ];
   }

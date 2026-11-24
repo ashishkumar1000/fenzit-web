@@ -1,0 +1,222 @@
+/* The requests tab's detail panel — the design's right-hand side. A
+   persistent card, not a dialog: the table stays beside it. */
+
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.01em;
+}
+
+.close {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+}
+
+.close:hover {
+  color: var(--color-text-strong);
+  border-color: var(--color-text-muted);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.person > div {
+  min-width: 0;
+  margin-right: auto;
+}
+
+.personName {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.personCode {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* The who/when/why facts, two to a row. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.fact dt {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+}
+
+/* The day-by-day dates — the split a revoke talks about, each day in its
+   own state. Long lists scroll instead of stretching the panel. */
+.days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.dayState {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-neutral-fg);
+}
+
+.dayState[data-state="approved"] {
+  color: var(--color-status-done-fg);
+}
+
+.dayState[data-state="revoked"],
+.dayState[data-state="cancelled"],
+.dayState[data-state="rejected"] {
+  color: var(--color-status-cancelled-fg);
+}
+
+.reason {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  line-height: var(--leading-snug);
+}
+
+.reasonLabel {
+  display: block;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+/* The allowance list — one line per accrual-bearing type. */
+.balanceHead {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.balances {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.balance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+}
+
+.balanceName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.balanceName[data-disabled] {
+  color: var(--color-text-muted);
+}
+
+.balanceBar {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-neutral-bg);
+  overflow: hidden;
+}
+
+.balanceFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
+.balanceFigure {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.balanceEmpty,
+.balanceFailed {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.balanceFailed {
+  color: var(--color-status-cancelled-fg);
+}
+
+.actions {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+}

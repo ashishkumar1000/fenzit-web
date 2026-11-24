@@ -24,6 +24,13 @@ const MESSAGES_BY_CODE = new Map<string, string>([
   ],
   ["JOB_NOT_PENDING", "That job was already decided. The list has been refreshed."],
   ["JOB_NOT_MODIFIABLE", "That job can no longer be edited. The list has been refreshed."],
+  ["LEAVE_TYPE_NOT_CONFIGURABLE", "That leave type is kept for history and cannot be edited."],
+  [
+    "LEAVE_NOT_PENDING",
+    "That request is no longer waiting for a decision. The list has been refreshed.",
+  ],
+  ["LEAVE_NOT_REVOKABLE", "Only leave that has not started yet can be revoked."],
+  ["LEAVE_INVALID_TRANSITION", "That request has already moved on. The list has been refreshed."],
 ]);
 
 export const NO_COMPANY_MESSAGE =

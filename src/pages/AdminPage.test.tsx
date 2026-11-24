@@ -138,6 +138,7 @@ describe("sectionsFor", () => {
       "/admin/company/payroll",
       "/admin/company/jobs",
       "/admin/company/holidays",
+      "/admin/company/leave",
       "/admin/company/attendance",
     ]);
   });

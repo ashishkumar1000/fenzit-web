@@ -378,6 +378,25 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            // The leave section: the fixed type catalog's values on the first
+            // tab, the whole-company requests and their approvals on the
+            // second. No shouldRevalidate — a tab/status/cursor change is a
+            // genuine refetch, and the decision actions revalidate by default
+            // (the list refreshes after an approve).
+            path: "company/leave",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminLeavePage"),
+                import("../features/admin/leaveLoaders"),
+              ]);
+              return {
+                Component: page.AdminLeavePage,
+                loader: loaderModule.adminLeaveLoader,
+                action: loaderModule.adminLeaveAction,
+              };
+            },
+          },
+          {
             path: "company/attendance",
             // The month table's chip/office/sort/pager live in the address but
             // are client-side (the roster arrives whole and the monthly

@@ -1,0 +1,150 @@
+/* The types tab, the design's master-detail: summary cards on top, the
+   selected type's editor below, and a rates rail on the right. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    order: 1;
+  }
+}
+
+.main {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* The summary-card row — buttons styled as cards, one per configurable type. */
+.cardRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.card,
+.cardActive {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  text-align: left;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  padding: var(--space-4);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+}
+
+.card:focus-visible,
+.cardActive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cardActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.cardName {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.cardRate {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.01em;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.cardMode,
+.cardOff {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-2);
+}
+
+.cardMode {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.cardOff {
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+}
+
+.remnants {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.editors {
+  display: grid;
+}
+
+.rail {
+  display: grid;
+  gap: var(--space-4);
+  position: sticky;
+  top: var(--space-5);
+}
+
+.rates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ratesRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ratesRow strong {
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.ratesOff {
+  text-decoration: line-through;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

@@ -93,15 +93,22 @@ export function inviteMember(
 
 export interface LeaveRow {
   id: string;
+  employeeId: string;
   employeeName?: string;
   employeeCode?: string;
+  /** Short-lived presign from the same page read — use it, never refetch. */
+  employeeAvatarUrl?: string | null;
   startDate: string;
   endDate: string;
   part: string;
   reason: string;
+  /** Full ISO instant — slice(0, 10) for the day. */
+  createdAt: string;
   status: string;
   workingDays: number;
   totalDays: number;
+  /** The request's working dates, oldest first, with each day's own state. */
+  dates: Array<{ date: string; state: string }>;
 }
 
 export interface Page<T> {

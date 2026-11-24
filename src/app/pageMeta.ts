@@ -288,6 +288,7 @@ export const CLIENT_ONLY_TITLES: Record<string, string> = {
   "/admin/company/payroll": "Console · Fenzit",
   "/admin/company/jobs": "Console · Fenzit",
   "/admin/company/holidays": "Console · Fenzit",
+  "/admin/company/leave": "Console · Fenzit",
   "/admin/company/attendance": "Console · Fenzit",
   "/admin/me": "Console · Fenzit",
   "/admin/deletion-requests": "Console · Fenzit",
