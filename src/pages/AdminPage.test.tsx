@@ -3,12 +3,15 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { AdminChecking } from "./AdminPage";
-import { consoleRole, sectionsFor } from "../features/admin/adminLoader";
+import { consoleRole, sectionGroupsFor, sectionsFor } from "../features/admin/adminLoader";
 import { SESSION_KEY, writeSession } from "../services/session";
 import { clearApiBase, jsonResponse, useApiBase } from "../testing/fetchMock";
 
 let meAnswers: Array<() => Response> = [];
 let meCalls = 0;
+// The sidebar badge's summary read — unset means "offline" (the badge
+// degrades away, like a backend without the endpoint).
+let summaryAnswer: (() => Response) | undefined;
 const originalFetch = globalThis.fetch;
 
 beforeAll(() => {
@@ -22,6 +25,7 @@ afterAll(() => {
 beforeEach(() => {
   meAnswers = [];
   meCalls = 0;
+  summaryAnswer = undefined;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith("/users/me")) {
@@ -42,6 +46,11 @@ beforeEach(() => {
             status: null,
           })
         : next();
+    }
+    if (url.endsWith("/attendance/leave/summary")) {
+      const next = summaryAnswer;
+      if (next === undefined) throw new TypeError(`offline in tests: ${url}`);
+      return next();
     }
     // Anything else (section endpoints, the home page's country codes) fails,
     // like router tests do.
@@ -145,6 +154,47 @@ describe("sectionsFor", () => {
 
   it("gives a member Me and the shared Jobs page", () => {
     expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me", "/admin/company/jobs"]);
+  });
+});
+
+describe("sectionGroupsFor", () => {
+  it("clusters the owner sections under Business, Team and Money, with Overview standing alone", () => {
+    expect(sectionGroupsFor("owner")).toEqual([
+      { caption: null, links: [{ to: "/admin/company", label: "Overview" }] },
+      {
+        caption: "Business",
+        links: [
+          { to: "/admin/company/customers", label: "Customers" },
+          { to: "/admin/company/jobs", label: "Jobs" },
+        ],
+      },
+      {
+        caption: "Team",
+        links: [
+          { to: "/admin/company/employees", label: "Employees" },
+          { to: "/admin/company/leave", label: "Leave" },
+          { to: "/admin/company/attendance", label: "Attendance" },
+          { to: "/admin/company/holidays", label: "Holidays" },
+        ],
+      },
+      { caption: "Money", links: [{ to: "/admin/company/payroll", label: "Payroll" }] },
+    ]);
+  });
+
+  it("keeps the short staff and member lists as one uncaptioned group", () => {
+    expect(sectionGroupsFor("staff")).toEqual([{ caption: null, links: sectionsFor("staff") }]);
+    expect(sectionGroupsFor("member")).toEqual([{ caption: null, links: sectionsFor("member") }]);
+  });
+
+  it("places every owner section exactly once across the groups — a pick list can never drop one", () => {
+    const grouped = sectionGroupsFor("owner")
+      .flatMap((group) => group.links.map((link) => link.to))
+      .sort();
+    expect(grouped).toEqual(
+      sectionsFor("owner")
+        .map((section) => section.to)
+        .sort(),
+    );
   });
 });
 
@@ -306,6 +356,90 @@ describe("Console: who sees what", () => {
     expect(screen.getByRole("link", { name: "Me" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
+  });
+});
+
+describe("Console: the sidebar's captions and the Leave badge", () => {
+  it("renders the owner captions and carries the pending count on the Leave row", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    // The layout's check, then the overview loader's own.
+    meAnswers.push(me(), me());
+    summaryAnswer = () =>
+      jsonResponse({
+        activeEmployees: 10,
+        counts: { pending: 3, approved: 1, revoked: 0, cancelled: 0, rejected: 0 },
+      });
+
+    renderAdmin();
+
+    // The badge renames the link for AT and shows the count on the row —
+    // the design's chip on the active Leave pill.
+    const leave = await screen.findByRole("link", { name: "Leave, 3 pending" });
+    expect(leave).toHaveTextContent("3");
+    // The design's group captions over their clusters…
+    expect(screen.getByText("Business")).toBeInTheDocument();
+    expect(screen.getByText("Team")).toBeInTheDocument();
+    expect(screen.getByText("Money")).toBeInTheDocument();
+    // …and Overview standing alone, with no caption paragraph over it.
+    expect(screen.queryByText("Overview", { selector: "p" })).toBeNull();
+  });
+
+  it("answers a summary without counts with a plain Leave link, no badge", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    // An older backend answers without `counts` — the badge degrades away.
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin();
+
+    expect(await screen.findByRole("link", { name: "Leave" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+  });
+
+  it("answers a zero pending count with a plain Leave link — zero is no news", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    summaryAnswer = () =>
+      jsonResponse({
+        activeEmployees: 10,
+        counts: { pending: 0, approved: 1, revoked: 0, cancelled: 0, rejected: 0 },
+      });
+
+    renderAdmin();
+
+    expect(await screen.findByRole("link", { name: "Leave" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+  });
+
+  it("answers a failed summary read with a plain Leave link — the console still loads", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    // summaryAnswer stays unset: the read throws, like a dead network —
+    // the layout degrades the badge away, it does not fail the console.
+    renderAdmin();
+
+    expect(await screen.findByText("Owner")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Leave" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+  });
+
+  it("asks no summary read for staff — no Leave section, nothing to count", async () => {
+    writeSession({ token: "tok-1", name: null });
+    // The layout's check, then the inspect route's own role check.
+    meAnswers.push(
+      me({ role: null, platformAdmin: true, name: null }),
+      me({ role: null, platformAdmin: true, name: null }),
+    );
+    let summaryCalls = 0;
+    summaryAnswer = () => {
+      summaryCalls += 1;
+      return jsonResponse({ activeEmployees: 10 });
+    };
+
+    renderAdmin("/admin/inspect");
+
+    expect(await screen.findByRole("link", { name: "Inspect" })).toBeInTheDocument();
+    expect(summaryCalls).toBe(0);
   });
 });
 

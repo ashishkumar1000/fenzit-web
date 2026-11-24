@@ -158,8 +158,10 @@ function balances(): unknown[] {
       credits: 0,
       accrued: 8,
       carryForward: 0,
-      consumed: 2,
-      remaining: 6,
+      // The pending r-1 request's four days already debit the balance — the
+      // derived remaining is what the design draws "after approval".
+      consumed: 4,
+      remaining: 4,
     },
     {
       typeId: "t-sick",
@@ -204,8 +206,18 @@ function respondDefault(url: string): Response {
     return jsonResponse({ data: listRows(), nextCursor: null, hasMore: false });
   }
   if (/\/attendance\/leave\/[^/]+\/balances$/.test(pathname)) return jsonResponse(balances());
+  if (/\/attendance\/leave\/[^/]+\/coverage$/.test(pathname)) {
+    return jsonResponse({
+      officeName: "MG Road Office",
+      availableCount: 1,
+      onDutyName: "Priya Sharma",
+    });
+  }
   if (pathname.endsWith("/attendance/leave/summary")) {
-    return jsonResponse({ activeEmployees: 10 });
+    return jsonResponse({
+      activeEmployees: 10,
+      counts: { pending: 1, approved: 1, revoked: 0, cancelled: 0, rejected: 0 },
+    });
   }
   if (pathname.endsWith("/attendance/holidays")) {
     return jsonResponse([
@@ -338,17 +350,21 @@ describe("AdminLeavePage: the types tab", () => {
 });
 
 describe("AdminLeavePage: the requests tab", () => {
-  it("sends the status filter and the page size, and a chip change is an address", async () => {
+  it("the pills carry the summary's counts, and a pill change is an address that drops the selection", async () => {
     renderLeave("/admin/company/leave?tab=requests&status=pending");
-    await screen.findByText("Asha V");
+    await screen.findAllByText("Asha V");
     expect(
       sentRequests().some((r) => r.url.includes("status=pending") && r.url.includes("limit=20")),
     ).toBe(true);
-    fireEvent.click(screen.getByRole("link", { name: "Approved" }));
+    // The pills read the whole tenant's counts (the summary read), whatever
+    // the page's own filter is.
+    expect(screen.getByRole("link", { name: "Needs review 1" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "All 2" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("link", { name: "Approved 1" }));
     await waitFor(() => {
       expect(sentRequests().some((r) => r.url.includes("status=approved"))).toBe(true);
     });
-    // A status change drops the open panel's param from the address.
+    // A status change restarts the walk — no selected= rides along.
     expect(
       sentRequests().every(
         (r) => !r.url.includes("status=approved") || !r.url.includes("selected="),
@@ -356,33 +372,113 @@ describe("AdminLeavePage: the requests tab", () => {
     ).toBe(true);
   });
 
-  it("approve posts with no body, reject posts the reason", async () => {
+  it("the meta chips count the tenant, not the page", async () => {
+    renderLeave("/admin/company/leave?tab=requests&status=pending");
+    await screen.findAllByText("Asha V");
+    expect(screen.getByText("2 total")).toBeInTheDocument();
+    expect(screen.getByText("1 needs review")).toBeInTheDocument();
+    expect(screen.getByText("Newest first")).toBeInTheDocument();
+  });
+
+  it("the card is always present — with no selected= the first row is picked and its balances and coverage read", async () => {
     renderLeave("/admin/company/leave?tab=requests");
-    await screen.findByText("Asha V");
-    fireEvent.click(screen.getByRole("button", { name: "Approve" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Approve leave" }));
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    await waitFor(() => {
+      expect(sentRequests().some((r) => r.url.endsWith("/u-emp-1/balances"))).toBe(true);
+      expect(sentRequests().some((r) => r.url.endsWith("/r-1/coverage"))).toBe(true);
+    });
+    expect(screen.getByRole("link", { name: /Asha V/ }).getAttribute("aria-current")).toBe("true");
+    expect(within(card).getByText("Asha V")).toBeInTheDocument();
+  });
+
+  it("the card renders the facts, the allowance and the coverage line the design draws", async () => {
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    expect(within(card).getByText(/Family function/)).toBeInTheDocument();
+    expect(within(card).getByText("4 Working Days")).toBeInTheDocument();
+    expect(within(card).getByText("17 Nov – 20 Nov 2026")).toBeInTheDocument();
+    expect(
+      within(card).getByText("Earned Leave days allowance — 4 days remaining"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("4 days after approval")).toBeInTheDocument();
+    expect(within(card).getByText("4 requested")).toBeInTheDocument();
+    expect(within(card).getByText("8 total allowance")).toBeInTheDocument();
+    expect(
+      within(card).getByText(/1 other team member is available in MG Road Office/),
+    ).toBeInTheDocument();
+    expect(within(card).getByText(/Priya Sharma on duty/)).toBeInTheDocument();
+  });
+
+  it("approve posts the typed note; decline posts the reason", async () => {
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    await screen.findByRole("complementary", { name: "Request details" });
+    fireEvent.change(screen.getByLabelText(/Approval note/), {
+      target: { value: "Covered by Priya" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
     await waitFor(() => {
       const post = sentRequests().find((r) => r.url.endsWith("/approve"));
       expect(post).toBeDefined();
-      expect(post?.body).toBeUndefined();
+      expect(post?.body).toEqual({ note: "Covered by Priya" });
     });
-    fireEvent.click(await screen.findByRole("button", { name: "Close" }));
-
-    fireEvent.click(screen.getByRole("button", { name: "Reject" }));
-    fireEvent.change(await screen.findByLabelText("Reason (optional)"), {
+    fireEvent.change(screen.getByLabelText(/Approval note/), {
       target: { value: "Team is short that week" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Reject request" }));
+    fireEvent.click(screen.getByRole("button", { name: "Decline Request" }));
     await waitFor(() => {
       const post = sentRequests().find((r) => r.url.endsWith("/reject"));
       expect(post?.body).toEqual({ reason: "Team is short that week" });
     });
   });
 
-  it("revoke stays locked until its reason exists, then posts it", async () => {
-    renderLeave("/admin/company/leave?tab=requests");
-    await screen.findByText("Bunty R"); // the fixture's approved row
-    fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+  it("an empty note approves with no body", async () => {
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    await screen.findByRole("complementary", { name: "Request details" });
+    fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
+    await waitFor(() => {
+      const post = sentRequests().find((r) => r.url.endsWith("/approve"));
+      expect(post).toBeDefined();
+      expect(post?.body).toBeUndefined();
+    });
+  });
+
+  it("a decision refreshes the sidebar badge — the count rides the action's revalidation", async () => {
+    // The owner's first load reads the summary twice (the layout's badge, the
+    // pills' counts), both seeing the same pending 1; the decision's
+    // revalidation sweeps the layout loader too, so a later read — whichever
+    // of the two loaders revalidates first — sees the settled count.
+    let summaryCalls = 0;
+    setRespond((url) => {
+      const { pathname } = new URL(url);
+      if (pathname.endsWith("/attendance/leave/summary")) {
+        summaryCalls += 1;
+        return jsonResponse({
+          activeEmployees: 10,
+          counts: {
+            pending: summaryCalls <= 2 ? 1 : 0,
+            approved: 1,
+            revoked: 0,
+            cancelled: 0,
+            rejected: 0,
+          },
+        });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    expect(await screen.findByRole("link", { name: "Leave, 1 pending" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
+    await waitFor(() => {
+      expect(summaryCalls).toBeGreaterThanOrEqual(3);
+      expect(screen.getByRole("link", { name: "Leave" })).toBeInTheDocument();
+    });
+  });
+
+  it("revoke rides the approved row's card — the dialog keeps its required-reason gate, the zero-gross balance says so", async () => {
+    renderLeave("/admin/company/leave?tab=requests&status=approved&selected=r-2");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    expect(within(card).getByText("No balance recorded for Sick Leave.")).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole("button", { name: "Revoke" }));
     const reason = await screen.findByLabelText("Reason (required)");
     const confirm = screen.getByRole("button", { name: "Revoke leave" });
     // FR-14: no reason, no revoke — the confirm sleeps until there is one.
@@ -396,24 +492,11 @@ describe("AdminLeavePage: the requests tab", () => {
     });
   });
 
-  it("selected= drives the balances read and the panel renders the facts", async () => {
-    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
-    const panel = await screen.findByRole("complementary", { name: "Request details" });
-    expect(sentRequests().some((r) => r.url.includes("/u-emp-1/balances"))).toBe(true);
-    // The reason also lives in the table's cell — the panel's copy is the
-    // one asserted here.
-    expect(within(panel).getByText("Family function")).toBeInTheDocument();
-    expect(within(panel).getByText("6 of 8 days left")).toBeInTheDocument();
-    expect(within(panel).getByText("No balance recorded for this type.")).toBeInTheDocument();
-    // The selected row's name link carries the aria-current marker.
-    expect(screen.getByRole("link", { name: "Asha V" }).getAttribute("aria-current")).toBe("true");
-  });
-
-  it("a stale selected id renders no panel", async () => {
+  it("a stale selected id falls back to the first row — the card never goes blank", async () => {
     renderLeave("/admin/company/leave?tab=requests&selected=r-ghost");
-    await screen.findByText("Asha V");
-    expect(screen.queryByText("Request details")).toBeNull();
-    expect(sentRequests().every((r) => !r.url.includes("/balances"))).toBe(true);
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    expect(within(card).getByText("Asha V")).toBeInTheDocument();
+    expect(sentRequests().some((r) => r.url.endsWith("/u-emp-1/balances"))).toBe(true);
   });
 
   it("a failed balances read degrades to a note — the request stays shown", async () => {
@@ -425,12 +508,96 @@ describe("AdminLeavePage: the requests tab", () => {
       return respondDefault(url);
     });
     renderLeave("/admin/company/leave?tab=requests&selected=r-1");
-    const panel = await screen.findByRole("complementary", { name: "Request details" });
-    expect(within(panel).getByText(/The balance could not be loaded/)).toBeInTheDocument();
-    expect(within(panel).getByText("Family function")).toBeInTheDocument();
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    expect(within(card).getByText(/The balance could not be loaded/)).toBeInTheDocument();
+    expect(within(card).getByText(/Family function/)).toBeInTheDocument();
   });
 
-  it("the pager is an address that drops the panel — Older carries the cursor, not the selection", async () => {
+  it("a failed coverage read degrades to a quiet line — the card stays", async () => {
+    setRespond((url) => {
+      const { pathname } = new URL(url);
+      if (/\/attendance\/leave\/[^/]+\/coverage$/.test(pathname)) {
+        return jsonResponse({ message: "boom" }, 500);
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    expect(within(card).getByText("Coverage could not be checked.")).toBeInTheDocument();
+    expect(within(card).getByText(/Family function/)).toBeInTheDocument();
+  });
+
+  it("an older backend without counts renders bare pills — the labels stay", async () => {
+    setRespond((url) => {
+      const { pathname } = new URL(url);
+      if (pathname.endsWith("/attendance/leave/summary")) {
+        return jsonResponse({ activeEmployees: 10 });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests");
+    await screen.findAllByText("Asha V");
+    // The chips are gone — but the card's allowance legend also says "total",
+    // so the absence must be pinned to the chips' own strings.
+    expect(screen.queryByText("1 needs review")).toBeNull();
+    expect(screen.queryByText("2 total")).toBeNull();
+    expect(screen.getByRole("link", { name: "Needs review" })).toBeInTheDocument();
+  });
+
+  it("the search is an address — Enter carries the needle and restarts the walk", async () => {
+    renderLeave("/admin/company/leave?tab=requests");
+    await screen.findAllByText("Asha V");
+    fireEvent.change(screen.getByLabelText("Search by person or leave reason"), {
+      target: { value: "Asha" },
+    });
+    fireEvent.submit(screen.getByRole("search"));
+    await waitFor(() => {
+      expect(sentRequests().some((r) => r.url.includes("q=Asha"))).toBe(true);
+    });
+    expect(
+      sentRequests().every((r) => !r.url.includes("q=Asha") || !r.url.includes("cursor=")),
+    ).toBe(true);
+  });
+
+  it("the month window is an address — stepping months re-windows the 27-1 read, All months clears it", async () => {
+    renderLeave("/admin/company/leave?tab=requests&month=2026-11");
+    // The month read's rows ride respondDefault's from= branch (the calendar
+    // fixture) — the wire, not the rows, is what this test pins.
+    await waitFor(() => {
+      expect(
+        sentRequests().some(
+          (r) => r.url.includes("from=2026-11-01") && r.url.includes("to=2026-11-30"),
+        ),
+      ).toBe(true);
+    });
+    // The loader keeps flying after the list fetch (summary, balances,
+    // coverage) — the DOM is empty until the whole loader settles, so every
+    // step waits on its element, never queries bare.
+    fireEvent.click(await screen.findByRole("link", { name: "Previous month, October 2026" }));
+    await waitFor(() => {
+      expect(
+        sentRequests().some(
+          (r) => r.url.includes("from=2026-10-01") && r.url.includes("to=2026-10-31"),
+        ),
+      ).toBe(true);
+    });
+    fireEvent.click(await screen.findByRole("link", { name: "All months" }));
+    await waitFor(() => {
+      // The list fetch never carries `tab=` — that lives in the address only.
+      // All time = a plain windowless page read.
+      expect(
+        sentRequests().some(
+          (r) =>
+            r.url.includes("/attendance/leave?") &&
+            !r.url.includes("from=") &&
+            !r.url.includes("month=") &&
+            !r.url.includes("cursor="),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  it("the pager carries the cursor — the card stays present across the walk", async () => {
     setRespond((url) => {
       const { pathname, search } = new URL(url);
       if (pathname.endsWith("/users/me")) return respondDefault(url);
@@ -441,18 +608,34 @@ describe("AdminLeavePage: the requests tab", () => {
       return respondDefault(url);
     });
     renderLeave("/admin/company/leave?tab=requests");
-    await screen.findByText("Asha V");
-    // Open the panel, then walk to the older page — the address carries the
-    // cursor and drops `selected` (a selection belongs to one walk), so the
-    // panel cannot re-open when Start over returns to this page.
-    fireEvent.click(screen.getByRole("link", { name: "Asha V" }));
+    await screen.findAllByText("Asha V");
     fireEvent.click(await screen.findByRole("link", { name: "Older ›" }));
     await waitFor(() => {
       expect(sentRequests().some((r) => r.url.includes("cursor=c-9"))).toBe(true);
     });
-    expect(
-      sentRequests().every((r) => !r.url.includes("cursor=c-9") || !r.url.includes("selected=")),
-    ).toBe(true);
+    expect(screen.getByRole("complementary", { name: "Request details" })).toBeInTheDocument();
+  });
+
+  it("the pager keeps the address's filters — the cursor read still searches and windows the month", async () => {
+    setRespond((url) => {
+      const { pathname, search } = new URL(url);
+      if (pathname.endsWith("/users/me")) return respondDefault(url);
+      if (pathname.endsWith("/attendance/leave")) {
+        const next = search.includes("cursor=") ? null : "c-9";
+        return jsonResponse({ data: listRows(), nextCursor: next, hasMore: next !== null });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&q=Asha&month=2026-11");
+    await screen.findAllByText("Asha V");
+    fireEvent.click(await screen.findByRole("link", { name: "Older ›" }));
+    await waitFor(() => {
+      const paged = sentRequests().find((r) => r.url.includes("cursor=c-9"));
+      expect(paged).toBeDefined();
+      expect(paged?.url.includes("q=Asha")).toBe(true);
+      expect(paged?.url.includes("from=2026-11-01")).toBe(true);
+      expect(paged?.url.includes("to=2026-11-30")).toBe(true);
+    });
   });
 });
 

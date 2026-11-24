@@ -92,11 +92,15 @@ export const routes: RouteObject[] = [
             Component: AdminLayout,
             loader: adminLoader,
             HydrateFallback: AdminChecking,
-            // The layout loader fetches /users/me only — the role and name the
-            // whole console shares. It does not change while a session lasts,
-            // so a navigation to any console section (or an action on one)
-            // skips the refetch; returning to /admin revalidates.
-            shouldRevalidate: ({ nextUrl }) => nextUrl.pathname === "/admin",
+            // The layout loader fetches /users/me and the Leave badge's
+            // summary. The session doesn't change while it lasts, so a
+            // navigation to any console section skips the refetch — but a
+            // submission anywhere (the leave decisions' fetcher post) is a
+            // revalidation the badge must ride, or the count would keep
+            // naming requests that no longer exist. Returning to /admin
+            // revalidates.
+            shouldRevalidate: ({ formMethod, nextUrl }) =>
+              formMethod !== undefined || nextUrl.pathname === "/admin",
           };
         },
         children: [

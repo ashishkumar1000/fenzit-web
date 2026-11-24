@@ -476,10 +476,23 @@ export function fetchHolidays(token: string, signal?: AbortSignal): Promise<Holi
   });
 }
 
+/** The whole tenant's request counts by derived status — the requests tab's
+ *  filter pills. Optional on the wire: an older backend answers the summary
+ *  without it, and the pills degrade to labels only. */
+export interface LeaveStatusCounts {
+  pending: number;
+  approved: number;
+  revoked: number;
+  cancelled: number;
+  rejected: number;
+}
+
 /** The team-size fact the calendar rail's pulse card divides the month's
- *  leave days by — the company's active employees. */
+ *  leave days by — the company's active employees — plus the requests tab's
+ *  whole-tenant pill counts. */
 export interface LeaveSummary {
   activeEmployees: number;
+  counts?: LeaveStatusCounts;
 }
 
 export function fetchLeaveSummary(token: string, signal?: AbortSignal): Promise<LeaveSummary> {

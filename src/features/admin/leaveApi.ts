@@ -66,6 +66,9 @@ export interface LeavePageQuery {
    *  `from > to` answers 422. */
   from?: string;
   to?: string;
+  /** Free-text needle over the person's name, their employee code and the
+   *  request's reason — the server filters, so paging never lies. */
+  q?: string;
 }
 
 export function fetchLeavePage(
@@ -79,6 +82,7 @@ export function fetchLeavePage(
   if (query.limit !== undefined) params.set("limit", String(query.limit));
   if (query.from) params.set("from", query.from);
   if (query.to) params.set("to", query.to);
+  if (query.q) params.set("q", query.q);
   const qs = params.toString();
   return apiFetch<Page<LeaveRow>>(`/api/v1/attendance/leave${qs === "" ? "" : `?${qs}`}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -119,12 +123,46 @@ export function fetchLeaveBalances(
   );
 }
 
-/** FR-13 approve: every pending day becomes approved. A retry of an already
- *  approved request answers 200 (idempotent), a stale one 409. */
-export function approveLeave(token: string, id: string, signal?: AbortSignal): Promise<LeaveRow> {
+/** The request's coverage check — who else can hold the fort while the
+ *  requester is out: active colleagues at their office (company-wide when
+ *  they have none) with no pending-or-approved day inside the span. */
+export interface LeaveCoverage {
+  /** The office the roster was scoped to; null = company-wide. */
+  officeName: string | null;
+  availableCount: number;
+  /** One deterministic available colleague; null when nobody is. */
+  onDutyName: string | null;
+}
+
+export function fetchLeaveCoverage(
+  token: string,
+  id: string,
+  signal?: AbortSignal,
+): Promise<LeaveCoverage> {
+  return apiFetch<LeaveCoverage>(`/api/v1/attendance/leave/${encodeURIComponent(id)}/coverage`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** FR-13 approve: every pending day becomes approved. The note is optional —
+ *  it rides the approval audit event, the same slot the rejection reason
+ *  uses. A retry of an already approved request answers 200 (idempotent), a
+ *  stale one 409. */
+export function approveLeave(
+  token: string,
+  id: string,
+  note: string,
+  signal?: AbortSignal,
+): Promise<LeaveRow> {
+  const body = note === "" ? undefined : JSON.stringify({ note });
   return apiFetch<LeaveRow>(`/api/v1/attendance/leave/${encodeURIComponent(id)}/approve`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(body === undefined ? undefined : { "Content-Type": "application/json" }),
+    },
+    body,
     signal,
   });
 }

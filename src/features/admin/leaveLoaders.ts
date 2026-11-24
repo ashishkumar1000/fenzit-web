@@ -5,16 +5,18 @@ import { messageForError } from "../../utils/errorMessages";
 import {
   approveLeave,
   fetchLeaveBalances,
+  fetchLeaveCoverage,
   fetchLeavePage,
   fetchLeaveTypes,
   patchLeaveType,
   rejectLeave,
   revokeLeave,
   type LeaveBalanceRow,
+  type LeaveCoverage,
   type LeaveTypePatch,
   type LeaveTypeRow,
 } from "./leaveApi";
-import type { HolidayRow, LeaveRow, LeaveSummary, Page } from "./companyApi";
+import type { HolidayRow, LeaveRow, LeaveStatusCounts, LeaveSummary, Page } from "./companyApi";
 import { fetchHolidays, fetchLeaveSummary } from "./companyApi";
 import { isMonth, localIsoToday, monthBounds } from "./leaveDateMath";
 
@@ -29,12 +31,14 @@ import { isMonth, localIsoToday, monthBounds } from "./leaveDateMath";
 export type LeaveTab = "types" | "requests" | "calendar";
 export type LeaveFail = { state: "failed"; tab: LeaveTab };
 
-/** The open detail panel's data: the request itself plus the employee's
- *  balances. `balances: null` = the balances read failed (the request still
- *  shows — the panel says the balance could not be loaded). */
+/** The open detail card's data: the request itself, the employee's
+ *  balances, and the request's coverage check. `balances: null` /
+ *  `coverage: null` = that read failed (the card still shows — it says the
+ *  fact could not be loaded). */
 export type LeaveSelection = {
   request: LeaveRow;
   balances: LeaveBalanceRow[] | null;
+  coverage: LeaveCoverage | null;
 };
 
 export type LeaveData =
@@ -43,9 +47,16 @@ export type LeaveData =
       state: "ok";
       tab: "requests";
       status: LeaveStatusFilter;
+      /** The free-text needle, "" = no search. */
+      q: string;
+      /** "YYYY-MM" the list is windowed to, "" = all time. */
+      month: string;
       cursor: string;
       selected: string;
       page: Page<LeaveRow>;
+      /** The whole tenant's pill counts — null when the summary read failed
+       *  or an older backend (no counts yet) answered it (pills go bare). */
+      counts: LeaveStatusCounts | null;
       selection: LeaveSelection | null;
       selfName: string | null;
     }
@@ -79,9 +90,13 @@ const LEAVE_STATUS_SET = new Set<string>(LEAVE_STATUSES);
 
 export type LeaveFilters = {
   status: LeaveStatusFilter;
+  /** The free-text needle; "" = no search. */
+  q: string;
+  /** "YYYY-MM" the list is windowed to; "" = all time. */
+  month: string;
   /** The keyset cursor the backend handed back; "" = first page. */
   cursor: string;
-  /** The open detail panel's request id; "" = panel closed. */
+  /** The open detail card's request id; "" = the first row is picked. */
   selected: string;
 };
 
@@ -92,8 +107,12 @@ export function readLeaveFilters(params: URLSearchParams): LeaveFilters {
   const rawStatus = params.get("status") ?? "";
   const rawCursor = params.get("cursor") ?? "";
   const rawSelected = params.get("selected") ?? "";
+  const rawQ = params.get("q") ?? "";
+  const rawMonth = params.get("month") ?? "";
   return {
     status: LEAVE_STATUS_SET.has(rawStatus) ? (rawStatus as LeaveStatusFilter) : "all",
+    q: rawQ.trim().slice(0, 100),
+    month: isMonth(rawMonth) ? rawMonth : "",
     cursor: rawCursor.trim().slice(0, 300),
     selected: rawSelected.trim().slice(0, 100),
   };
@@ -119,11 +138,28 @@ function isoPlusDays(iso: string, days: number): string {
   return next.toISOString().slice(0, 10);
 }
 
-/** Resolves the `selected` param into the panel's data: the request must be
- *  on the loaded page (a stale id — decided elsewhere, another filter — just
- *  closes the panel), and its balances come from the employee read. A failed
- *  balances read degrades to `balances: null` — the request still shows —
- *  while an auth failure propagates to the loader's login redirect. */
+/** One degrade-able detail read: an auth failure propagates to the loader's
+ *  login redirect, an abort rethrows so React Router can move on, and any
+ *  other failure (the route not deployed yet, a 500) costs its own card
+ *  fact only. */
+async function readDetailOrNull<T>(
+  read: (token: string, signal: AbortSignal) => Promise<T>,
+  token: string,
+  signal: AbortSignal,
+): Promise<T | null> {
+  try {
+    return await read(token, signal);
+  } catch (error) {
+    if (isAuthError(error)) throw error;
+    if (signal.aborted) throw error;
+    return null;
+  }
+}
+
+/** Resolves the selected request into the detail card's data: the request
+ *  must be on the loaded page (a stale id — decided elsewhere, another
+ *  filter — just means no card), its balances and coverage come along as
+ *  the two degrade-able reads. */
 async function resolveSelection(
   token: string,
   selected: string,
@@ -133,14 +169,19 @@ async function resolveSelection(
   if (selected === "") return null;
   const request = page.data.find((row) => row.id === selected);
   if (request === undefined) return null;
-  try {
-    const balances = await fetchLeaveBalances(token, request.employeeId, signal);
-    return { request, balances };
-  } catch (error) {
-    if (isAuthError(error)) throw error;
-    if (signal.aborted) throw error;
-    return { request, balances: null };
-  }
+  const [balances, coverage] = await Promise.all([
+    readDetailOrNull(
+      (bearer, abort) => fetchLeaveBalances(bearer, request.employeeId, abort),
+      token,
+      signal,
+    ),
+    readDetailOrNull(
+      (bearer, abort) => fetchLeaveCoverage(bearer, request.id, abort),
+      token,
+      signal,
+    ),
+  ]);
+  return { request, balances, coverage };
 }
 
 /** The summary read is degrade-able — the pulse's capacity fact, nothing
@@ -202,22 +243,39 @@ export async function adminLeaveLoader({ request }: LoaderFunctionArgs): Promise
     }
     if (tab === "requests") {
       const filters = readLeaveFilters(url.searchParams);
-      const page = await fetchLeavePage(
-        token,
-        {
-          limit: LEAVE_PAGE_SIZE,
-          ...(filters.status !== "all" ? { status: filters.status } : {}),
-          ...(filters.cursor !== "" ? { cursor: filters.cursor } : {}),
-        },
-        request.signal,
-      );
-      const selection = await resolveSelection(token, filters.selected, page, request.signal);
+      const window = filters.month === "" ? null : monthBounds(filters.month);
+      const [page, summary] = await Promise.all([
+        fetchLeavePage(
+          token,
+          {
+            limit: LEAVE_PAGE_SIZE,
+            ...(filters.status !== "all" ? { status: filters.status } : {}),
+            ...(window !== null ? { from: window.from, to: window.to } : {}),
+            ...(filters.q !== "" ? { q: filters.q } : {}),
+            ...(filters.cursor !== "" ? { cursor: filters.cursor } : {}),
+          },
+          request.signal,
+        ),
+        readSummaryOrNull(token, request.signal),
+      ]);
+      // The details card is always present (the design shows one selected
+      // request beside the list): with no `selected=` in the address the
+      // first row is picked. A selected id that is no longer on the page —
+      // decided elsewhere, another filter — falls back to the first row too,
+      // so the card never goes blank.
+      const selected = page.data.some((row) => row.id === filters.selected)
+        ? filters.selected
+        : (page.data[0]?.id ?? "");
+      const selection = await resolveSelection(token, selected, page, request.signal);
       return {
         state: "ok",
         tab,
         status: filters.status,
+        q: filters.q,
+        month: filters.month,
         cursor: filters.cursor,
-        selected: filters.selected,
+        selected,
+        counts: summary?.counts ?? null,
         page,
         selection,
         selfName: me.name,
@@ -323,7 +381,10 @@ export async function adminLeaveAction({
     const id = stringField(form, "id");
     if ((intent === "approve" || intent === "reject" || intent === "revoke") && id !== "") {
       if (intent === "approve") {
-        await approveLeave(token, id, request.signal);
+        // The card's one note input feeds both decisions: on approve it is
+        // the audit note, on decline the rejection reason.
+        const note = stringField(form, "reason").slice(0, 500);
+        await approveLeave(token, id, note, request.signal);
         return { kind: "approve", state: "done" };
       }
       if (intent === "reject") {

@@ -14,7 +14,7 @@ import { Flag, Palmtree } from "lucide-react";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
-import { sectionsFor } from "../features/admin/adminLoader";
+import { sectionGroupsFor, sectionsFor } from "../features/admin/adminLoader";
 import type { adminLoader, ConsoleRole } from "../features/admin/adminLoader";
 import {
   ConsoleArt,
@@ -97,6 +97,9 @@ function BrandMark() {
         alt=""
       />
       <span className={styles.brandName}>Fenzit</span>
+      {/* The design's plan pill — static brand copy until a plan concept
+          exists to hang it on. */}
+      <span className={styles.brandBadge}>PRO</span>
     </Link>
   );
 }
@@ -122,36 +125,61 @@ function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
   );
 }
 
-function NavLinks({ role, landing }: { role: ConsoleRole; landing: boolean }) {
+function NavLinks({
+  role,
+  landing,
+  pendingLeaves,
+}: {
+  role: ConsoleRole;
+  landing: boolean;
+  pendingLeaves: number | null;
+}) {
   return (
     <nav className={styles.nav} aria-label="Console sections">
-      {sectionsFor(role).map((section, index) => {
-        const Glyph = GLYPHS[section.to] ?? GlyphMe;
-        // On the landing the first section reads as where you are — the index
-        // below opens with it, so the sidebar says so too. Visual only: no
-        // aria-current, because the URL is still /admin.
-        const leadsLanding = landing && index === 0;
-        // Landing sections own their address exactly: Overview must not stay
-        // lit on /admin/company/jobs or any other sub-list.
-        const exact = section.to === "/admin/company";
-        return (
-          <NavLink
-            key={section.to}
-            to={section.to}
-            end={exact}
-            className={({ isActive }) =>
-              isActive || leadsLanding
-                ? `${styles.navLink} ${styles.navLinkActive}`
-                : styles.navLink
-            }
-          >
-            <span className={styles.navGlyph} aria-hidden="true">
-              <Glyph size={18} />
-            </span>
-            {section.label}
-          </NavLink>
-        );
-      })}
+      {sectionGroupsFor(role).map((group, groupIndex) => (
+        <div key={group.caption ?? `group-${groupIndex}`} className={styles.navGroup}>
+          {group.caption !== null ? <p className={styles.navCaption}>{group.caption}</p> : null}
+          {group.links.map((section, index) => {
+            const Glyph = GLYPHS[section.to] ?? GlyphMe;
+            // On the landing the first section reads as where you are — the index
+            // below opens with it, so the sidebar says so too. Visual only: no
+            // aria-current, because the URL is still /admin.
+            const leadsLanding = landing && groupIndex === 0 && index === 0;
+            // The Leave badge: the tenant's pending requests, the design's
+            // count chip on the row. It names the count for AT too.
+            const pendingBadge =
+              section.to === "/admin/company/leave" && pendingLeaves !== null && pendingLeaves > 0
+                ? pendingLeaves
+                : null;
+            // Landing sections own their address exactly: Overview must not stay
+            // lit on /admin/company/jobs or any other sub-list.
+            const exact = section.to === "/admin/company";
+            return (
+              <NavLink
+                key={section.to}
+                to={section.to}
+                end={exact}
+                aria-label={pendingBadge !== null ? `Leave, ${pendingBadge} pending` : undefined}
+                className={({ isActive }) =>
+                  isActive || leadsLanding
+                    ? `${styles.navLink} ${styles.navLinkActive}`
+                    : styles.navLink
+                }
+              >
+                <span className={styles.navGlyph} aria-hidden="true">
+                  <Glyph size={18} />
+                </span>
+                {section.label}
+                {pendingBadge !== null ? (
+                  <span className={styles.navBadge} aria-hidden="true">
+                    {pendingBadge}
+                  </span>
+                ) : null}
+              </NavLink>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }
@@ -200,7 +228,11 @@ export function AdminLayout() {
       <title>{CLIENT_ONLY_TITLES["/admin"]}</title>
       <aside className={styles.sidebar}>
         <BrandMark />
-        <NavLinks role={data.role} landing={location.pathname.replace(/\/+$/, "") === "/admin"} />
+        <NavLinks
+          role={data.role}
+          landing={location.pathname.replace(/\/+$/, "") === "/admin"}
+          pendingLeaves={data.pendingLeaves}
+        />
         <div className={styles.sidebarFoot}>
           <UserChip name={data.name} role={data.role} />
           <Button variant="secondary" onClick={logOut}>

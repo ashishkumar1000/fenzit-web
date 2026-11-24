@@ -1,0 +1,618 @@
+/* The requests tab, as the design draws it: one toolbar card (status pills
+   with counts, search, month window) over the list-and-details split. The
+   calendar tab's own controls card lent this its shapes — nav pill, pill
+   search, type tones — so the two tabs read as one section. Tokens only. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── The toolbar card ───────────────────────────────────── */
+
+.toolbar {
+  grid-column: 1 / -1;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pill,
+.pillActive {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+}
+
+.pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pillActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* The queue's amber and the approval's green ride the same status families
+   the chips use — a pill's dot matches what its filter yields. */
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-status-scheduled-solid);
+  flex-shrink: 0;
+}
+
+.pill[data-tone="approved"] .pillDot,
+.pillActive[data-tone="approved"] .pillDot {
+  background: var(--color-status-done-solid);
+}
+
+.pillCount {
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.searchGlyph {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-5) + 2px);
+  min-width: 210px;
+}
+
+.search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.monthNav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  padding: var(--space-1) var(--space-2);
+}
+
+.monthStep {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-1);
+}
+
+.monthStep:hover {
+  color: var(--color-primary);
+}
+
+.monthLabel {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  white-space: nowrap;
+  padding: 0 var(--space-1);
+}
+
+.allTime {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.allTime:hover {
+  text-decoration: underline;
+}
+
+/* ── The list column ────────────────────────────────────── */
+
+.listCol {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.listMeta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.listMetaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.listMetaChip[data-tone="pending"] {
+  color: var(--color-status-scheduled-fg);
+}
+
+.sortNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  overflow: hidden;
+  display: grid;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: inherit;
+}
+
+.rows li:last-child .row {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--color-surface-page);
+}
+
+.row[data-selected] {
+  border-left-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.rowMain {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.rowName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.rowSub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowDates {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.rowDays {
+  color: var(--color-text-muted);
+}
+
+/* The request's leave type: one pill, toned by the catalog code the same
+   families the calendar's filters use. */
+.typePill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.typePill[data-code="earned"] {
+  border-color: transparent;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.typePill[data-code="sick"] {
+  border-color: transparent;
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.typePill[data-code="bereavement"] {
+  border-color: transparent;
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pagerStep {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.pagerStep:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  margin: 0;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface-card);
+}
+
+/* ── The details card ───────────────────────────────────── */
+
+.card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cardTitle::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.personName {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.personSub {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.facts {
+  margin: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.fact dt {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.reasonQuote {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+/* The type's allowance: heading with the days left, one bar split into
+   after-approval / requested / used, the legend beneath. */
+.allowance {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.allowHead {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.allowBar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-surface-page);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.allowAfter {
+  background: var(--color-primary);
+}
+
+.allowRequested {
+  background: var(--color-status-scheduled-solid);
+}
+
+.allowUsed {
+  background: var(--color-border-subtle);
+}
+
+.allowLegend {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.legendAfter,
+.legendRequested,
+.legendTotal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legendAfter::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.legendRequested::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-status-scheduled-solid);
+}
+
+.legendTotal::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border-subtle);
+}
+
+.allowQuiet {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* The coverage line: a green fact when someone can hold the fort, an amber
+   warning when nobody can, a quiet line when the check itself failed. */
+.coverageOk {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-status-done-fg);
+}
+
+.coverageWarn {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-status-scheduled-fg);
+}
+
+/* ── The decision controls ──────────────────────────────── */
+
+.decide {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.decideForm {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.note {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.note::placeholder {
+  color: var(--color-text-muted);
+}
+
+.note:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* The repo's tokened ring, for every control the search and note don't
+   cover — no interactive element falls back to the UA default. */
+.pill:focus-visible,
+.pillActive:focus-visible,
+.row:focus-visible,
+.monthStep:focus-visible,
+.allTime:focus-visible,
+.pagerStep:focus-visible,
+.approveBtn:focus-visible,
+.declineBtn:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.decideError {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
+
+.decideRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.approveBtn,
+.declineBtn {
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.approveBtn {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.approveBtn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.declineBtn {
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+}
+
+.declineBtn:hover:not(:disabled) {
+  filter: brightness(1.02);
+}
+
+.approveBtn:disabled,
+.declineBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .decideRow {
+    grid-template-columns: 1fr;
+  }
+}

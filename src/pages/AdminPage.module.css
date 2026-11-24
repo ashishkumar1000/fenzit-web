@@ -37,6 +37,16 @@
   overflow-x: auto;
 }
 
+/* On phones the groups flow into the top-bar row as if they weren't there —
+   captions are a sidebar luxury. */
+.navGroup {
+  display: contents;
+}
+
+.navCaption {
+  display: none;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -57,6 +67,17 @@
 
 .mark {
   border-radius: var(--radius-sm);
+}
+
+/* The design's plan pill, right of the wordmark. */
+.brandBadge {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
 }
 
 .navLink {
@@ -83,9 +104,33 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* Resting glyphs recede a tone so the label is the read; hover and the
+   active row hand the color back to the link. */
 .navGlyph {
   display: inline-flex;
+  color: var(--color-text-muted);
+}
+
+.navLink:hover .navGlyph,
+.navLinkActive .navGlyph {
   color: inherit;
+}
+
+/* The Leave badge: the tenant's pending requests, hugging the row's right
+   edge like the design's count chip. */
+.navBadge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
 }
 
 .chip {
@@ -344,10 +389,40 @@
     overflow: visible;
   }
 
+  .navGroup {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  /* Each cluster closes at a hairline — captions alone were too quiet a
+     boundary for eight links in one column. The first captioned group's
+     rule draws the line under Overview; phones never see this (their
+     groups are display:contents). */
+  .navGroup + .navGroup {
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-4);
+  }
+
+  /* The cluster's caption: small caps, quiet, aligned with the link text. */
+  .navCaption {
+    display: block;
+    margin: 0 var(--space-4) var(--space-1);
+    font-size: var(--font-size-2xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
   .sidebarFoot {
     margin-top: auto;
     flex-direction: column;
     align-items: stretch;
+    /* The rail closes with the same hairline the clusters use — the user
+       chip and Log out read as the rail's footer, not a fourth cluster. */
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-4);
   }
 
   .sidebarFoot .chip {

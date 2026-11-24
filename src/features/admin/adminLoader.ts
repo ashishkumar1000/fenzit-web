@@ -1,6 +1,7 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
 import { ApiError } from "../../services/api";
 import { clearSession, readSession } from "../../services/session";
+import { fetchLeaveSummary } from "./companyApi";
 import { fetchCurrentUser, type CurrentUser } from "./adminApi";
 
 export type ConsoleRole = "staff" | "owner" | "member";
@@ -10,6 +11,9 @@ export type AdminLayoutData =
       status: "ok";
       name: string | null;
       role: ConsoleRole;
+      /** The Leave sidebar badge's count — null when unknown (non-owner, a
+       *  failed summary read) so the badge simply doesn't render. */
+      pendingLeaves: number | null;
     }
   | { status: "failed" };
 
@@ -54,6 +58,57 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
   ];
 }
 
+/** The sidebar's nav clusters: a small caption over its links (null caption
+ *  = the cluster stands alone). Only the owner sidebar groups — staff and
+ *  member lists are short enough to read as one column. The flat list stays
+ *  in `sectionsFor` for anything that walks every section. */
+export interface SectionGroup {
+  caption: string | null;
+  links: SectionLink[];
+}
+
+export function sectionGroupsFor(role: ConsoleRole): SectionGroup[] {
+  if (role !== "owner") {
+    return [{ caption: null, links: sectionsFor(role) }];
+  }
+  const byTo = new Map(sectionsFor(role).map((section) => [section.to, section]));
+  const pick = (tos: string[]): SectionLink[] =>
+    tos.flatMap((to) => {
+      const section = byTo.get(to);
+      return section ? [section] : [];
+    });
+  return [
+    { caption: null, links: pick(["/admin/company"]) },
+    { caption: "Business", links: pick(["/admin/company/customers", "/admin/company/jobs"]) },
+    {
+      caption: "Team",
+      links: pick([
+        "/admin/company/employees",
+        "/admin/company/leave",
+        "/admin/company/attendance",
+        "/admin/company/holidays",
+      ]),
+    },
+    { caption: "Money", links: pick(["/admin/company/payroll"]) },
+  ];
+}
+
+/** The sidebar's Leave badge: the tenant's pending requests, riding the same
+ *  summary read the requests tab uses. Any failure on this cosmetic read
+ *  costs the badge only — except a dead session (401), which still reaches
+ *  the loader's login redirect; a permission-shaped 403 never logs anyone
+ *  out. An abort rethrows so the router moves on. */
+async function pendingLeavesOrNull(token: string, signal: AbortSignal): Promise<number | null> {
+  try {
+    const summary = await fetchLeaveSummary(token, signal);
+    return summary.counts?.pending ?? null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) throw error;
+    if (signal.aborted) throw error;
+    return null;
+  }
+}
+
 /** The sign-in is no longer valid, so the session must go before redirecting. */
 export function isAuthError(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
@@ -70,8 +125,16 @@ export async function loadMe(request: Request): Promise<{ token: string; me: Cur
 
 export async function adminLoader({ request }: LoaderFunctionArgs): Promise<AdminLayoutData> {
   try {
-    const { me } = await loadMe(request);
-    return { status: "ok", name: me.name, role: consoleRole(me) };
+    const { me, token } = await loadMe(request);
+    const role = consoleRole(me);
+    // Owners only — no Leave section, no summary read. The count refreshes
+    // whenever this layout loader re-runs: a submission anywhere in the
+    // console (a decision's fetcher post) is a revalidation, and the
+    // layout's shouldRevalidate lets submissions through, so a decision
+    // updates the badge in the same sweep.
+    const pendingLeaves =
+      role === "owner" ? await pendingLeavesOrNull(token, request.signal) : null;
+    return { status: "ok", name: me.name, role, pendingLeaves };
   } catch (error) {
     // A redirect thrown deeper down (no session) is navigation, not a failure.
     if (error instanceof Response) throw error;

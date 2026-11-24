@@ -189,6 +189,11 @@ function route(url: string): Response {
         remaining: 2,
       },
     ]);
+  if (path.endsWith("/attendance/leave/summary"))
+    return jsonResponse({
+      activeEmployees: 10,
+      counts: { pending: 1, approved: 0, revoked: 0, cancelled: 0, rejected: 0 },
+    });
   if (path.endsWith("/attendance/leave") && parsed.searchParams.get("employeeId") !== null)
     return jsonResponse({ data: [], nextCursor: null, hasMore: false });
   if (path.endsWith("/payroll/payslips")) return jsonResponse([]);
@@ -241,7 +246,14 @@ describe("Employee profile: the tabs fetch only their own section", () => {
     // No other tab's endpoint fires for the bare address.
     expect(reads.some((r) => r.url.includes("/jobs/page"))).toBe(false);
     expect(reads.some((r) => r.url.includes("/attendance/punches"))).toBe(false);
-    expect(reads.some((r) => r.url.includes("/attendance/leave"))).toBe(false);
+    // The layout's owner badge reads the leave summary on every mount —
+    // that's the sidebar's read, not this page's. Every other leave read
+    // (the list, balances, actions) must stay quiet on the bare address.
+    expect(
+      reads.some(
+        (r) => r.url.includes("/attendance/leave") && !r.url.includes("/attendance/leave/summary"),
+      ),
+    ).toBe(false);
     expect(reads.some((r) => r.url.includes("/payroll/payslips"))).toBe(false);
   });
 
