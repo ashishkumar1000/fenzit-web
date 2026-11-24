@@ -1,9 +1,12 @@
-/* The calendar tab: month nav + grid on the left, the two rails on the
-   right — the design's timeline screen, minus the dropped meters. */
+/* The calendar tab — the design's "Upcoming Leaves" screen: the controls
+   card (month nav pill, view toggle, type pills, search) over the active
+   view, with the pulse, holidays and breakdown cards on the rail. Tokens
+   only; type tones reuse the status families every other Leave surface
+   uses. */
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-5);
   align-items: start;
 }
@@ -19,54 +22,259 @@
   gap: var(--space-4);
 }
 
-.nav {
+/* The controls card: month nav + view toggle on the first row, the type
+   pills + search on the second. */
+.controls {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  padding: var(--space-3) var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.controlsTop {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.navPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  padding: var(--space-1) var(--space-2);
 }
 
 .monthLabel {
   margin: 0;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-strong);
-  letter-spacing: -0.01em;
-  min-width: 16ch;
+  white-space: nowrap;
+  padding: 0 var(--space-1);
 }
 
-.navStep,
-.today {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-card);
-  color: var(--color-text-strong);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: var(--space-1) var(--space-3);
-  min-height: 28px;
+.navStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: var(--color-text-muted);
   text-decoration: none;
+  flex-shrink: 0;
 }
 
-.navStep:hover,
-.today:hover {
-  border-color: var(--color-primary);
+.navStep:hover {
   color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .navStep:focus-visible,
-.today:focus-visible {
+.thisMonth:focus-visible,
+.toggleBtn:focus-visible,
+.filter:focus-visible,
+.filterActive:focus-visible,
+.clearFilters:focus-visible,
+.holidaysLink:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
 
-.today {
-  margin-left: auto;
+.thisMonth {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+  text-decoration: none;
+  white-space: nowrap;
+  margin-left: var(--space-1);
+}
+
+.thisMonthDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.thisMonth:hover {
+  filter: brightness(0.97);
+}
+
+/* The Timeline | Monthly Grid segmented toggle — the active side is the
+   raised white card, the design's segmented control. */
+.toggle {
+  display: inline-flex;
+  gap: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  padding: 2px;
+}
+
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.toggleBtn:hover {
+  color: var(--color-text-strong);
+}
+
+.toggleBtn[aria-pressed="true"] {
+  background: var(--color-surface-card);
+  color: var(--color-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.controlsBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filterPills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.filter,
+.filterActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.filter {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+}
+
+.filter:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filterActive {
+  border: 1px solid var(--color-text-strong);
+  background: var(--color-text-strong);
+  color: var(--color-surface-card);
+}
+
+.filterDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.filter[data-code="sick"] .filterDot {
+  background: var(--color-status-done-solid);
+}
+
+.filter[data-code="bereavement"] .filterDot {
+  background: var(--color-status-scheduled-solid);
+}
+
+.filter[data-code="comp_off"] .filterDot {
+  background: var(--color-status-neutral-solid);
+}
+
+.filterActive .filterDot,
+.filterActive[data-code] .filterDot {
+  background: currentColor;
+}
+
+.searchWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.searchGlyph {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-5) + 2px);
+  min-width: 200px;
+}
+
+.search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  background: var(--color-surface-card);
 }
 
 .empty {
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.clearFilters {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-primary);
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .hasMore {
@@ -82,39 +290,68 @@
   top: var(--space-5);
 }
 
-.upcoming {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* Monthly Pulse: the two stat tiles, then the availability meter with its
+   honest rule line. */
+.pulseTiles {
   display: grid;
-  gap: var(--space-3);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
 }
 
-.upcomingRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.upcomingBody {
+.pulseTile {
   display: grid;
-  min-width: 0;
+  gap: 2px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  padding: var(--space-2) var(--space-3);
 }
 
-.upcomingName {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+.pulseNumber {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-strong);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.1;
 }
 
-.upcomingDates {
-  font-size: var(--font-size-xs);
+.pulseText {
+  font-size: var(--font-size-2xs);
   color: var(--color-text-muted);
 }
 
+.meter {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  overflow: hidden;
+  margin-top: var(--space-3);
+}
+
+.meterFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width 200ms ease;
+}
+
+.meterLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.meterPct {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+/* Upcoming Holidays: stacked date tiles, then the name over its
+   Single Day · All Offices line. */
 .holidays {
   list-style: none;
   margin: 0;
@@ -125,26 +362,70 @@
 
 .holidayRow {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--space-3);
-  font-size: var(--font-size-sm);
 }
 
-.holidayDate {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  white-space: nowrap;
+.dateTile {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  width: 40px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  padding: var(--space-1) 0;
+  flex-shrink: 0;
+}
+
+.dateTileMonth {
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-status-cancelled-fg);
+}
+
+.dateTileDay {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  line-height: 1.1;
+}
+
+.holidayBody {
+  display: grid;
+  min-width: 0;
 }
 
 .holidayName {
-  color: var(--color-text-strong);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  text-align: right;
+  color: var(--color-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* The day drill-down reuses the shared dialog chrome, widened a touch for
-   the person cards. */
+.holidayMeta {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.holidaysLink {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.holidaysLink:hover {
+  text-decoration: underline;
+}
+
+/* The day drill-down reuses the shared dialog chrome, widened to the
+   design's card width. */
 .dayDialog {
-  max-width: 480px;
+  max-width: 640px;
 }

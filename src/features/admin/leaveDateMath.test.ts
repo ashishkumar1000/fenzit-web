@@ -2,6 +2,8 @@ import { describe, expect, it } from "bun:test";
 import type { LeaveRow } from "./companyApi";
 import {
   dayNumberOf,
+  daysInMonth,
+  daysUntil,
   groupApprovedByDate,
   isMonth,
   monthBounds,
@@ -12,6 +14,7 @@ import {
   shortRange,
   shiftMonth,
   weekdayOf,
+  workingDaysInMonth,
 } from "./leaveDateMath";
 
 // The calendar tab's pure date math. 2026-11 is the fixture month: the 1st
@@ -68,6 +71,33 @@ describe("leaveDateMath: months", () => {
     expect(shortDay("2026-11-17")).toBe("17 Nov");
     expect(shortRange("2026-11-17", "2026-11-20")).toBe("17–20 Nov");
     expect(shortRange("2026-11-28", "2026-12-02")).toBe("28 Nov – 2 Dec");
+  });
+});
+
+describe("leaveDateMath: the pulse's month capacity and the timeline's countdown", () => {
+  it("counts a month's Monday–Friday cells as working days", () => {
+    // 2026-11: 30 days, weekends on the 1/7/8/14/15/21/22/28/29 — 21 left.
+    expect(workingDaysInMonth("2026-11")).toBe(21);
+    // 2027-05 starts on a Saturday and ends on a Monday: 31 days, 10
+    // weekend days, 21 working.
+    expect(workingDaysInMonth("2027-05")).toBe(21);
+  });
+
+  it("diffs whole days, negative into the past, across month rolls", () => {
+    expect(daysUntil("2026-11-24", "2026-11-26")).toBe(2);
+    expect(daysUntil("2026-11-26", "2026-11-24")).toBe(-2);
+    expect(daysUntil("2026-11-24", "2026-11-24")).toBe(0);
+    expect(daysUntil("2026-11-30", "2026-12-02")).toBe(2);
+  });
+
+  it("counts a span's days INSIDE the month only — hand-computed pins, never the function under test", () => {
+    // Nov 17–20 sits wholly inside November: 4 days.
+    expect(daysInMonth("2026-11-17", "2026-11-20", "2026-11")).toBe(4);
+    // Oct 28 – Nov 2 straddles the edge: only 2 of its days are November's.
+    expect(daysInMonth("2026-10-28", "2026-11-02", "2026-11")).toBe(2);
+    // A span entirely before the month answers 0, as does one after it.
+    expect(daysInMonth("2026-10-01", "2026-10-31", "2026-11")).toBe(0);
+    expect(daysInMonth("2026-12-01", "2026-12-31", "2026-11")).toBe(0);
   });
 });
 

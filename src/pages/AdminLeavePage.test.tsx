@@ -13,6 +13,7 @@ import {
   useApiBase,
 } from "../testing/fetchMock";
 import type { LeaveRow } from "../features/admin/companyApi";
+import { LeaveDayModal } from "../features/admin/components/LeaveDayModal";
 import type { LeaveTypeRow } from "../features/admin/leaveApi";
 
 // The owner's Leave section: the types tab's master-detail (cards on top,
@@ -93,6 +94,9 @@ function leaveRow(
   return {
     employeeName: "Asha V",
     employeeCode: "EMP-001",
+    leaveTypeId: "t-earned",
+    leaveTypeCode: "earned",
+    leaveTypeName: "Earned Leave",
     startDate: "2026-11-17",
     endDate: "2026-11-20",
     part: "full_day",
@@ -119,6 +123,9 @@ function listRows(): LeaveRow[] {
       employeeId: "u-emp-2",
       employeeName: "Bunty R",
       employeeCode: "EMP-002",
+      leaveTypeId: "t-sick",
+      leaveTypeCode: "sick",
+      leaveTypeName: "Sick Leave",
       status: "approved",
       startDate: "2026-11-18",
       endDate: "2026-11-18",
@@ -197,6 +204,9 @@ function respondDefault(url: string): Response {
     return jsonResponse({ data: listRows(), nextCursor: null, hasMore: false });
   }
   if (/\/attendance\/leave\/[^/]+\/balances$/.test(pathname)) return jsonResponse(balances());
+  if (pathname.endsWith("/attendance/leave/summary")) {
+    return jsonResponse({ activeEmployees: 10 });
+  }
   if (pathname.endsWith("/attendance/holidays")) {
     return jsonResponse([
       { id: "h-1", date: "2026-12-25", name: "Christmas" },
@@ -461,6 +471,8 @@ describe("AdminLeavePage: the calendar tab", () => {
       sentRequests().some((r) => r.url.includes("status=approved") && r.url.includes("from=")),
     ).toBe(true);
     expect(sentRequests().some((r) => r.url.endsWith("/attendance/holidays"))).toBe(true);
+    // The rail's pulse needs the team size — the summary read rides along.
+    expect(sentRequests().some((r) => r.url.endsWith("/attendance/leave/summary"))).toBe(true);
   });
 
   it("renders who is out and the day modal names them", async () => {
@@ -471,14 +483,97 @@ describe("AdminLeavePage: the calendar tab", () => {
     const cell = await screen.findByRole("button", { name: "2026-11-17: Asha V away" });
     fireEvent.click(cell);
     const dialog = await screen.findByRole("dialog", { name: "Who is away this day" });
+    expect(within(dialog).getByText("Leaves on Tuesday, 17 Nov 2026")).toBeInTheDocument();
     expect(within(dialog).getByText(/Asha V/)).toBeInTheDocument();
-    expect(within(dialog).getByText("17–20 Nov")).toBeInTheDocument();
-    expect(within(dialog).getByText(/Back on/)).toBeInTheDocument();
+    expect(within(dialog).getByText("17–20 Nov (4 days)")).toBeInTheDocument();
+    expect(within(dialog).getByText("Return Date: Mon, 23 Nov 2026")).toBeInTheDocument();
+    expect(within(dialog).getByText("Day 1 of 4")).toBeInTheDocument();
     expect(within(dialog).getByText(/Family function/)).toBeInTheDocument();
-    // Only Asha is away on the 17th — Bunty's single day is the 18th, and
-    // the grid cell and the rail name them twice over.
+    expect(within(dialog).getByText("Earned Leave (EL)")).toBeInTheDocument();
+    // Only Asha is away on the 17th — Bunty's single day is the 18th, named
+    // on the grid's person line (the rail is the pulse/holidays/breakdown
+    // cards now; names live in the grid cells).
     expect(within(dialog).queryByText("Bunty R")).toBeNull();
-    expect(screen.getAllByText("Bunty R").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Bunty R")).toBeInTheDocument();
+  });
+
+  it("the modal steps to the next day — Bunty's single sick day, the type chips, the filters, the footer", async () => {
+    renderLeave("/admin/company/leave?tab=calendar&month=2026-11");
+    fireEvent.click(await screen.findByRole("button", { name: "2026-11-17: Asha V away" }));
+    const dialog = await screen.findByRole("dialog", { name: "Who is away this day" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Next day" }));
+    expect(within(dialog).getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    // The out-strip counts both, per type, and the filter pills follow —
+    // the viewed day is stepped off today, so the label is "Out", not
+    // "Out Today" (that claim belongs to the real today only).
+    expect(within(dialog).getByText("2 Out:")).toBeInTheDocument();
+    expect(within(dialog).getByText("1 Earned Leave")).toBeInTheDocument();
+    expect(within(dialog).getByText("1 Sick Leave")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "All (2)" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Sick (1)" })).toBeInTheDocument();
+    // Asha is mid-span on the 18th; Bunty's day is its own single-day leave.
+    expect(within(dialog).getByText("Day 2 of 4")).toBeInTheDocument();
+    expect(within(dialog).getByText("Single Day Leave")).toBeInTheDocument();
+    expect(within(dialog).getByText("Sick Leave (SL)")).toBeInTheDocument();
+    expect(within(dialog).getByText("All Approved")).toBeInTheDocument();
+    expect(within(dialog).getByText("2 of 2 requests approved.")).toBeInTheDocument();
+    // The type filter narrows the cards.
+    fireEvent.click(within(dialog).getByRole("button", { name: "Sick (1)" }));
+    expect(within(dialog).getByText("Bunty R")).toBeInTheDocument();
+    expect(within(dialog).queryByText("Asha V")).toBeNull();
+  });
+
+  it("the day modal speaks today when the viewed day is today", () => {
+    render(
+      <LeaveDayModal
+        date="2026-11-18"
+        byDate={new Map([["2026-11-18", [listRows()[1]]]])}
+        today="2026-11-18"
+        close={() => {}}
+      />,
+    );
+    expect(screen.getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    expect(screen.getByText("Today")).toBeInTheDocument();
+    expect(screen.getByText("Single Day Leave (Today only)")).toBeInTheDocument();
+    expect(screen.getByText("1 of 1 requests approved.")).toBeInTheDocument();
+  });
+
+  it("a stepped-to day nobody covers answers honestly empty", () => {
+    render(
+      <LeaveDayModal
+        date="2026-11-17"
+        byDate={new Map([["2026-11-17", [listRows()[0]]]])}
+        today="2026-11-18"
+        close={() => {}}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+    expect(screen.getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    expect(screen.getByText("No one is recorded away this day.")).toBeInTheDocument();
+    // The walked-to day is the fixture's today — the chip follows the view.
+    expect(screen.getByText("Today")).toBeInTheDocument();
+  });
+
+  it("the out-strip's Out Today claim belongs to the real today only — a stepped day reads Out", () => {
+    render(
+      <LeaveDayModal
+        date="2026-11-17"
+        byDate={
+          new Map([
+            ["2026-11-17", [listRows()[0]]],
+            ["2026-11-18", [listRows()[1]]],
+          ])
+        }
+        today="2026-11-18"
+        close={() => {}}
+      />,
+    );
+    // Viewing yesterday: the strip must not say "Today".
+    expect(screen.getByText("1 Out:")).toBeInTheDocument();
+    expect(screen.queryByText("1 Out Today:")).toBeNull();
+    // Stepping onto the fixture's today flips the label honestly.
+    fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+    expect(screen.getByText("1 Out Today:")).toBeInTheDocument();
   });
 
   it("an empty month is honest on the grid and the rail", async () => {
@@ -492,7 +587,11 @@ describe("AdminLeavePage: the calendar tab", () => {
     });
     renderLeave("/admin/company/leave?tab=calendar&month=2027-05");
     expect(await screen.findByText("No approved leave overlaps this month.")).toBeInTheDocument();
-    expect(screen.getByText("Nothing scheduled.")).toBeInTheDocument();
+    // The rail stays honest on an empty month: zero pulse tiles, an empty
+    // breakdown, and the meter stating its own rule.
+    expect(screen.getByText("Team on leave")).toBeInTheDocument();
+    expect(screen.getByText("No leave overlaps this month.")).toBeInTheDocument();
+    expect(screen.getByText(/of 210 working days free · 10 active/)).toBeInTheDocument();
   });
 
   it("more requests than fit say so, never a complete-looking grid", async () => {
@@ -506,6 +605,48 @@ describe("AdminLeavePage: the calendar tab", () => {
     });
     renderLeave("/admin/company/leave?tab=calendar&month=2026-11");
     expect(await screen.findByText(/More requests exist than fit here/)).toBeInTheDocument();
+  });
+
+  it("a failed summary read degrades to a meterless pulse — the tab keeps its grid", async () => {
+    setRespond((url) => {
+      const { pathname } = new URL(url);
+      if (pathname.endsWith("/attendance/leave/summary")) {
+        return jsonResponse({ message: "boom" }, 500);
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=calendar&month=2026-11");
+    // Like the requests tab's balances read, the summary is degrade-able:
+    // its only consumer is the meter, so the meter hides (honestly) and
+    // everything else — grid, timeline, rail cards — still shows.
+    expect(await screen.findByText("Who is away")).toBeInTheDocument();
+    expect(screen.queryByText(/% Available/)).toBeNull();
+    expect(screen.getByText(/team size is unavailable right now/)).toBeInTheDocument();
+  });
+
+  it("the upcoming window's own hasMore speaks — the timeline never looks complete while truncated", async () => {
+    setRespond((url) => {
+      const { pathname, search } = new URL(url);
+      if (pathname.endsWith("/users/me")) return respondDefault(url);
+      if (pathname.endsWith("/attendance/leave") && search.includes("from=")) {
+        // The month read (from=2026-11-01) is whole; the upcoming window's
+        // read is truncated — its hasMore must survive into the tab.
+        if (search.includes("from=2026-11-01")) {
+          return jsonResponse({ data: approvedRows(), nextCursor: null, hasMore: false });
+        }
+        return jsonResponse({ data: approvedRows(), nextCursor: "c-7", hasMore: true });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=calendar&month=2026-11");
+    await screen.findByText("Who is away");
+    // The truncation line belongs to the timeline view — switch to it.
+    fireEvent.click(screen.getByRole("button", { name: "Timeline" }));
+    expect(
+      await screen.findByText(/More approvals exist than fit the upcoming window/),
+    ).toBeInTheDocument();
+    // The grid's own line stays quiet — only the upcoming window truncated.
+    expect(screen.queryByText(/More requests exist than fit here/)).toBeNull();
   });
 });
 

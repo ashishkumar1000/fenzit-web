@@ -106,6 +106,25 @@ export function shortDay(date: string): string {
   return `${Number(date.slice(8, 10))} ${MONTH_SHORT[m - 1] ?? date}`;
 }
 
+/** "2026-11-17" → "Nov 17" — the day stepper's chip reads month-first. */
+export function monthDay(date: string): string {
+  const m = Number(date.slice(5, 7));
+  return `${MONTH_SHORT[m - 1] ?? date} ${Number(date.slice(8, 10))}`;
+}
+
+/** "2026-11-17" ± n days, rolling across months and years — the day
+ *  stepper's walk. UTC math on plain calendar labels, like shiftMonth. */
+export function shiftDay(date: string, delta: number): string {
+  const next = new Date(
+    Date.UTC(
+      Number(date.slice(0, 4)),
+      Number(date.slice(5, 7)) - 1,
+      Number(date.slice(8, 10)) + delta,
+    ),
+  );
+  return next.toISOString().slice(0, 10);
+}
+
 /** A request's span in the compact shape the rails and modal carry:
  *  "17–20 Nov" inside one month, "28 Nov – 2 Dec" across months. */
 export function shortRange(start: string, end: string): string {
@@ -122,6 +141,55 @@ export function weekdayOf(date: string): number {
   return new Date(
     Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10))),
   ).getUTCDay();
+}
+
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+/** "2026-11-26" → "Thursday" — the holidays rail's row line. */
+export function weekdayName(date: string): string {
+  return WEEKDAY_NAMES[weekdayOf(date)];
+}
+
+/** The month's Monday–Friday count — the pulse card's capacity
+ *  denominator: one working day per active employee per working day.
+ *  Holidays are NOT subtracted (the honest meter states its own rule). */
+export function workingDaysInMonth(month: string): number {
+  let count = 0;
+  for (const cell of monthCells(month)) {
+    if (cell === null) continue;
+    const weekday = weekdayOf(cell.date);
+    if (weekday !== 0 && weekday !== 6) count += 1;
+  }
+  return count;
+}
+
+/** Whole days from `from` to `to` — negative when `to` is already past.
+ *  The timeline's "Starts in N days" and "Back on" lines read it. */
+export function daysUntil(from: string, to: string): number {
+  const utcOf = (date: string) =>
+    Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)));
+  return Math.round((utcOf(to) - utcOf(from)) / 86400000);
+}
+
+/** The calendar days of a request's span that fall inside `month`
+ *  ("YYYY-MM") — the Monthly Pulse's "total days out" and the breakdown
+ *  card's per-type days. A span that misses the month answers 0. */
+export function daysInMonth(startDate: string, endDate: string, month: string): number {
+  const { from, to } = monthBounds(month);
+  const start = startDate < from ? from : startDate;
+  const end = endDate > to ? to : endDate;
+  if (start > end) return 0;
+  const utcOf = (date: string) =>
+    Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)));
+  return Math.round((utcOf(end) - utcOf(start)) / 86400000) + 1;
 }
 
 /** The day after `date`, skipping Saturday and Sunday — the modal's

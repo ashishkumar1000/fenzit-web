@@ -14,8 +14,8 @@ import {
   type LeaveTypePatch,
   type LeaveTypeRow,
 } from "./leaveApi";
-import type { HolidayRow, LeaveRow, Page } from "./companyApi";
-import { fetchHolidays } from "./companyApi";
+import type { HolidayRow, LeaveRow, LeaveSummary, Page } from "./companyApi";
+import { fetchHolidays, fetchLeaveSummary } from "./companyApi";
 import { isMonth, localIsoToday, monthBounds } from "./leaveDateMath";
 
 /**
@@ -58,8 +58,14 @@ export type LeaveData =
       page: Page<LeaveRow>;
       /** Approved requests overlapping [today, today + UPCOMING_WINDOW_DAYS]. */
       upcoming: LeaveRow[];
+      /** True when the upcoming window's read hit its page cap — the
+       *  timeline's truncation line renders from this, never silently. */
+      upcomingHasMore: boolean;
       /** The tenant's holidays — the grid's tints and the holidays rail. */
       holidays: HolidayRow[];
+      /** The team-size fact the pulse card's availability meter divides by —
+       *  null when the summary read failed (the meter hides, the tab stays). */
+      summary: LeaveSummary | null;
       selfName: string | null;
     }
   | LeaveFail;
@@ -137,6 +143,21 @@ async function resolveSelection(
   }
 }
 
+/** The summary read is degrade-able — the pulse's capacity fact, nothing
+ *  else. A non-auth failure (the route not deployed yet, a 500) costs the
+ *  availability meter only; the grid, timeline and rail cards stay. An
+ *  auth failure still propagates to the loader's login redirect, and an
+ *  aborted request rethrows so React Router can move on. */
+async function readSummaryOrNull(token: string, signal: AbortSignal): Promise<LeaveSummary | null> {
+  try {
+    return await fetchLeaveSummary(token, signal);
+  } catch (error) {
+    if (isAuthError(error)) throw error;
+    if (signal.aborted) throw error;
+    return null;
+  }
+}
+
 export async function adminLeaveLoader({ request }: LoaderFunctionArgs): Promise<LeaveData> {
   const url = new URL(request.url);
   const rawTab = url.searchParams.get("tab");
@@ -148,7 +169,7 @@ export async function adminLeaveLoader({ request }: LoaderFunctionArgs): Promise
       const month = isMonth(rawMonth) ? rawMonth : localIsoToday().slice(0, 7);
       const today = localIsoToday();
       const window = monthBounds(month);
-      const [page, upcomingPage, holidays] = await Promise.all([
+      const [page, upcomingPage, holidays, summary] = await Promise.all([
         fetchLeavePage(
           token,
           { status: "approved", from: window.from, to: window.to, limit: LEAVE_CALENDAR_LIMIT },
@@ -165,6 +186,7 @@ export async function adminLeaveLoader({ request }: LoaderFunctionArgs): Promise
           request.signal,
         ),
         fetchHolidays(token, request.signal),
+        readSummaryOrNull(token, request.signal),
       ]);
       return {
         state: "ok",
@@ -172,7 +194,9 @@ export async function adminLeaveLoader({ request }: LoaderFunctionArgs): Promise
         month,
         page,
         upcoming: upcomingPage.data,
+        upcomingHasMore: upcomingPage.hasMore,
         holidays,
+        summary,
         selfName: me.name,
       };
     }

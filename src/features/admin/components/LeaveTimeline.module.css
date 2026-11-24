@@ -1,0 +1,221 @@
+/* The timeline view — the design's grouped upcoming-leave feed: a pulsing
+   group dot per bucket, then one card per person. Tokens only; the type
+   tones reuse the status families the grid and modal already use. */
+
+.timeline {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.groupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-primary-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--color-primary-soft);
+  }
+}
+
+.groupLabel {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.groupCount {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  background: var(--color-surface-page);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  padding: var(--space-3);
+}
+
+.face {
+  flex-shrink: 0;
+}
+
+.body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.personName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.typePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  background: var(--color-status-leave-bg);
+  color: var(--color-status-leave-fg);
+  white-space: nowrap;
+}
+
+.typePill[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.typePill[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.typePill[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.typeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.metaLine {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spanRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.spanGlyph {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.spanRange {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.approvedChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.note svg {
+  flex-shrink: 0;
+  transform: translateY(1px);
+}
+
+.returnLine {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+/* The type initials riding the card's right edge — the design's toned
+   corner tag. */
+.sideTag {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.03em;
+  color: var(--color-status-leave-fg);
+  background: var(--color-status-leave-bg);
+  border-radius: var(--radius-md);
+  padding: 2px var(--space-2);
+}
+
+.sideTag[data-code="sick"] {
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+}
+
+.sideTag[data-code="bereavement"] {
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+}
+
+.sideTag[data-code="comp_off"] {
+  color: var(--color-status-neutral-fg);
+  background: var(--color-status-neutral-bg);
+}

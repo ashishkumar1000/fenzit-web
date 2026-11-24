@@ -22,7 +22,7 @@ import styles from "./AdminLeavePage.module.css";
 const LEAVE_TABS = [
   { value: "types", label: "Types" },
   { value: "requests", label: "Requests" },
-  { value: "calendar", label: "Calendar" },
+  { value: "calendar", label: "Upcoming Leaves" },
 ];
 
 /** The Leave section, one tab per panel: the fixed leave-type catalog's
@@ -88,7 +88,9 @@ export function AdminLeavePage() {
           month={data.month}
           page={data.page}
           upcoming={data.upcoming}
+          upcomingHasMore={data.upcomingHasMore}
           holidays={data.holidays}
+          summary={data.summary}
         />
       ) : null}
       {data.tab === "requests" ? (

@@ -98,6 +98,15 @@ export interface LeaveRow {
   employeeCode?: string;
   /** Short-lived presign from the same page read — use it, never refetch. */
   employeeAvatarUrl?: string | null;
+  /** The request's leave type — absent on legacy rows created before the
+   *  fixed catalog; drives the day modal's type pill, count chips and
+   *  type filters. */
+  leaveTypeId?: string;
+  leaveTypeCode?: string;
+  leaveTypeName?: string;
+  /** The employee's office assignment covering today — the timeline card's
+   *  office line; absent when the person has no current office. */
+  officeName?: string;
   startDate: string;
   endDate: string;
   part: string;
@@ -462,6 +471,19 @@ export interface HolidayRow {
 
 export function fetchHolidays(token: string, signal?: AbortSignal): Promise<HolidayRow[]> {
   return apiFetch<HolidayRow[]>("/api/v1/attendance/holidays", {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** The team-size fact the calendar rail's pulse card divides the month's
+ *  leave days by — the company's active employees. */
+export interface LeaveSummary {
+  activeEmployees: number;
+}
+
+export function fetchLeaveSummary(token: string, signal?: AbortSignal): Promise<LeaveSummary> {
+  return apiFetch<LeaveSummary>("/api/v1/attendance/leave/summary", {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });

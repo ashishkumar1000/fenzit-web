@@ -1,0 +1,141 @@
+/* The Leave Breakdown card: one segmented bar over the typed days, an
+   honest accounting line, then one row per type. Same status-family tones
+   as every other Leave surface. */
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-surface-page);
+}
+
+.segment {
+  height: 100%;
+  background: var(--color-status-leave-solid);
+}
+
+.segment + .segment {
+  box-shadow: inset 1px 0 0 var(--color-surface-card);
+}
+
+.segment[data-code="sick"] {
+  background: var(--color-status-done-solid);
+}
+
+.segment[data-code="bereavement"] {
+  background: var(--color-status-scheduled-solid);
+}
+
+.segment[data-code="comp_off"] {
+  background: var(--color-status-neutral-solid);
+}
+
+.caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.accounted {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-cancelled-fg);
+}
+
+.accounted[data-full] {
+  color: var(--color-status-done-fg);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.tagTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  background: var(--color-status-leave-bg);
+  color: var(--color-status-leave-fg);
+  flex-shrink: 0;
+}
+
+.tagTile[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.tagTile[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.tagTile[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.rowBody {
+  display: grid;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.rowMeta {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.daysChip {
+  margin-left: auto;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+  background: var(--color-status-leave-bg);
+  color: var(--color-status-leave-fg);
+}
+
+.daysChip[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.daysChip[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.daysChip[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}

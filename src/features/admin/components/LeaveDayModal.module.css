@@ -1,14 +1,276 @@
-/* The day drill-down modal's own pieces — the dialog chrome comes from the
-   shared JobSettingsDialog module. */
+/* The day drill-down modal — the design's dated header with the day
+   stepper, the away/all-approved pills, the out-by-type chips, filter
+   pills + search, the design's person cards, and the footer's approval
+   count and Done. The dialog chrome comes from JobSettingsDialog. */
+
+.frame {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.headGlyph {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex: none;
+}
+
+.headText {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-text-strong);
+}
+
+.todayChip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+
+.subRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.countPill,
+.donePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+
+.countPill {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.countDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  flex: none;
+}
+
+.donePill {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+/* The out-by-type strip under the header — "4 Out Today:" then one chip
+   per type with its count. */
+.outRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.outLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.outDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  flex: none;
+}
+
+.typeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+.typeChip[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.typeChip[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.typeChip[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.typeChipDot,
+.typeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentcolor;
+  flex: none;
+}
+
+.headEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px 4px;
+}
+
+.step {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.step:hover {
+  color: var(--color-primary);
+}
+
+.step:focus-visible,
+.close:focus-visible,
+.filter:focus-visible,
+.filterActive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.stepDay {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  padding: 0 var(--space-1);
+  white-space: nowrap;
+  min-width: 52px;
+  text-align: center;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.close:hover {
+  color: var(--color-text-strong);
+  background: var(--color-surface-page);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filterPills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.filter,
+.filterActive {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filterActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+}
 
 .search {
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--color-surface-page);
   color: var(--color-text-strong);
   font: inherit;
   font-size: var(--font-size-sm);
   padding: var(--space-2) var(--space-3);
+  min-width: 180px;
 }
 
 .search:focus-visible {
@@ -22,52 +284,211 @@
   padding: 0;
   display: grid;
   gap: var(--space-3);
-  max-height: 320px;
+  max-height: 380px;
   overflow-y: auto;
 }
 
 .personCard {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
   gap: var(--space-3);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--space-3);
 }
 
-.personBody {
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.face {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+
+/* The design's presence dot on the card's face. */
+.face::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-done-fg);
+  box-shadow: 0 0 0 2px var(--color-surface-card);
+}
+
+.personId {
   min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .personName {
-  margin: 0;
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-strong);
 }
 
-.personCode {
-  font-weight: var(--font-weight-normal);
-  color: var(--color-text-muted);
+.statusChip {
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
 }
 
-.personLine {
-  margin: var(--space-1) 0 0;
+.codeChip {
+  width: fit-content;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  padding: 1px var(--space-2);
+  white-space: nowrap;
+}
+
+.typePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+.typePill[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.typePill[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.typePill[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.duration {
+  display: grid;
+  gap: var(--space-1);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+}
+
+.durationLabel {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
 }
 
-.personReason {
-  margin: var(--space-2) 0 0;
+.durationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.durationRange {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.returnChip {
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 3px var(--space-2);
+  white-space: nowrap;
+}
+
+.dayLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.dayLine::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-done-fg);
+  flex: none;
+}
+
+.dayLine[data-live] {
+  color: var(--color-primary);
+}
+
+.dayLine[data-live]::before {
+  background: var(--color-primary);
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-xs);
   color: var(--color-text-strong);
   line-height: var(--leading-snug);
 }
 
-.personReason span {
-  display: block;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.note svg {
+  flex: none;
+  margin-top: 2px;
   color: var(--color-text-muted);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+}
+
+.footNote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-done-fg);
 }

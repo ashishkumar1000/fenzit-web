@@ -16,6 +16,20 @@ const DAY = new Intl.DateTimeFormat("en-IN", {
   year: "numeric",
 });
 
+const DAY_WITH_WEEKDAY = new Intl.DateTimeFormat("en-IN", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+const DAY_LONG = new Intl.DateTimeFormat("en-IN", {
+  weekday: "long",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 /** An ISO timestamp as "19 Oct, 3:24 pm". Null-safe: "—" when unknown. */
 export function fmtWhen(iso: string | null): string {
   if (iso === null) return "—";
@@ -90,6 +104,20 @@ export function istEndOfLastMonth(): string {
 export function fmtDay(day: string): string {
   const at = new Date(`${day}T00:00:00`);
   return Number.isNaN(at.getTime()) ? day : DAY.format(at);
+}
+
+/** A YYYY-MM-DD date with its weekday — "Mon, 23 Nov 2026", the day
+ *  modal's return-date chip. Anything else passes through. */
+export function fmtDayWithWeekday(day: string): string {
+  const at = new Date(`${day}T00:00:00`);
+  return Number.isNaN(at.getTime()) ? day : DAY_WITH_WEEKDAY.format(at);
+}
+
+/** A YYYY-MM-DD date spoken in full — "Wednesday, 18 Nov 2026", the day
+ *  modal's title. Anything else passes through. */
+export function fmtDayLong(day: string): string {
+  const at = new Date(`${day}T00:00:00`);
+  return Number.isNaN(at.getTime()) ? day : DAY_LONG.format(at);
 }
 
 /** A phone in the +91 98765 43210 shape the app shows everywhere. */

@@ -1,10 +1,12 @@
 /* The month grid — Sunday-first, one cell per day, each naming who is out.
-   Tokens only; the tints come from the status families. */
+   Tokens only; the type tones come from the status families (earned =
+   leave blue, sick = done green, bereavement = scheduled amber, comp off
+   = neutral), the way the Types tab and day modal already tone them. */
 
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .weekday {
@@ -17,22 +19,30 @@
   padding: var(--space-1) 0;
 }
 
+.weekday[data-weekend] {
+  color: var(--color-status-cancelled-fg);
+  opacity: 0.8;
+}
+
 .blank {
-  min-height: 84px;
+  min-height: 105px;
 }
 
 .day {
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: 2px;
-  min-height: 84px;
+  gap: var(--space-1);
+  min-height: 105px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
   padding: var(--space-2);
   font: inherit;
   text-align: left;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 button.day {
@@ -41,6 +51,7 @@ button.day {
 
 button.day:hover {
   border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .day:focus-visible {
@@ -58,38 +69,185 @@ button.day:hover {
 
 .day[data-today] {
   border-color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.dayHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
 }
 
 .dayNumber {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-strong);
 }
 
-.holidayName {
+.dayNumber[data-today] {
+  background: var(--color-primary);
+  color: var(--color-surface-card);
+}
+
+.todayChip {
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-pill);
+  padding: 1px var(--space-2);
+}
+
+.holidayGlyph {
+  margin-left: auto;
+  color: var(--color-status-scheduled-solid);
+  flex-shrink: 0;
+}
+
+/* The chip row: the day's leave chip, or the holiday's pill. On a shared
+   day the leave chip yields to the closure pill and the holiday line
+   below carries the name; alone the holiday names itself in the pill. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  padding: 2px var(--space-2);
+  background: var(--color-status-leave-bg);
+  color: var(--color-status-leave-fg);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.chip[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.chip[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.chip[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
   color: var(--color-status-neutral-fg);
+}
+
+.chip[data-today] {
+  background: var(--color-primary);
+  color: var(--color-surface-card);
+}
+
+.holidayChip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  padding: 2px var(--space-2);
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.officeChip {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  padding: 2px var(--space-2);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.holidayLine {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 12ch;
+  max-width: 100%;
+}
+
+/* The span's position line on today's cell — dotted underline, the
+   design's "Day 2 of 4". */
+.dayProgress {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+  border-bottom: 1px dotted var(--color-border-strong);
+  white-space: nowrap;
 }
 
 .person {
+  display: inline-flex;
   max-width: 100%;
   font-size: var(--font-size-2xs);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
   border-radius: var(--radius-pill);
   padding: 1px var(--space-2);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.person[data-code="sick"] {
+  background: var(--color-status-done-bg);
+  color: var(--color-status-done-fg);
+}
+
+.person[data-code="bereavement"] {
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+}
+
+.person[data-code="comp_off"] {
+  background: var(--color-status-neutral-bg);
+  color: var(--color-status-neutral-fg);
+}
+
+.personTag {
+  font-weight: var(--font-weight-semibold);
+  opacity: 0.85;
+}
+
+/* A lone person's final day — bare toned text, no pill (the design's
+   "Last day" line). */
+.lastDay {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.lastDay[data-code="sick"] {
+  color: var(--color-status-done-fg);
+}
+
+.lastDay[data-code="bereavement"] {
+  color: var(--color-status-scheduled-fg);
+}
+
+.lastDay[data-code="comp_off"] {
+  color: var(--color-status-neutral-fg);
 }
 
 .more {
