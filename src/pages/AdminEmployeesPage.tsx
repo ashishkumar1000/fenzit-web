@@ -68,7 +68,7 @@ export function AdminEmployeesPage() {
       value: result.stats.total,
       icon: UsersIcon,
       tone: "primary",
-      sub: `${result.stats.active} active, ${result.stats.invited} invited`,
+      sub: `${result.stats.active} active, ${result.stats.invited} invited, ${result.stats.deactivated} deactivated`,
     },
     {
       label: "Active employees",

@@ -67,6 +67,7 @@ function defaultRows(): Row[] {
     row("u-c", "Chitra D", "employee", "active", true, false),
     row("u-v", "Vikas T", "viewer", "active"),
     row("u-m", "Meera Joshi", "employee", "invited"),
+    row("u-d", "Dinesh P", "employee", "deactivated"),
   ];
 }
 
@@ -76,6 +77,7 @@ function stats(rows: Row[]) {
     total: rows.length,
     active: count((r) => r.status === "active"),
     invited: count((r) => r.status === "invited"),
+    deactivated: count((r) => r.status === "deactivated"),
     needsApproval: count((r) => r.status === "active" && r.canCreateJobs && r.jobApprovalRequired),
     byRole: {
       all: rows.length,

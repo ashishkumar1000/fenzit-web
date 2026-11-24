@@ -69,6 +69,8 @@ function respondDefault(url: string): Response | Promise<Response> {
       member("u-b", "Bunty R", "employee", "active", buntySaved, false),
       member("u-c", "Chitra D", "employee", "active", true, false),
       member("u-v", "Vikas T", "viewer", "active", false, false),
+      member("u-m", "Meera Joshi", "employee", "invited", false, false),
+      member("u-d", "Dinesh P", "employee", "deactivated", false, false),
     ];
     if (url.includes("/members/page")) {
       // The paged envelope the redesigned page reads; one page holds the
@@ -174,6 +176,29 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     const ashaRow = screen.getByRole("cell", { name: /Asha V/ }).closest("tr");
     expect(
       within(ashaRow as HTMLElement).getByRole("button", { name: "Create + approval" }),
+    ).toBeInTheDocument();
+    // An invited row offers no settings switch either — its cell carries the
+    // resend link instead of a dash.
+    const invitedRow = screen.getByRole("cell", { name: /Meera Joshi/ }).closest("tr");
+    expect(
+      within(invitedRow as HTMLElement).queryByRole("button", {
+        name: /Change job settings|Creates jobs|Create \+ approval|Off/,
+      }),
+    ).toBeNull();
+    expect(
+      within(invitedRow as HTMLElement).getByRole("button", { name: "Resend invite" }),
+    ).toBeInTheDocument();
+    // A deactivated row reads a dash in the settings cell but keeps its
+    // Employment button — the record stays openable, the switch is dead.
+    const parkedRow = screen.getByRole("cell", { name: /Dinesh P/ }).closest("tr");
+    expect(
+      within(parkedRow as HTMLElement).queryByRole("button", {
+        name: /Change job settings|Creates jobs|Create \+ approval|Off/,
+      }),
+    ).toBeNull();
+    expect(within(parkedRow as HTMLElement).getAllByText("—")).toHaveLength(1);
+    expect(
+      within(parkedRow as HTMLElement).getByRole("button", { name: "Employment" }),
     ).toBeInTheDocument();
   });
 

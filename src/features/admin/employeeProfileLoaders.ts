@@ -122,12 +122,14 @@ export async function employeeProfileLoader({
   try {
     const { token, me } = await requireConsoleRole(request, ["owner"]);
     // The header member read is the page's spine — a stale or foreign id is
-    // its own honest state ("nobody here"), not a failed page.
+    // its own honest state ("nobody here"), not a failed page. A malformed
+    // id never reaches the member query (the BE's ParseUUIDPipe answers 400
+    // first) and lands on the same not-found state.
     let member: EmployeeProfile;
     try {
       member = await fetchMember(token, userId, request.signal);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
+      if (error instanceof ApiError && (error.status === 404 || error.status === 400)) {
         return { state: "not-found" };
       }
       throw error;

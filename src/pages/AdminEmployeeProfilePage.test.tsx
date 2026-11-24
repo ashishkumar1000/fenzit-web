@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach, beforeEach } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { writeSession } from "../services/session";
@@ -192,13 +192,20 @@ function route(url: string): Response {
   if (path.endsWith("/attendance/leave") && parsed.searchParams.get("employeeId") !== null)
     return jsonResponse({ data: [], nextCursor: null, hasMore: false });
   if (path.endsWith("/payroll/payslips")) return jsonResponse([]);
-  return jsonResponse({});
+  if (path.endsWith(`/members/${state.member.userId}/salary-structures`))
+    // The empty-structures state is built from the BE's 404 (no structure
+    // yet) — the fake must answer it, never a lying 200.
+    return jsonResponse({ error_code: "RESOURCE_NOT_FOUND", message: "gone" }, 404);
+  // Anything unmocked is a 404 envelope, not a success-shaped `{}` that
+  // could quietly stand in for real data.
+  return jsonResponse({ error_code: "RESOURCE_NOT_FOUND", message: "not mocked" }, 404);
 }
 
-function renderAt(path: string): void {
+function renderAt(path: string): ReturnType<typeof createMemoryRouter> {
   writeSession({ token: "tok-1", name: "Ravi" });
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(<RouterProvider router={router} />);
+  return router;
 }
 
 beforeAll(() => useApiBase());
@@ -284,6 +291,68 @@ describe("Employee profile: a stale or foreign id", () => {
     await screen.findByText(/not on the team/i);
     expect(screen.getByRole("heading", { level: 1, name: "Employee" })).toBeTruthy();
     expect(screen.getByText("Back to all employees")).toBeTruthy();
+  });
+
+  it("lands a malformed id on the same state — the BE refuses it with 400, not 404", async () => {
+    installFetchMock();
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+      if (path.endsWith("/members/not-a-uuid"))
+        return jsonResponse({ error_code: "VALIDATION_ERROR", message: "not a uuid" }, 400);
+      return jsonResponse({});
+    });
+    renderAt("/admin/company/employees/not-a-uuid");
+    await screen.findByText(/not on the team/i);
+    expect(screen.getByRole("heading", { level: 1, name: "Employee" })).toBeTruthy();
+  });
+});
+
+describe("Employee profile: moving between employees", () => {
+  function otherProfile(userId: string, name: string): Record<string, unknown> {
+    return {
+      userId,
+      name,
+      email: null,
+      countryCode: "+91",
+      phoneNumber: "9800000002",
+      employeeCode: "EMP-002",
+      role: "employee",
+      status: "active",
+      createdAt: "2026-01-01T00:00:00Z",
+      avatarUrl: null,
+      canCreateJobs: true,
+      jobApprovalRequired: true,
+      skills: [],
+    };
+  }
+
+  it("refetches when the address moves to another employee with the same tab", async () => {
+    installFetchMock();
+    state.member = { userId: "u-a", status: "active" };
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+      if (path.endsWith("/members/u-a")) return jsonResponse(otherProfile("u-a", "Asha A"));
+      if (path.endsWith("/members/u-b")) return jsonResponse(otherProfile("u-b", "Bunty B"));
+      if (path.endsWith("/members/u-a/employment") || path.endsWith("/members/u-b/employment"))
+        return jsonResponse(employmentRow());
+      return jsonResponse({});
+    });
+    const router = renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Asha A");
+    const bMemberReads = () => sentRequests().filter((r) => r.url.endsWith("/members/u-b")).length;
+    expect(bMemberReads()).toBe(0);
+    // The two addresses carry the same (empty) search — only the person in
+    // the pathname changed, and that alone must move the data.
+    await router.navigate("/admin/company/employees/u-b");
+    await screen.findByText("Bunty B");
+    expect(bMemberReads()).toBe(1);
+    // The contract stays two-sided: the same address again is a manual retry
+    // and still re-runs the loader.
+    await router.navigate("/admin/company/employees/u-b");
+    await screen.findByText("Bunty B");
+    expect(bMemberReads()).toBe(2);
   });
 });
 
@@ -381,6 +450,94 @@ describe("Employee profile: the Attendance tab", () => {
     renderAt("/admin/company/employees/u-a?tab=attendance");
     await screen.findByText("Not enrolled in attendance yet.");
   });
+
+  it("does not call a failed enrolment read 'not enrolled'", async () => {
+    setRespond((url) =>
+      url.endsWith("/attendance/enrolments") ? jsonResponse({}, 500) : route(url),
+    );
+    renderAt("/admin/company/employees/u-a?tab=attendance");
+    await screen.findByText("The enrolment could not load — retry the page from the menu.");
+    expect(screen.queryByText("No shift rules — the person is not enrolled.")).toBeNull();
+    expect(screen.getByText("The shift rules could not load.")).toBeTruthy();
+  });
+
+  it("shows only the rule that covers today, never a retired or future-dated one", async () => {
+    installFetchMock();
+    state.member = { userId: "u-a", status: "active" };
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+      if (path.endsWith("/members/u-a")) return jsonResponse(memberProfile());
+      if (path.endsWith("/attendance/enrolments"))
+        return jsonResponse([
+          {
+            employeeId: "u-a",
+            memberStatus: "active",
+            attendanceEnabled: true,
+            attendanceAccess: "active",
+            attendanceStartDate: "2026-01-16",
+            officeId: "o-1",
+            officeName: "Jha home",
+          },
+        ]);
+      if (path.endsWith("/attendance/offices/o-1"))
+        return jsonResponse({
+          id: "o-1",
+          name: "Jha home",
+          radiusM: 200,
+          formattedAddress: null,
+          // Neither revision covers today: one retired in June, one starting
+          // next year — neither may stand in for the present day's rules.
+          rules: [
+            {
+              startTime: "06:00",
+              endTime: "14:00",
+              lateCutoffMinutes: 10,
+              fullDayHours: 7,
+              halfDayHours: 3,
+              validFrom: "2025-01-01",
+              validTo: "2026-06-30",
+            },
+            {
+              startTime: "07:00",
+              endTime: "15:00",
+              lateCutoffMinutes: 10,
+              fullDayHours: 7,
+              halfDayHours: 3,
+              validFrom: "2027-01-01",
+              validTo: null,
+            },
+          ],
+        });
+      if (path.endsWith("/attendance/punches"))
+        return jsonResponse({
+          employeeId: "u-a",
+          from: "2026-11-01",
+          to: "2026-11-30",
+          today: "2026-11-21",
+          punches: [],
+        });
+      return jsonResponse({});
+    });
+    renderAt("/admin/company/employees/u-a?tab=attendance");
+    await screen.findByText("Jha home");
+    expect(screen.queryByText("06:00")).toBeNull();
+    expect(screen.queryByText("07:00")).toBeNull();
+    expect(screen.queryByText("14:00")).toBeNull();
+    expect(screen.queryByText("15:00")).toBeNull();
+  });
+
+  it("aims the month nav at the months either side of the one on screen", async () => {
+    renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
+    await screen.findByText("Jha home");
+    const nav = screen.getByRole("navigation", { name: "Month" });
+    expect(within(nav).getByRole("link", { name: "‹ Previous" }).getAttribute("href")).toBe(
+      "/admin/company/employees/u-a?tab=attendance&month=2026-09",
+    );
+    expect(within(nav).getByRole("link", { name: "Next ›" }).getAttribute("href")).toBe(
+      "/admin/company/employees/u-a?tab=attendance&month=2026-11",
+    );
+  });
 });
 
 describe("Employee profile: the Leave and Payroll tabs", () => {
@@ -396,8 +553,48 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
           (element?.textContent ?? "").startsWith("No leave requests yet"),
       ),
     ).toBeTruthy();
+    // A whole list never claims there is more behind it.
+    expect(screen.queryByText(/not listed in the console yet/)).toBeNull();
     // The requests list never fires without its own read.
     expect(sentRequests().some((r) => r.url.includes("/payroll/payslips"))).toBe(false);
+  });
+
+  it("says when the requests list is only the newest page", async () => {
+    setRespond((url) => {
+      const parsed = new URL(url, "http://localhost");
+      if (
+        parsed.pathname.endsWith("/attendance/leave") &&
+        parsed.searchParams.get("employeeId") !== null
+      )
+        return jsonResponse({
+          data: [
+            {
+              id: "lr-1",
+              startDate: "2026-11-02",
+              endDate: "2026-11-04",
+              part: "",
+              reason: "Family function",
+              status: "approved",
+              workingDays: 3,
+              totalDays: 3,
+            },
+          ],
+          nextCursor: "c2",
+          hasMore: true,
+        });
+      return route(url);
+    });
+    renderAt("/admin/company/employees/u-a?tab=leave");
+    await screen.findByText("Family function");
+    expect(
+      screen.getByText(
+        (_, element) =>
+          element?.tagName === "P" &&
+          (element?.textContent ?? "").startsWith(
+            "Only the newest 1 show here — older requests are not listed in the console yet.",
+          ),
+      ),
+    ).toBeTruthy();
   });
 
   it("reads the recent payslip months and keeps only this employee's rows", async () => {
@@ -407,5 +604,32 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
     const payslipReads = sentRequests().filter((r) => r.url.includes("/payroll/payslips"));
     expect(payslipReads.length).toBe(3);
     expect(screen.getByText(/No payslips yet/)).toBeTruthy();
+  });
+});
+
+describe("Employee profile: the page heading", () => {
+  it("shows exactly one level-one heading, the page's own", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+});
+
+describe("Employee profile: the employment dialog", () => {
+  it("opens from Edit Profile with a fresh employment read", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    // The master tab's own employment read is already on the wire.
+    const reads = () =>
+      sentRequests().filter((r) => r.method === "GET" && r.url.includes("/members/u-a/employment"));
+    const before = reads().length;
+    fireEvent.click(screen.getByRole("button", { name: "Edit Profile" }));
+    await screen.findByText("Employment details — EMP-002");
+    expect(
+      (screen.getByRole("dialog", { name: "Employment details for Asha V" }) as HTMLDialogElement)
+        .open,
+    ).toBe(true);
+    // A fresh read rides every open, never the page load's stale answer.
+    await waitFor(() => expect(reads().length).toBe(before + 1));
   });
 });

@@ -4,7 +4,7 @@ import type { EnrolmentRow, OfficeDetail } from "../../employeeProfileApi";
 import type { Slice } from "../../slice";
 import { DataTable, type TableCell } from "../Table";
 import { SectionCard } from "../SectionCard";
-import { fmtDay, fmtDistance } from "../../format";
+import { fmtDay, fmtDistance, istToday } from "../../format";
 import styles from "./ProfileAttendancePanel.module.css";
 
 /**
@@ -98,7 +98,9 @@ export function ProfileAttendancePanel({
             </dl>
           ) : (
             <p className={styles.empty}>
-              {assigned === null
+              {/* Only a settled not-enrolled enrolment says "not enrolled" —
+                  a failed fetch is this card's failure line. */}
+              {enrolment.ok && enrolment.data === null
                 ? "No shift rules — the person is not enrolled."
                 : "The shift rules could not load."}
             </p>
@@ -152,10 +154,14 @@ function punchRows(punches: PunchRow[]): TableCell[][] {
   ]);
 }
 
-/** The rule governing today: the open-ended one, else the newest revision. */
+/** The rule governing today: of the revisions whose window covers today
+ *  (IST) — started on or before it, not ended before it — the newest one.
+ *  A future-dated or already-retired rule never stands in for today's, the
+ *  same pick the backend's day grading uses. */
 function currentRule(office: OfficeDetail): OfficeDetail["rules"][number] | null {
-  if (office.rules.length === 0) return null;
-  return (
-    office.rules.find((rule) => rule.validTo === null) ?? office.rules[office.rules.length - 1]
+  const today = istToday();
+  const current = office.rules.filter(
+    (rule) => rule.validFrom <= today && (rule.validTo === null || today < rule.validTo),
   );
+  return current.length === 0 ? null : current[current.length - 1];
 }

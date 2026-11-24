@@ -10,7 +10,9 @@ import styles from "./ProfileLeavePanel.module.css";
 /**
  * The profile's Leave tab: one balance card per accrual-bearing leave type
  * (the numbers the day-status engine uses — Comp-Off is not an accrual type
- * and the endpoint rightly leaves it out), then the employee's requests.
+ * and the endpoint rightly leaves it out), then the employee's newest
+ * requests — the read is one page, so an older tail says so instead of
+ * standing in for the whole history.
  */
 
 export function ProfileLeavePanel({
@@ -45,7 +47,21 @@ export function ProfileLeavePanel({
           ))
         )}
       </div>
-      <SectionCard title="Leave requests" meta="Newest first">
+      <SectionCard
+        title="Leave requests"
+        meta="Newest first"
+        footer={
+          requests.ok && requests.data.hasMore ? (
+            // The read is one page and the console has no older-pages view
+            // yet — say so rather than let the first page read as the whole
+            // history.
+            <p className={styles.empty}>
+              Only the newest {requests.data.data.length} show here — older requests are not listed
+              in the console yet.
+            </p>
+          ) : undefined
+        }
+      >
         {!requests.ok ? (
           <p className={styles.failed} role="alert">
             The leave requests could not load — retry the page from the menu.

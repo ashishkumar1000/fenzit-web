@@ -147,6 +147,23 @@ describe("Employees: pages and the pager", () => {
   });
 });
 
+describe("Employees: the deactivated status", () => {
+  it("filters to the deactivated rows and sends the status to the backend", async () => {
+    renderAt("/admin/company/employees?status=deactivated");
+    expect(await screen.findByText("Dinesh P")).toBeInTheDocument();
+    expect(screen.queryByText("Asha V")).toBeNull();
+    expect(lastPageRequest().searchParams.get("status")).toBe("deactivated");
+  });
+
+  it("shows the Deactivated chip with its whole-team count", async () => {
+    renderAt("/admin/company/employees");
+    await screen.findByText("Asha V");
+    const chips = screen.getByRole("group", { name: "Filter by status" });
+    const deactivated = within(chips).getByRole("link", { name: /Deactivated/ });
+    expect(deactivated).toHaveTextContent("1");
+  });
+});
+
 describe("Employees: the search box and Clear all", () => {
   it("empties the search box when Clear all is pressed", async () => {
     renderAt("/admin/company/employees?q=asha");

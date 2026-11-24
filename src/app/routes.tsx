@@ -252,6 +252,13 @@ export const routes: RouteObject[] = [
             shouldRevalidate: ({ currentUrl, nextUrl, formMethod }) =>
               // Any submission to this route (the activate fetcher) refetches.
               formMethod !== undefined ||
+              // A different employee's address always refetches — the member
+              // rides the pathname, so an identical ?tab=/?month= must never
+              // serve profile A's data under profile B's URL.
+              currentUrl.pathname !== nextUrl.pathname ||
+              // The same address's manual retry (revalidation) refetches; a
+              // same-person navigation where tab or month moved refetches
+              // for the new section.
               (currentUrl.pathname === nextUrl.pathname && currentUrl.search === nextUrl.search) ||
               currentUrl.searchParams.get("tab") !== nextUrl.searchParams.get("tab") ||
               currentUrl.searchParams.get("month") !== nextUrl.searchParams.get("month"),

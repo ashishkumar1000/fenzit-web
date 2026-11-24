@@ -417,6 +417,22 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
     expect(names).toEqual(["Pick an employee", "Priya Nair"]);
   });
 
+  it("prefills Assign to from the profile's ?technician= deep link", async () => {
+    meRole = "owner";
+    renderNewJob("/admin/company/jobs/new?technician=u-emp");
+    await screen.findByText(/The employee you assign sees the job in their app/);
+    expect((screen.getByLabelText("Assign to") as HTMLSelectElement).value).toBe("u-emp");
+  });
+
+  it("leaves Assign to empty when the deep link names someone who cannot be assigned", async () => {
+    meRole = "owner";
+    // u-gone is on the roster but removed — not a real pick, so nothing is
+    // prefilled and the form still demands a conscious choice.
+    renderNewJob("/admin/company/jobs/new?technician=u-gone");
+    await screen.findByText(/The employee you assign sees the job in their app/);
+    expect((screen.getByLabelText("Assign to") as HTMLSelectElement).value).toBe("");
+  });
+
   it("assigns the employee the owner picked — never themself", async () => {
     defaultState();
     state.createdStatus = "assigned";
