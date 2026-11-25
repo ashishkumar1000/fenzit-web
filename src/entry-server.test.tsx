@@ -25,25 +25,31 @@ describe("renderPage (build-time HTML)", () => {
   });
 
   // The launch invariant, on the HTML visitors and crawlers actually get: every
-  // prerendered page renders as a live Android product — no early-access remnant
-  // and no iOS mention, because neither is true today. The list mirrors the
-  // prerender script's own page list, so a new page joins automatically.
-  // /app/download is the one exception: the invite SMS points iPhone users here, and
-  // it must say the iOS app is coming soon. Decision 2026-11-10, owner-approved.
-  const IOS_NOTE_ALLOWED = new Set(["/app/download"]);
-
-  it("renders no pre-launch copy or iOS mention into any prerendered page", async () => {
+  // prerendered page renders as a live product on both app stores — no early-access
+  // remnant and no "coming soon" claim, because both are untrue today. The list
+  // mirrors the prerender script's own page list, so a new page joins automatically.
+  // (The 2026-11-10 owner decision that let /app/download say the iOS app was coming
+  // soon ended when the App Store listing went live, 2026-11-25.)
+  it("renders no stale launch copy into any prerendered page, and both store links on the download page", async () => {
     for (const path of ["/", ...PUBLIC_PAGES.map((page) => page.path)]) {
       const html = await renderPage(path);
       expect(
-        /early access|waitlist|launching 2026/i.test(html),
-        `forbidden launch copy on ${path}`,
+        /early access|waitlist|launching 2026|coming soon/i.test(html),
+        `stale launch copy on ${path}`,
       ).toBe(false);
-      if (IOS_NOTE_ALLOWED.has(path)) continue;
-      expect(
-        /\bios\b|ios\s?\d|iphone|app[\s-]?store/i.test(html),
-        `forbidden platform copy on ${path}`,
-      ).toBe(false);
+    }
+
+    const download = await renderPage("/app/download");
+    expect(download).toContain("https://play.google.com/store/apps/details?id=com.fenzit");
+    expect(download).toContain("https://apps.apple.com/app/id6838286809");
+  });
+
+  // The FAQ answers are plain copy a rewrite could strip back to one store while the
+  // badges still say both — pin the both-stores wording in the prerendered HTML.
+  it("names both stores in the FAQ answers on home and attendance", async () => {
+    for (const path of ["/", "/attendance"]) {
+      const html = await renderPage(path);
+      expect(html, `dual-store FAQ copy on ${path}`).toContain("iPhone from the App Store");
     }
   });
 });

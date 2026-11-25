@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { PLAY_STORE_URL } from "../config/appStores";
+import { APP_STORE_URL, PLAY_STORE_URL } from "../config/appStores";
 import { DownloadAppPage } from "./DownloadAppPage";
 
 const PLAY_LINK_NAME = "Get Fenzit on Google Play (opens the Play Store)";
+const APP_STORE_LINK_NAME = "Download Fenzit on the App Store (opens the App Store)";
 
 // The real hook reads navigator.userAgent, which happy-dom reports as a desktop
 // Mac with no touch points ("other"). Every test pins the user agent it needs.
@@ -24,7 +25,7 @@ function renderPage() {
   );
 }
 
-/** Content-area queries: the landing Footer (outside <main>) has its own badge. */
+/** Content-area queries: the landing Footer (outside <main>) has its own badges. */
 function mainQueries() {
   return within(screen.getByRole("main"));
 }
@@ -64,9 +65,11 @@ describe("DownloadAppPage", () => {
       "href",
       PLAY_STORE_URL,
     );
+    // An Android visitor is mid-redirect to Play; an App Store badge would only confuse.
+    expect(mainQueries().queryByRole("link", { name: APP_STORE_LINK_NAME })).toBeNull();
   });
 
-  it("on desktop: no redirect at all, badge plus the iPhone coming-soon block", () => {
+  it("on desktop: no redirect at all, one badge per platform", () => {
     setDevice(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
     );
@@ -77,17 +80,23 @@ describe("DownloadAppPage", () => {
       "href",
       PLAY_STORE_URL,
     );
-    expect(screen.getByText("The iPhone app is coming soon")).toBeInTheDocument();
+    expect(mainQueries().getByRole("link", { name: APP_STORE_LINK_NAME })).toHaveAttribute(
+      "href",
+      APP_STORE_URL,
+    );
+    expect(screen.getByText("iPhone and iPad")).toBeInTheDocument();
   });
 
-  it("on iPhone: coming-soon only, no redirect, no store button until APP_STORE_URL is set", () => {
+  it("on iPhone: the App Store badge, no redirect, no Play badge", () => {
     setDevice("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Safari/605.1.15", 5);
     renderPage();
 
     expect(refreshMeta()).toBeNull();
-    expect(screen.getByText("The iPhone app is coming soon")).toBeInTheDocument();
-    // APP_STORE_URL is null today, so no store link may leak onto the iPhone page.
-    // When iOS ships this assertion flags the change on purpose.
-    expect(mainQueries().queryByRole("link", { name: /App Store|Google Play/i })).toBeNull();
+    expect(screen.getByText("Get the Fenzit app on your iPhone")).toBeInTheDocument();
+    expect(mainQueries().getByRole("link", { name: APP_STORE_LINK_NAME })).toHaveAttribute(
+      "href",
+      APP_STORE_URL,
+    );
+    expect(mainQueries().queryByRole("link", { name: PLAY_LINK_NAME })).toBeNull();
   });
 });

@@ -16,9 +16,22 @@
 }
 
 /*
+ * Both badges together (hero, footer): one flex item per parent, with the
+ * parent's own gap kept out of the pair.
+ */
+.row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/*
  * The asset ships with a transparent margin, trimmed at import time, so the
  * image edge is the badge edge; the token radius rounds it to match the
- * buttons. The official asset itself is otherwise unmodified.
+ * buttons. The official asset itself is otherwise unmodified. The App Store
+ * SVG bakes its own corners, wider than the token at both sizes, so the clip
+ * never reaches its art.
  */
 .image {
   height: 56px;

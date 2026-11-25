@@ -1,12 +1,11 @@
-import { APP_STORE_URL, PLAY_STORE_URL } from "../config/appStores";
+import { PLAY_STORE_URL } from "../config/appStores";
 import { DOWNLOAD_APP_PAGE } from "../app/pageMeta";
 import { useMobilePlatform } from "../hooks/useMobilePlatform";
 import { StoreBadge } from "../components/ui/StoreBadge";
 import { SimplePage, SimpleSection } from "./SimplePage";
 import styles from "./DownloadAppPage.module.css";
 
-const IPHONE_HEADING = "The iPhone app is coming soon";
-const IPHONE_LINE = "Ask your employer for the link again when it is ready.";
+const IOS_HEADING = "Get the Fenzit app on your iPhone";
 
 /**
  * The invite SMS link (fixed in the DLT-approved template, so the redirect lives
@@ -15,9 +14,8 @@ const IPHONE_LINE = "Ask your employer for the link again when it is ready.";
  * H76 pattern; a timed pause would fail WCAG 2.2.1. React 19 hoists the meta tag
  * into <head> after hydration; most Android browsers hand play.google.com links
  * to the Play Store app, but some in-app webviews just show the web page, so the
- * badge stays as the fallback. iPhone sees the coming-soon block, and desktop
- * sees the badge plus the coming-soon block, with an App Store button only once
- * APP_STORE_URL is set.
+ * badge stays as the fallback. iPhone sees the App Store badge, and desktop sees
+ * one badge per platform.
  */
 const REDIRECT_SECONDS = 0;
 
@@ -44,10 +42,10 @@ export function DownloadAppPage() {
       <SimplePage
         meta={DOWNLOAD_APP_PAGE}
         id="download-app-title"
-        title={IPHONE_HEADING}
-        lead={IPHONE_LINE}
+        title={IOS_HEADING}
+        lead="Download Fenzit from the App Store, then log in with the phone number your team invited."
       >
-        {APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null}
+        <AppStoreBlock />
       </SimplePage>
     );
   }
@@ -60,9 +58,7 @@ export function DownloadAppPage() {
       lead="Open this link on your phone to install the Fenzit app. Then log in with your phone number."
     >
       <PlayBlock />
-      <SimpleSection id="iphone-title" title={IPHONE_HEADING} paragraphs={[IPHONE_LINE]}>
-        {APP_STORE_URL !== null ? <AppStoreButton href={APP_STORE_URL} /> : null}
-      </SimpleSection>
+      <AppStoreBlock />
     </SimplePage>
   );
 }
@@ -71,16 +67,18 @@ function PlayBlock() {
   return (
     <SimpleSection id="play-link" title="Android">
       <div className={styles.badgeWrap}>
-        <StoreBadge />
+        <StoreBadge store="play" />
       </div>
     </SimpleSection>
   );
 }
 
-function AppStoreButton({ href }: { href: string }) {
+function AppStoreBlock() {
   return (
-    <a className={styles.button} href={href} rel="noopener noreferrer">
-      Download on the App Store
-    </a>
+    <SimpleSection id="iphone-title" title="iPhone and iPad">
+      <div className={styles.badgeWrap}>
+        <StoreBadge store="appStore" />
+      </div>
+    </SimpleSection>
   );
 }

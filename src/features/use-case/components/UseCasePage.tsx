@@ -2,10 +2,9 @@ import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import type { PageMeta } from "../../../app/pageMeta";
-import { LinkButton } from "../../../components/ui/LinkButton";
+import { StoreBadge } from "../../../components/ui/StoreBadge";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
-import { PLAY_STORE_URL } from "../../../config/appStores";
 import { Footer } from "../../landing/components/Footer";
 import { Header } from "../../landing/components/Header";
 import { siblingsFor } from "../content/registry";
@@ -67,9 +66,7 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
                   {content.heading}
                 </h1>
                 <p className={styles.lead}>{content.lead}</p>
-                <LinkButton href={PLAY_STORE_URL} external variant="primary">
-                  Get the app on Google Play
-                </LinkButton>
+                <StoreBadge />
               </div>
               <div className={styles.artPanel}>
                 <Art />
@@ -126,11 +123,10 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
               See it working for your team
             </h2>
             <p className={styles.ctaText}>
-              Download the Fenzit Android app, add your team, and start with 90 days free.
+              Download the Fenzit app for Android or iPhone, add your team, and start with 90 days
+              free.
             </p>
-            <LinkButton href={PLAY_STORE_URL} external variant="primary">
-              Get the app on Google Play
-            </LinkButton>
+            <StoreBadge />
             <p className={styles.ctaMore}>Fenzit also helps:</p>
             <ul className={styles.siblings}>
               {siblings.map((sibling) => (

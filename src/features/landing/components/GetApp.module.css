@@ -56,7 +56,8 @@
   border-radius: var(--radius-pill);
 }
 
-/* A QR on a phone asks the user to scan their own screen — desktop only. */
+/* A QR on a phone asks the user to scan their own screen — desktop only.
+ * It opens /app/download, which redirects each platform to its own store. */
 .scan {
   display: none;
 }

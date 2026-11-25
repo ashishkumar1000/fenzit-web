@@ -230,7 +230,7 @@ export const DOWNLOAD_APP_PAGE: PageMeta = {
   path: "/app/download",
   title: "Get the Fenzit app",
   description:
-    "Install the Fenzit app for Android from Google Play, then log in with the phone number your team invited.",
+    "Install the Fenzit app from Google Play (Android) or the App Store (iPhone), then log in with the phone number your team invited.",
 };
 
 /**

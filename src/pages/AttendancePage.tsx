@@ -1,10 +1,9 @@
 import { CalendarCheck, FileText, LayoutDashboard, MapPin, Smartphone } from "lucide-react";
 import { Link } from "react-router";
 import { ATTENDANCE_PAGE } from "../app/pageMeta";
-import { LinkButton } from "../components/ui/LinkButton";
 import { Container } from "../components/ui/Container";
 import { SectionHeading } from "../components/ui/SectionHeading";
-import { PLAY_STORE_URL } from "../config/appStores";
+import { StoreBadge } from "../components/ui/StoreBadge";
 import { AttendanceArt } from "../features/attendance/components/AttendanceArt";
 import { Footer } from "../features/landing/components/Footer";
 import { Header } from "../features/landing/components/Header";
@@ -54,7 +53,7 @@ const FAQ_ITEMS = [
     key: "app",
     question: "Do employees need to install an app?",
     answer:
-      "Yes. Everyone uses the Fenzit Android app from Google Play and signs in with their phone number.",
+      "Yes. Everyone uses the Fenzit mobile app — Android from Google Play, iPhone from the App Store — and signs in with their phone number.",
   },
   {
     key: "office",
@@ -92,9 +91,7 @@ export function AttendancePage() {
                   Your team checks in from their own phones at the office. You see today live, get a
                   clean monthly report, and handle leave in a tap — on its own, or with Fenzit jobs.
                 </p>
-                <LinkButton href={PLAY_STORE_URL} external variant="primary">
-                  Get the app on Google Play
-                </LinkButton>
+                <StoreBadge />
               </div>
               <div className={styles.artPanel}>
                 <AttendanceArt />
@@ -171,11 +168,10 @@ export function AttendancePage() {
               See it working for your team
             </h2>
             <p className={styles.ctaText}>
-              Download the Fenzit Android app, add your team, and start with 90 days free.
+              Download the Fenzit app for Android or iPhone, add your team, and start with 90 days
+              free.
             </p>
-            <LinkButton href={PLAY_STORE_URL} external variant="primary">
-              Get the app on Google Play
-            </LinkButton>
+            <StoreBadge />
             <p className={styles.ctaMore}>
               Want the whole picture?{" "}
               <Link className={styles.ctaLink} to="/features">

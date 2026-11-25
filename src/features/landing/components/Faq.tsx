@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
-import { PLAY_STORE_URL } from "../../../config/appStores";
+import { PLAY_STORE_URL, APP_STORE_URL } from "../../../config/appStores";
 import styles from "./Faq.module.css";
 
 type FaqItem = {
@@ -33,7 +33,7 @@ const ITEMS: FaqItem[] = [
     key: "install",
     question: "Do employees need to install an app?",
     answer:
-      "Yes. Everyone uses the Fenzit Android app from Google Play and signs in with their phone number.",
+      "Yes. Everyone uses the Fenzit mobile app — Android from Google Play, iPhone from the App Store — and signs in with their phone number.",
   },
   {
     key: "get",
@@ -43,8 +43,12 @@ const ITEMS: FaqItem[] = [
         Download Fenzit from{" "}
         <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
           Google Play
-        </a>
-        , add your team, and every team gets 90 days free.
+        </a>{" "}
+        (Android) or{" "}
+        <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
+          the App Store
+        </a>{" "}
+        (iPhone), add your team, and every team gets 90 days free.
       </>
     ),
   },

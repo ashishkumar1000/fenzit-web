@@ -71,7 +71,7 @@ export const SERVICE_BUSINESS_CONTENT: UseCaseContent = {
       key: "access",
       question: "How do I get access?",
       answer:
-        "Fenzit is live on Google Play for Android. Download the app, add your team, and every team gets 90 days free.",
+        "Fenzit is live on Google Play and the App Store. Download the app, add your team, and every team gets 90 days free.",
     },
   ],
 };

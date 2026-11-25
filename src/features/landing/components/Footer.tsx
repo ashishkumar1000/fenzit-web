@@ -26,7 +26,7 @@ const SOLUTION_CARDS = [
   {
     to: "/employee-attendance-app",
     label: "Employee attendance app",
-    note: "Android app on Google Play",
+    note: "App on Google Play & App Store",
   },
   { to: "/geofencing-attendance", label: "Geofencing attendance", note: "Location-verified logs" },
   { to: "/leave-management-software", label: "Leave management", note: "Approval workflows" },

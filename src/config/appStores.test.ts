@@ -16,7 +16,7 @@ describe("store links", () => {
     expect(PLAY_STORE_APP_LINK.endsWith(";end")).toBe(true);
   });
 
-  test("the App Store link stays unset until iOS ships", () => {
-    expect(APP_STORE_URL).toBeNull();
+  test("the App Store link is the live Fenzit listing, storefront-neutral", () => {
+    expect(APP_STORE_URL).toBe("https://apps.apple.com/app/id6838286809");
   });
 });

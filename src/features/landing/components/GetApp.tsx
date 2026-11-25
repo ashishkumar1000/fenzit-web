@@ -2,7 +2,7 @@ import { LinkButton } from "../../../components/ui/LinkButton";
 import { StoreBadge } from "../../../components/ui/StoreBadge";
 import { Container } from "../../../components/ui/Container";
 import { SectionHeading } from "../../../components/ui/SectionHeading";
-import qrCode from "../../../assets/brand/play-store-qr.svg";
+import downloadQrCode from "../../../assets/brand/download-qr.svg";
 import styles from "./GetApp.module.css";
 
 // Only facts true in the product today.
@@ -22,7 +22,7 @@ export function GetApp() {
             <SectionHeading
               id="get-app-title"
               title="Get the Fenzit app"
-              lead="Live on Google Play for Android phones. Every team gets 90 days free."
+              lead="Live on Google Play and the App Store. Every team gets 90 days free."
             />
             <div className={styles.actions}>
               <StoreBadge />
@@ -43,10 +43,10 @@ export function GetApp() {
             <div className={styles.scan}>
               <img
                 className={styles.qr}
-                src={qrCode}
-                width={41}
-                height={41}
-                alt="QR code that opens the Fenzit app on Google Play"
+                src={downloadQrCode}
+                width={37}
+                height={37}
+                alt="QR code that opens the Fenzit app download page"
                 loading="lazy"
               />
               <p className={styles.scanNote}>Scan to install on your phone.</p>
