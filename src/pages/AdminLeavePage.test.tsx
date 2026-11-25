@@ -425,6 +425,9 @@ describe("AdminLeavePage: the requests tab", () => {
     expect(within(card).getByText("4 days after approval")).toBeInTheDocument();
     expect(within(card).getByText("4 requested")).toBeInTheDocument();
     expect(within(card).getByText("8 total allowance")).toBeInTheDocument();
+    // The provenance line: earned's total sits all in accrual here — no
+    // credit, no carry-forward, so only the one part speaks.
+    expect(within(card).getByText("8 accrued")).toBeInTheDocument();
     expect(within(card).getByText("No balance recorded for Sick Leave.")).toBeInTheDocument();
     expect(
       within(card).getByText(/1 other team member is available in MG Road Office/),
@@ -470,6 +473,102 @@ describe("AdminLeavePage: the requests tab", () => {
       within(card).getByText("Earned Leave days allowance — 4 days remaining"),
     ).toBeInTheDocument();
     expect(within(card).getByText("No balance recorded for Sick Leave.")).toBeInTheDocument();
+  });
+
+  it("the breakdown names the total's provenance, and a turned-off type wears the chip", async () => {
+    // Four shapes in one panel: the subject's mixed total (credit + accrual
+    // + carry-forward), an off type answering from its credit alone, a
+    // negative-corrected credit whose exactly-1 remaining reads singular,
+    // and a gross-zero off type whose used days still speak on the
+    // collapsed line.
+    setRespond((url) => {
+      const { pathname } = new URL(url);
+      if (pathname.endsWith("/u-emp-1/balances")) {
+        return jsonResponse([
+          {
+            typeId: "t-earned",
+            code: "earned",
+            name: "Earned Leave",
+            accrualMode: "monthly",
+            accrualDays: 1,
+            enabled: true,
+            credits: 12,
+            accrued: 1,
+            carryForward: 2,
+            consumed: 8,
+            remaining: 7,
+          },
+          {
+            typeId: "t-sick",
+            code: "sick",
+            name: "Sick Leave",
+            accrualMode: "monthly",
+            accrualDays: 0.5,
+            enabled: false,
+            credits: 8,
+            accrued: 0,
+            carryForward: 0,
+            consumed: 2,
+            remaining: 6,
+          },
+          {
+            // An enabled row (the backend answers accrued 0 for every
+            // disabled type — an off fixture row would encode a shape the
+            // contract forbids) carrying a negative-corrected credit and
+            // an exactly-1 remaining, which the heading reads singular.
+            typeId: "t-casual",
+            code: "casual",
+            name: "Casual Leave",
+            accrualMode: "annual",
+            accrualDays: 5,
+            enabled: true,
+            credits: -2,
+            accrued: 4,
+            carryForward: 0,
+            consumed: 1,
+            remaining: 1,
+          },
+          {
+            typeId: "t-offday",
+            code: "offday",
+            name: "Off Day",
+            accrualMode: "monthly",
+            accrualDays: 1,
+            enabled: false,
+            credits: 0,
+            accrued: 0,
+            carryForward: 0,
+            consumed: 1.5,
+            remaining: -1.5,
+          },
+        ]);
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&selected=r-1");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    // Earned leads (the subject): the mixed breakdown names every part.
+    expect(
+      within(card).getByText("12 credited · 1 accrued · 2 carried forward"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("15 total allowance")).toBeInTheDocument();
+    // The off sick row still answers — 8 credited − 2 used — under its chip.
+    expect(
+      within(card).getByText("Sick Leave days allowance — 6 days remaining"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("8 credited")).toBeInTheDocument();
+    // A corrected (negative) credit reads with its sign; zero parts stay
+    // quiet; exactly 1 remaining reads singular.
+    expect(
+      within(card).getByText("Casual Leave days allowance — 1 day remaining"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("-2 credited · 4 accrued")).toBeInTheDocument();
+    // The gross-zero off row collapses — chip and its used days still speak
+    // on the same quiet line, so the name matches within the fuller text.
+    expect(within(card).getByText(/No balance recorded for Off Day\./)).toBeInTheDocument();
+    expect(within(card).getByText(/1\.5 days used this year\./)).toBeInTheDocument();
+    // One chip per off row: sick and offday.
+    expect(within(card).getAllByText("Turned Off")).toHaveLength(2);
   });
 
   it("the strip speaks each day's own state — a split span reads state by state", async () => {

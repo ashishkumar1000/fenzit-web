@@ -518,6 +518,12 @@
   gap: var(--space-2);
 }
 
+/* A turned-off type's whole block fades — the balance still answers, the
+   type just no longer earns days (see the "Turned Off" chip). */
+.allowOff {
+  opacity: 0.6;
+}
+
 .allowHead {
   margin: 0;
   font-size: var(--font-size-sm);
@@ -538,6 +544,15 @@
   padding: 1px var(--space-2);
   margin-left: var(--space-2);
   vertical-align: 1px;
+}
+
+/* The same pill, muted — a turned-off type's "Turned Off" state chip on
+   the heading and on the collapsed quiet line. */
+.allowTagOff {
+  composes: allowTag;
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .allowBar {
@@ -604,6 +619,14 @@
 }
 
 .allowQuiet {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* The total's provenance: credited / accrued / carried forward, the
+   non-zero parts the panel collapses into one total figure. */
+.allowBreakdown {
   margin: 0;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);

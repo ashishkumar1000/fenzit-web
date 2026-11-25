@@ -510,7 +510,15 @@ function AllowanceSection({
 
 /** One type's allowance block. `request` arrives only for the block the
  *  request actually spends — its bar carries the amber requested segment
- *  while the request is pending, and its heading names it. */
+ *  while the request is pending, and its heading names it. A turned-off
+ *  type wears the "Turned Off" chip and fades: its balance still answers
+ *  (its used days count), it just no longer earns days. A zero-gross row
+ *  collapses to the quiet line — the off-state keeps its chip and any
+ *  used-days figure there too. */
+/** Exactly 1 reads singular — the same plain-English rule the backend's
+ *  refusal copy follows. */
+const dayWord = (n: number) => (n === 1 ? "day" : "days");
+
 function BalanceBlock({
   balance,
   request,
@@ -520,8 +528,25 @@ function BalanceBlock({
 }) {
   const gross = balance.credits + balance.accrued + balance.carryForward;
   const remaining = Math.max(balance.remaining, 0);
+  const off = balance.enabled === false;
   if (gross <= 0) {
-    return <p className={styles.allowQuiet}>No balance recorded for {balance.name}.</p>;
+    return (
+      <p className={styles.allowQuiet}>
+        No balance recorded for {balance.name}.
+        {balance.consumed > 0 ? (
+          <>
+            {" "}
+            {balance.consumed} {dayWord(balance.consumed)} used this year.
+          </>
+        ) : null}
+        {off ? (
+          <>
+            {" "}
+            <span className={styles.allowTagOff}>Turned Off</span>
+          </>
+        ) : null}
+      </p>
+    );
   }
   const pct = (days: number) => `${Math.min(Math.max(days / gross, 0), 1) * 100}%`;
   const pending = request !== null && request.status === "pending";
@@ -529,10 +554,22 @@ function BalanceBlock({
   const used = pending
     ? Math.max(gross - remaining - requested, 0)
     : Math.max(gross - remaining, 0);
+  // The total's provenance — the parts the backend returns separately
+  // and the panel collapses into one figure. Only the non-zero parts
+  // speak; credits can net offsetting corrections, so the sign rides
+  // along as-is.
+  const parts: string[] = [];
+  if (balance.credits !== 0) parts.push(`${balance.credits} credited`);
+  if (balance.accrued !== 0) parts.push(`${balance.accrued} accrued`);
+  if (balance.carryForward !== 0) parts.push(`${balance.carryForward} carried forward`);
   return (
-    <section className={styles.allowance} aria-label={`${balance.name} allowance`}>
+    <section
+      className={off ? `${styles.allowance} ${styles.allowOff}` : styles.allowance}
+      aria-label={`${balance.name} allowance`}
+    >
       <h4 className={styles.allowHead}>
-        {balance.name} days allowance — {remaining} days remaining
+        {balance.name} days allowance — {remaining} {dayWord(remaining)} remaining
+        {off ? <span className={styles.allowTagOff}>Turned Off</span> : null}
         {request !== null ? <span className={styles.allowTag}>this request</span> : null}
       </h4>
       <div className={styles.allowBar} aria-hidden="true">
@@ -544,13 +581,15 @@ function BalanceBlock({
       </div>
       <p className={styles.allowLegend}>
         <span className={styles.legendAfter}>
-          {remaining} {pending ? "days after approval" : "days remaining"}
+          {remaining}{" "}
+          {pending ? `${dayWord(remaining)} after approval` : `${dayWord(remaining)} remaining`}
         </span>
         <span className={styles.legendRequested}>
           {pending ? `${requested} requested` : `${used} used`}
         </span>
         <span className={styles.legendTotal}>{gross} total allowance</span>
       </p>
+      {parts.length > 0 ? <p className={styles.allowBreakdown}>{parts.join(" · ")}</p> : null}
     </section>
   );
 }
