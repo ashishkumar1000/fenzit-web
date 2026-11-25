@@ -42,10 +42,17 @@ const MONTH_SHORT = [
  *  browser — the same clock the tenant keeps — so local is the honest
  *  "today"; the backend never hands the list response a server date. */
 export function localIsoToday(): string {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
+  return localIsoDate(new Date());
+}
+
+/** The viewer's local calendar day of an instant, as an ISO date — the same
+ *  local clock localIsoToday reads, applied to a wire timestamp, so a
+ *  "requested on" line shows the day the filer's clock said, not the UTC
+ *  day an ISO string slices into. */
+export function localIsoDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
 export function isMonth(value: string): boolean {

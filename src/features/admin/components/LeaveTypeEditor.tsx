@@ -164,7 +164,7 @@ export function LeaveTypeEditor({ type }: { type: LeaveTypeRow }) {
   return (
     <section className={styles.editor} aria-label={`${type.name} rules`}>
       <header className={styles.head}>
-        <span className={styles.headGlyph} aria-hidden="true">
+        <span className={styles.headGlyph} aria-hidden="true" data-asleep={asleep || undefined}>
           <Glyph size={20} />
         </span>
         <div className={styles.headText}>

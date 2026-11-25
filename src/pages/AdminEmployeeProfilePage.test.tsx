@@ -12,6 +12,7 @@ import {
   setRespond,
   useApiBase,
 } from "../testing/fetchMock";
+import { resetLeaveSummaryCacheForTests } from "../features/admin/leaveSummaryCache";
 
 /**
  * The employee profile page's contract: the address's tab picks the section
@@ -217,6 +218,9 @@ beforeAll(() => useApiBase());
 afterAll(() => clearApiBase());
 beforeEach(() => {
   installFetchMock();
+  // The shared summary cache is module state — one test's answer must
+  // never serve the next test's badge.
+  resetLeaveSummaryCacheForTests();
   state.member = { userId: "u-a", status: "active" };
   state.punches = [];
   setRespond(route);

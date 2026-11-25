@@ -157,3 +157,13 @@
   min-height: 36px;
   cursor: pointer;
 }
+
+/* The repo's tokened ring for the shared dialog chrome — the settings
+   trigger, the quiet Cancel/Close and the primary Save all answer the
+   keyboard instead of falling back to the UA default outline. */
+.settingsButton:focus-visible,
+.quietButton:focus-visible,
+.saveButton:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}

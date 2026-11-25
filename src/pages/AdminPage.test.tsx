@@ -5,6 +5,7 @@ import { routes } from "../app/routes";
 import { AdminChecking } from "./AdminPage";
 import { consoleRole, sectionGroupsFor, sectionsFor } from "../features/admin/adminLoader";
 import { SESSION_KEY, writeSession } from "../services/session";
+import { resetLeaveSummaryCacheForTests } from "../features/admin/leaveSummaryCache";
 import { clearApiBase, jsonResponse, useApiBase } from "../testing/fetchMock";
 
 let meAnswers: Array<() => Response> = [];
@@ -26,6 +27,9 @@ beforeEach(() => {
   meAnswers = [];
   meCalls = 0;
   summaryAnswer = undefined;
+  // The shared summary cache is module state — one test's answer must never
+  // serve the next test's badge.
+  resetLeaveSummaryCacheForTests();
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith("/users/me")) {

@@ -132,6 +132,9 @@ export interface LeaveCoverage {
   availableCount: number;
   /** One deterministic available colleague; null when nobody is. */
   onDutyName: string | null;
+  /** The day the roster was read for — the span's first day. Optional for
+   *  deploy-order safety: an older backend omits it (read as tenant-today). */
+  anchorDate?: string;
 }
 
 export function fetchLeaveCoverage(

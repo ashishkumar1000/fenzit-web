@@ -1,7 +1,7 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
 import { ApiError } from "../../services/api";
 import { clearSession, readSession } from "../../services/session";
-import { fetchLeaveSummary } from "./companyApi";
+import { readLeaveSummaryCached } from "./leaveSummaryCache";
 import { fetchCurrentUser, type CurrentUser } from "./adminApi";
 
 export type ConsoleRole = "staff" | "owner" | "member";
@@ -94,13 +94,17 @@ export function sectionGroupsFor(role: ConsoleRole): SectionGroup[] {
 }
 
 /** The sidebar's Leave badge: the tenant's pending requests, riding the same
- *  summary read the requests tab uses. Any failure on this cosmetic read
- *  costs the badge only — except a dead session (401), which still reaches
- *  the loader's login redirect; a permission-shaped 403 never logs anyone
- *  out. An abort rethrows so the router moves on. */
+ *  summary read the requests tab uses — through the module's shared cache,
+ *  so the parallel layout+child loader pair is one network call. Any failure
+ *  on this cosmetic read costs the badge only — except a dead session (401),
+ *  which still reaches the loader's login redirect; a permission-shaped 403
+ *  never logs anyone out. An abort shows up only in the catch — the shared
+ *  fetch carries no signal (one navigation's abort must not kill another
+ *  loader's read) — and rethrows there so the router drops the result it
+ *  would have dropped anyway. */
 async function pendingLeavesOrNull(token: string, signal: AbortSignal): Promise<number | null> {
   try {
-    const summary = await fetchLeaveSummary(token, signal);
+    const summary = await readLeaveSummaryCached(token);
     return summary.counts?.pending ?? null;
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) throw error;

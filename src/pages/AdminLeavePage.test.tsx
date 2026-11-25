@@ -14,6 +14,7 @@ import {
 } from "../testing/fetchMock";
 import type { LeaveRow } from "../features/admin/companyApi";
 import { LeaveDayModal } from "../features/admin/components/LeaveDayModal";
+import { resetLeaveSummaryCacheForTests } from "../features/admin/leaveSummaryCache";
 import type { LeaveTypeRow } from "../features/admin/leaveApi";
 
 // The owner's Leave section: the types tab's master-detail (cards on top,
@@ -33,6 +34,9 @@ afterAll(() => {
 beforeEach(() => {
   installFetchMock();
   setRespond(respondDefault);
+  // The shared summary cache is module state — one test's answer must never
+  // serve the next test's pills or badge.
+  resetLeaveSummaryCacheForTests();
 });
 
 afterEach(() => {
@@ -101,7 +105,10 @@ function leaveRow(
     endDate: "2026-11-20",
     part: "full_day",
     reason: "Family function",
-    createdAt: "2026-11-10T04:30:00.000Z",
+    // Noon UTC: the instant's local calendar day agrees across every
+    // realistic viewer timezone, so the viewer-local "requested on" pin
+    // never flips on a west-of-Greenwich clock.
+    createdAt: "2026-11-10T12:30:00.000Z",
     workingDays: 4,
     totalDays: 4,
     employeeAvatarUrl: null,
@@ -324,10 +331,16 @@ describe("AdminLeavePage: the types tab", () => {
   it("the header switch turns a type off — the form sleeps and the save posts enabled only", async () => {
     renderLeave();
     const onOff = await screen.findByRole("switch", { name: "Turn Earned Leave on or off" });
+    const earnedEditor = screen.getByText("Earned Leave rules").closest("section")!;
+    // The awake tile carries no asleep mark — the primary glow is only for
+    // a live type.
+    expect(earnedEditor.querySelector("[data-asleep]")).toBeNull();
     fireEvent.click(onOff);
     // The header chip flips with the local state — the editor is asleep.
-    const earnedEditor = screen.getByText("Earned Leave rules").closest("section")!;
     expect(within(earnedEditor).getByText("inactive")).toBeInTheDocument();
+    // The header tile joins the asleep treatment (the CSS grays it from
+    // [data-asleep], the off-card family's grays).
+    expect(earnedEditor.querySelector("[data-asleep]")).not.toBeNull();
     // Off means the rules sleep: rate input, stepper and quick-sets, and the
     // other switches all go inert — only the header switch and the save
     // (which now carries just the enabled change) still work.
@@ -391,22 +404,147 @@ describe("AdminLeavePage: the requests tab", () => {
     expect(within(card).getByText("Asha V")).toBeInTheDocument();
   });
 
-  it("the card renders the facts, the allowance and the coverage line the design draws", async () => {
+  it("the card renders the facts, the span day by day, every allowance and the coverage line", async () => {
     renderLeave("/admin/company/leave?tab=requests&selected=r-1");
     const card = await screen.findByRole("complementary", { name: "Request details" });
     expect(within(card).getByText(/Family function/)).toBeInTheDocument();
     expect(within(card).getByText("4 Working Days")).toBeInTheDocument();
     expect(within(card).getByText("17 Nov – 20 Nov 2026")).toBeInTheDocument();
+    // Requested on — the wire's UTC instant read as the filer's local day
+    // (localIsoDate), the year kept (fmtDay).
+    expect(within(card).getByText("10 Nov 2026")).toBeInTheDocument();
+    // The span, day by day — each date with its own state word.
+    const strip = within(card).getByLabelText("Days, one by one");
+    expect(within(strip).getAllByText("Pending")).toHaveLength(4);
+    // Every accrual-bearing type's balance, the request's own first and
+    // tagged; the zero-gross sick type says so beside the blocks.
     expect(
       within(card).getByText("Earned Leave days allowance — 4 days remaining"),
     ).toBeInTheDocument();
+    expect(within(card).getByText("this request")).toBeInTheDocument();
     expect(within(card).getByText("4 days after approval")).toBeInTheDocument();
     expect(within(card).getByText("4 requested")).toBeInTheDocument();
     expect(within(card).getByText("8 total allowance")).toBeInTheDocument();
+    expect(within(card).getByText("No balance recorded for Sick Leave.")).toBeInTheDocument();
     expect(
       within(card).getByText(/1 other team member is available in MG Road Office/),
     ).toBeInTheDocument();
     expect(within(card).getByText(/Priya Sharma on duty/)).toBeInTheDocument();
+  });
+
+  it("a comp-off request gets the honest line beside the other types' blocks", async () => {
+    // Comp-Off rides no balance — the wire's balances exclude it — so the
+    // subject is never found: the quiet explains line leads and every
+    // accrual-bearing type's block still renders beside it (the composition
+    // branch the typed fixtures never reach).
+    const compOff = leaveRow({
+      id: "r-3",
+      employeeId: "u-emp-3",
+      employeeName: "Chitra N",
+      employeeCode: "EMP-003",
+      leaveTypeId: "t-comp",
+      leaveTypeCode: "comp_off",
+      leaveTypeName: "Comp Off",
+      status: "pending",
+      startDate: "2026-11-21",
+      endDate: "2026-11-21",
+      workingDays: 1,
+      totalDays: 1,
+      reason: "",
+      dates: [{ date: "2026-11-21", state: "pending" }],
+    });
+    setRespond((url) => {
+      const { pathname, search } = new URL(url);
+      if (pathname.endsWith("/attendance/leave") && !search.includes("from=")) {
+        return jsonResponse({ data: [compOff], nextCursor: null, hasMore: false });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&selected=r-3");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    // The request's own type says it has no balance…
+    expect(within(card).getByText("No balance recorded for Comp Off.")).toBeInTheDocument();
+    // …and the other types' blocks stay beside it — earned's full block,
+    // sick's zero-gross line.
+    expect(
+      within(card).getByText("Earned Leave days allowance — 4 days remaining"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("No balance recorded for Sick Leave.")).toBeInTheDocument();
+  });
+
+  it("the strip speaks each day's own state — a split span reads state by state", async () => {
+    const split = leaveRow({
+      id: "r-4",
+      employeeId: "u-emp-4",
+      employeeName: "Devika U",
+      employeeCode: "EMP-004",
+      status: "approved",
+      dates: [
+        { date: "2026-11-17", state: "approved" },
+        { date: "2026-11-18", state: "pending" },
+        { date: "2026-11-19", state: "rejected" },
+        { date: "2026-11-20", state: "cancelled" },
+      ],
+    });
+    setRespond((url) => {
+      const { pathname, search } = new URL(url);
+      if (pathname.endsWith("/attendance/leave") && !search.includes("from=")) {
+        return jsonResponse({ data: [split], nextCursor: null, hasMore: false });
+      }
+      return respondDefault(url);
+    });
+    renderLeave("/admin/company/leave?tab=requests&selected=r-4");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    const strip = within(card).getByLabelText("Days, one by one");
+    expect(within(strip).getByText("Approved")).toBeInTheDocument();
+    expect(within(strip).getByText("Pending")).toBeInTheDocument();
+    expect(within(strip).getByText("Rejected")).toBeInTheDocument();
+    expect(within(strip).getByText("Cancelled")).toBeInTheDocument();
+  });
+
+  it("Close dismisses the card until a row tap asks for it again", async () => {
+    renderLeave("/admin/company/leave?tab=requests");
+    const card = await screen.findByRole("complementary", { name: "Request details" });
+    fireEvent.click(within(card).getByRole("button", { name: "Close details" }));
+    // Dismissed is local state — the card is gone without a refetch.
+    const readsBefore = sentRequests().length;
+    expect(screen.queryByRole("complementary", { name: "Request details" })).toBeNull();
+    // A row tap is an explicit ask — the card returns for that row. During
+    // the navigation flight the old selection's card is still mounted (React
+    // Router keeps the previous UI until the new loader data lands), so wait
+    // for Bunty's name, not merely for a card.
+    fireEvent.click(screen.getByRole("link", { name: /Bunty R/ }));
+    await waitFor(() => {
+      const reopened = screen.getByRole("complementary", { name: "Request details" });
+      expect(within(reopened).getByText("Bunty R")).toBeInTheDocument();
+    });
+    expect(sentRequests().length).toBeGreaterThan(readsBefore);
+  });
+
+  it("an active search or month window quiets the counts — pills and chips go bare", async () => {
+    renderLeave("/admin/company/leave?tab=requests&q=Asha");
+    await screen.findAllByText("Asha V");
+    // The counts answer the tenant, the list answers the needle — the
+    // numbers go quiet rather than contradict the filtered list.
+    expect(screen.queryByRole("link", { name: /Needs review \d/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Needs review" })).toBeInTheDocument();
+    expect(screen.queryByText("2 total")).toBeNull();
+    expect(screen.getByText("Newest first")).toBeInTheDocument();
+    // The quiet pill still navigates — the filter is an address even bare.
+    fireEvent.click(screen.getByRole("link", { name: "Needs review" }));
+    await waitFor(() => {
+      expect(sentRequests().some((r) => r.url.includes("status=pending"))).toBe(true);
+    });
+    expect(screen.getByRole("link", { name: "Needs review" })).toBeInTheDocument();
+  });
+
+  it("a month window quiets the counts the same way — no search needle needed", async () => {
+    renderLeave("/admin/company/leave?tab=requests&month=2026-11");
+    await screen.findAllByText("Asha V");
+    expect(screen.queryByRole("link", { name: /Needs review \d/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Needs review" })).toBeInTheDocument();
+    expect(screen.queryByText("2 total")).toBeNull();
+    expect(screen.getByText("Newest first")).toBeInTheDocument();
   });
 
   it("approve posts the typed note; decline posts the reason", async () => {
@@ -443,10 +581,11 @@ describe("AdminLeavePage: the requests tab", () => {
   });
 
   it("a decision refreshes the sidebar badge — the count rides the action's revalidation", async () => {
-    // The owner's first load reads the summary twice (the layout's badge, the
-    // pills' counts), both seeing the same pending 1; the decision's
-    // revalidation sweeps the layout loader too, so a later read — whichever
-    // of the two loaders revalidates first — sees the settled count.
+    // The layout's badge read and the pills' read share the module cache, so
+    // the first load is ONE summary fetch (the parallel pair collapsed);
+    // the decision invalidates it and the action's revalidation — whichever
+    // loader revalidates first — reads the settled count, its twin taking
+    // the fresh answer from the cache.
     let summaryCalls = 0;
     setRespond((url) => {
       const { pathname } = new URL(url);
@@ -455,7 +594,7 @@ describe("AdminLeavePage: the requests tab", () => {
         return jsonResponse({
           activeEmployees: 10,
           counts: {
-            pending: summaryCalls <= 2 ? 1 : 0,
+            pending: summaryCalls <= 1 ? 1 : 0,
             approved: 1,
             revoked: 0,
             cancelled: 0,
@@ -467,9 +606,11 @@ describe("AdminLeavePage: the requests tab", () => {
     });
     renderLeave("/admin/company/leave?tab=requests&selected=r-1");
     expect(await screen.findByRole("link", { name: "Leave, 1 pending" })).toBeInTheDocument();
+    // The dedupe itself: badge loader + pills loader = one network call.
+    expect(summaryCalls).toBe(1);
     fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
     await waitFor(() => {
-      expect(summaryCalls).toBeGreaterThanOrEqual(3);
+      expect(summaryCalls).toBeGreaterThanOrEqual(2);
       expect(screen.getByRole("link", { name: "Leave" })).toBeInTheDocument();
     });
   });
@@ -640,6 +781,15 @@ describe("AdminLeavePage: the requests tab", () => {
 });
 
 describe("AdminLeavePage: the calendar tab", () => {
+  /** The date formatters pin en-IN, but the ICU data behind Intl ships with
+   *  the runtime — the CI runner's libicu moves en-IN's comma (it renders
+   *  "Tuesday 17 Nov, 2026" where the dev machine says "Tuesday, 17 Nov
+   *  2026"), so weekday-bearing pins match the words and tolerate the
+   *  punctuation. */
+  function icuLoose(expected: string): RegExp {
+    return new RegExp(expected.replace(/[,\s]+/g, "[,\\s]+"));
+  }
+
   it("the month's address drives the 27-1 window plus the upcoming and holidays reads", async () => {
     renderLeave("/admin/company/leave?tab=calendar&month=2026-11");
     await screen.findByText("Who is away");
@@ -666,10 +816,12 @@ describe("AdminLeavePage: the calendar tab", () => {
     const cell = await screen.findByRole("button", { name: "2026-11-17: Asha V away" });
     fireEvent.click(cell);
     const dialog = await screen.findByRole("dialog", { name: "Who is away this day" });
-    expect(within(dialog).getByText("Leaves on Tuesday, 17 Nov 2026")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(icuLoose("Leaves on Tuesday, 17 Nov 2026")),
+    ).toBeInTheDocument();
     expect(within(dialog).getByText(/Asha V/)).toBeInTheDocument();
     expect(within(dialog).getByText("17–20 Nov (4 days)")).toBeInTheDocument();
-    expect(within(dialog).getByText("Return Date: Mon, 23 Nov 2026")).toBeInTheDocument();
+    expect(within(dialog).getByText(icuLoose("Return Date: Mon, 23 Nov 2026"))).toBeInTheDocument();
     expect(within(dialog).getByText("Day 1 of 4")).toBeInTheDocument();
     expect(within(dialog).getByText(/Family function/)).toBeInTheDocument();
     expect(within(dialog).getByText("Earned Leave (EL)")).toBeInTheDocument();
@@ -685,7 +837,9 @@ describe("AdminLeavePage: the calendar tab", () => {
     fireEvent.click(await screen.findByRole("button", { name: "2026-11-17: Asha V away" }));
     const dialog = await screen.findByRole("dialog", { name: "Who is away this day" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Next day" }));
-    expect(within(dialog).getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(icuLoose("Leaves on Wednesday, 18 Nov 2026")),
+    ).toBeInTheDocument();
     // The out-strip counts both, per type, and the filter pills follow —
     // the viewed day is stepped off today, so the label is "Out", not
     // "Out Today" (that claim belongs to the real today only).
@@ -715,7 +869,7 @@ describe("AdminLeavePage: the calendar tab", () => {
         close={() => {}}
       />,
     );
-    expect(screen.getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    expect(screen.getByText(icuLoose("Leaves on Wednesday, 18 Nov 2026"))).toBeInTheDocument();
     expect(screen.getByText("Today")).toBeInTheDocument();
     expect(screen.getByText("Single Day Leave (Today only)")).toBeInTheDocument();
     expect(screen.getByText("1 of 1 requests approved.")).toBeInTheDocument();
@@ -731,7 +885,7 @@ describe("AdminLeavePage: the calendar tab", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Next day" }));
-    expect(screen.getByText("Leaves on Wednesday, 18 Nov 2026")).toBeInTheDocument();
+    expect(screen.getByText(icuLoose("Leaves on Wednesday, 18 Nov 2026"))).toBeInTheDocument();
     expect(screen.getByText("No one is recorded away this day.")).toBeInTheDocument();
     // The walked-to day is the fixture's today — the chip follows the view.
     expect(screen.getByText("Today")).toBeInTheDocument();

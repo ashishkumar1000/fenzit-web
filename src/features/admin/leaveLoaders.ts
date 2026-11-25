@@ -17,8 +17,9 @@ import {
   type LeaveTypeRow,
 } from "./leaveApi";
 import type { HolidayRow, LeaveRow, LeaveStatusCounts, LeaveSummary, Page } from "./companyApi";
-import { fetchHolidays, fetchLeaveSummary } from "./companyApi";
+import { fetchHolidays } from "./companyApi";
 import { isMonth, localIsoToday, monthBounds } from "./leaveDateMath";
+import { invalidateLeaveSummaryCache, readLeaveSummaryCached } from "./leaveSummaryCache";
 
 /**
  * Loaders for the owner's Leave section: the fixed leave-type catalog on the
@@ -184,14 +185,17 @@ async function resolveSelection(
   return { request, balances, coverage };
 }
 
-/** The summary read is degrade-able — the pulse's capacity fact, nothing
- *  else. A non-auth failure (the route not deployed yet, a 500) costs the
- *  availability meter only; the grid, timeline and rail cards stay. An
- *  auth failure still propagates to the loader's login redirect, and an
- *  aborted request rethrows so React Router can move on. */
+/** The summary read is degrade-able — the pills' counts and the pulse's
+ *  capacity fact, nothing else. It rides the module's shared cache: the
+ *  layout's badge read and this one are the same GET, not two. A non-auth
+ *  failure (the route not deployed yet, a 500) costs the numbers only; the
+ *  list, grid and rail cards stay. An auth failure still propagates to the
+ *  loader's login redirect. An abort shows up only in the catch — the
+ *  shared fetch carries no signal — and rethrows there so the router drops
+ *  the result it would have dropped anyway. */
 async function readSummaryOrNull(token: string, signal: AbortSignal): Promise<LeaveSummary | null> {
   try {
-    return await fetchLeaveSummary(token, signal);
+    return await readLeaveSummaryCached(token);
   } catch (error) {
     if (isAuthError(error)) throw error;
     if (signal.aborted) throw error;
@@ -380,16 +384,21 @@ export async function adminLeaveAction({
 
     const id = stringField(form, "id");
     if ((intent === "approve" || intent === "reject" || intent === "revoke") && id !== "") {
+      // Every decision moves requests between statuses — the shared summary
+      // cache must not serve its pre-decision counts to the revalidation.
+      const dropCounts = () => invalidateLeaveSummaryCache();
       if (intent === "approve") {
         // The card's one note input feeds both decisions: on approve it is
         // the audit note, on decline the rejection reason.
         const note = stringField(form, "reason").slice(0, 500);
         await approveLeave(token, id, note, request.signal);
+        dropCounts();
         return { kind: "approve", state: "done" };
       }
       if (intent === "reject") {
         const reason = stringField(form, "reason").slice(0, 500);
         await rejectLeave(token, id, reason, request.signal);
+        dropCounts();
         return { kind: "reject", state: "done" };
       }
       const reason = stringField(form, "reason").slice(0, 500);
@@ -401,6 +410,7 @@ export async function adminLeaveAction({
         };
       }
       await revokeLeave(token, id, reason, request.signal);
+      dropCounts();
       return { kind: "revoke", state: "done" };
     }
 

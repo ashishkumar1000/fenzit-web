@@ -14,6 +14,21 @@
   .layout {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* Stacked, the card jumps above the list: the decision controls sit one
+     glance away instead of behind up to 20 rows. A row tap below still
+     re-renders the card in place — it waits at the top of the column. */
+  .toolbar {
+    order: 0;
+  }
+
+  .card {
+    order: 1;
+  }
+
+  .listCol {
+    order: 2;
+  }
 }
 
 /* ── The toolbar card ───────────────────────────────────── */
@@ -347,6 +362,33 @@
   gap: var(--space-3);
 }
 
+.headEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The card's dismissal: a quiet glyph button — the card is a tap away on
+   any row, so the close stays unobtrusive. */
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  color: var(--color-text-strong);
+  border-color: var(--color-border-default);
+}
+
 .cardTitle {
   margin: 0;
   font-size: var(--font-size-sm);
@@ -419,8 +461,58 @@
   color: var(--color-text-muted);
 }
 
+/* The span, day by day: one chip per date, its state word toned by the
+   same status families the badge uses — the split a revoke talks about.
+   A real list semantically (generic roles can't carry a name), with the
+   list chrome reset away. */
+.dayStrip {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.dayChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-page);
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.dayState {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-status-neutral-fg);
+}
+
+.dayState[data-state="approved"] {
+  color: var(--color-status-done-fg);
+}
+
+.dayState[data-state="pending"] {
+  color: var(--color-status-scheduled-fg);
+}
+
+.dayState[data-state="revoked"],
+.dayState[data-state="cancelled"],
+.dayState[data-state="rejected"] {
+  color: var(--color-status-cancelled-fg);
+}
+
 /* The type's allowance: heading with the days left, one bar split into
    after-approval / requested / used, the legend beneath. */
+.allowances {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .allowance {
   display: grid;
   gap: var(--space-2);
@@ -431,6 +523,21 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-strong);
+}
+
+/* The request's own type leads the list and wears this tag — the amber
+   "this request" chip pointing at the bar the decision spends. */
+.allowTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-status-scheduled-bg);
+  color: var(--color-status-scheduled-fg);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 1px var(--space-2);
+  margin-left: var(--space-2);
+  vertical-align: 1px;
 }
 
 .allowBar {
@@ -559,6 +666,7 @@
 .monthStep:focus-visible,
 .allTime:focus-visible,
 .pagerStep:focus-visible,
+.closeBtn:focus-visible,
 .approveBtn:focus-visible,
 .declineBtn:focus-visible {
   outline: 2px solid var(--color-border-focus);

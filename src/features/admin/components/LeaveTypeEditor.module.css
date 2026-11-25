@@ -33,6 +33,16 @@
   flex: none;
 }
 
+/* An off type's tile joins the asleep treatment — the types-tab off-card
+   family's grays (gray-500 on gray-200 clears the 3:1 graphics floor; the
+   darker disabled text tone would leave a blank square). The filled-primary
+   glow would contradict the "inactive" chip beside it. */
+.headGlyph[data-asleep] {
+  background: var(--palette-gray-200);
+  color: var(--palette-gray-500);
+  box-shadow: none;
+}
+
 .headText {
   display: grid;
   gap: 2px;

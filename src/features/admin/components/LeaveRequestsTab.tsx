@@ -1,13 +1,15 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { Link, useFetcher, useNavigate } from "react-router";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { LeaveRow, LeaveStatusCounts } from "../companyApi";
 import type { LeaveBalanceRow } from "../leaveApi";
 import type { LeaveSelection, LeaveStatusFilter } from "../leaveLoaders";
 import { LEAVE_STATUSES } from "../leaveLoaders";
 import { leaveRequestsUrl } from "../leaveUrl";
-import { localIsoToday, monthLabel, shiftMonth, shortDay } from "../leaveDateMath";
+import { localIsoDate, localIsoToday, monthLabel, shiftMonth, shortDay } from "../leaveDateMath";
 import { fmtDay } from "../format";
+import { humanize } from "../status";
 import { Avatar } from "./Avatar";
 import { StatusBadge } from "./Badge";
 import { LeaveRequestActions } from "./LeaveRequestActions";
@@ -69,6 +71,17 @@ export function LeaveRequestsTab({
   const filters = { status, q, month, cursor, selected };
   const requests = page.data;
   const total = counts === null ? null : Object.values(counts).reduce((sum, n) => sum + n, 0);
+  // The tenant-wide counts answer "how many everywhere", not "how many in
+  // this window" — while a search or a month narrows the list, the numbers
+  // go quiet so a filtered list is never contradicted (the round-4 defer).
+  const countsVisible = q === "" && month === "";
+  // The card's dismissal is local, never URL state: the loader auto-selects
+  // a row, so no address means "closed" — a reload is a fresh visit and the
+  // card returns. Tapping any row is an explicit ask and reopens it.
+  const [cardClosed, setCardClosed] = useState(false);
+  // Where keyboard focus lands when the card closes — the list keeps the
+  // row taps, so it inherits the dismissal instead of focus dying to body.
+  const listRef = useRef<HTMLElement>(null);
 
   const onSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,7 +103,10 @@ export function LeaveRequestsTab({
             className={status === "all" ? styles.pillActive : styles.pill}
             aria-current={status === "all" ? "true" : undefined}
           >
-            All{total !== null ? <span className={styles.pillCount}>{total}</span> : null}
+            All
+            {countsVisible && total !== null ? (
+              <span className={styles.pillCount}>{total}</span>
+            ) : null}
           </Link>
           {LEAVE_STATUSES.map((value) => {
             const count = counts === null ? null : counts[value];
@@ -106,7 +122,9 @@ export function LeaveRequestsTab({
                   <span className={styles.pillDot} aria-hidden="true" />
                 )}
                 {PILL_LABELS[value]}
-                {count !== null ? <span className={styles.pillCount}>{count}</span> : null}
+                {countsVisible && count !== null ? (
+                  <span className={styles.pillCount}>{count}</span>
+                ) : null}
               </Link>
             );
           })}
@@ -158,8 +176,8 @@ export function LeaveRequestsTab({
         </div>
       </section>
 
-      <section className={styles.listCol} aria-label="Requests">
-        {counts !== null && total !== null ? (
+      <section ref={listRef} tabIndex={-1} className={styles.listCol} aria-label="Requests">
+        {counts !== null && total !== null && countsVisible ? (
           <p className={styles.listMeta}>
             <span className={styles.listMetaChip}>{total} total</span>
             <span className={styles.listMetaChip} data-tone="pending">
@@ -184,6 +202,7 @@ export function LeaveRequestsTab({
                   className={styles.row}
                   data-selected={selected === request.id ? "" : undefined}
                   aria-current={selected === request.id ? "true" : undefined}
+                  onClick={() => setCardClosed(false)}
                 >
                   <Avatar
                     name={request.employeeName ?? null}
@@ -237,29 +256,31 @@ export function LeaveRequestsTab({
         ) : null}
       </section>
 
-      {selection !== null ? <DetailsCard selection={selection} /> : null}
+      {selection !== null && !cardClosed ? (
+        <DetailsCard
+          selection={selection}
+          onClose={() => {
+            setCardClosed(true);
+            listRef.current?.focus();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
 
-/** The design's right-hand card: who, the request's facts, the type's
- *  allowance with where this request fits, the coverage check, and the
- *  decision controls — a pending request gets the note + Approve/Decline
- *  form, an approved one the revoke dialog, a decided one nothing. */
-function DetailsCard({ selection }: { selection: LeaveSelection }) {
+/** The design's right-hand card: who, the request's facts, the span day by
+ *  day, every type's allowance with where this request fits, the coverage
+ *  check, and the decision controls — a pending request gets the note +
+ *  Approve/Decline form, an approved one the revoke dialog, a decided one
+ *  nothing. The Close button dismisses the card until the next row tap. */
+function DetailsCard({ selection, onClose }: { selection: LeaveSelection; onClose: () => void }) {
   const { request, balances, coverage } = selection;
   const fetcher = useFetcher<LeaveActionResult>();
   const name = request.employeeName ?? request.employeeCode ?? "Unknown";
   const busy = fetcher.state !== "idle";
   const error =
     fetcher.data !== undefined && fetcher.data.state === "error" ? fetcher.data.message : null;
-
-  const typeBalance =
-    balances === null
-      ? null
-      : ((request.leaveTypeCode
-          ? balances.find((balance) => balance.code === request.leaveTypeCode)
-          : undefined) ?? null);
 
   const place =
     coverage === null
@@ -272,7 +293,17 @@ function DetailsCard({ selection }: { selection: LeaveSelection }) {
     <aside className={styles.card} aria-label="Request details">
       <header className={styles.cardHead}>
         <h3 className={styles.cardTitle}>Request details</h3>
-        <StatusBadge status={request.status} />
+        <div className={styles.headEnd}>
+          <StatusBadge status={request.status} />
+          <button
+            type="button"
+            className={styles.closeBtn}
+            aria-label="Close details"
+            onClick={onClose}
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
+        </div>
       </header>
       <div className={styles.person}>
         <Avatar name={request.employeeName ?? null} imageUrl={request.employeeAvatarUrl} />
@@ -319,6 +350,10 @@ function DetailsCard({ selection }: { selection: LeaveSelection }) {
           </dd>
         </div>
         <div className={styles.fact}>
+          <dt>Requested on</dt>
+          <dd>{fmtDay(localIsoDate(new Date(request.createdAt)))}</dd>
+        </div>
+        <div className={styles.fact}>
           <dt>Reason</dt>
           <dd>
             {request.reason === "" ? (
@@ -330,11 +365,22 @@ function DetailsCard({ selection }: { selection: LeaveSelection }) {
         </div>
       </dl>
 
-      <AllowanceSection
-        request={request}
-        balance={typeBalance}
-        balancesFailed={balances === null}
-      />
+      {/* The span, day by day — the split a revoke talks about, back on the
+          card: each date wears the state the wire carries for it. */}
+      {request.dates.length > 0 ? (
+        <ul className={styles.dayStrip} aria-label="Days, one by one">
+          {request.dates.map((day) => (
+            <li key={day.date} className={styles.dayChip}>
+              <span>{fmtDay(day.date)}</span>
+              <span className={styles.dayState} data-state={day.state}>
+                {humanize(day.state)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <AllowanceSection request={request} balances={balances} balancesFailed={balances === null} />
 
       {coverage === null ? (
         <p className={styles.coverageWarn} role="status">
@@ -403,17 +449,19 @@ function DetailsCard({ selection }: { selection: LeaveSelection }) {
   );
 }
 
-/** The selected request's type allowance as the design draws it: a heading
- *  with the days still left, one bar split into where the days stand after
- *  this request (pending) or with it counted in (approved), and the legend.
- *  Untyped rows have no single balance to show — the honest line instead. */
+/** Every accrual-bearing type's allowance, the request's own type first:
+ *  a heading with the days still left, one bar split into where the days
+ *  stand after this request (pending) or with it counted in (approved), and
+ *  the legend. The other types read as plain context — no requested segment,
+ *  since the request spends none of them. Untyped rows and types the balance
+ *  endpoint excludes (Comp-Off) get the honest line beside the blocks. */
 function AllowanceSection({
   request,
-  balance,
+  balances,
   balancesFailed,
 }: {
   request: LeaveRow;
-  balance: LeaveBalanceRow | null;
+  balances: LeaveBalanceRow[] | null;
   balancesFailed: boolean;
 }) {
   if (balancesFailed) {
@@ -423,26 +471,60 @@ function AllowanceSection({
       </p>
     );
   }
-  if (balance === null) {
-    return (
-      <p className={styles.allowQuiet} role="status">
-        {request.leaveTypeName
-          ? `No balance recorded for ${request.leaveTypeName}.`
-          : "No leave type set — this request reads as paid."}
-      </p>
-    );
-  }
+  const subject =
+    balances === null
+      ? null
+      : request.leaveTypeCode
+        ? (balances.find((balance) => balance.code === request.leaveTypeCode) ?? null)
+        : null;
+  const explains = request.leaveTypeName
+    ? subject === null
+      ? `No balance recorded for ${request.leaveTypeName}.`
+      : null
+    : "No leave type set — this request reads as paid.";
+  // The request's own type leads; the rest follow in the wire's order.
+  const ordered =
+    balances === null
+      ? []
+      : subject === null
+        ? balances
+        : [subject, ...balances.filter((balance) => balance !== subject)];
+  if (ordered.length === 0 && explains === null) return null;
+  return (
+    <section className={styles.allowances} aria-label="Leave balances">
+      {explains !== null ? (
+        <p className={styles.allowQuiet} role="status">
+          {explains}
+        </p>
+      ) : null}
+      {ordered.map((balance) => (
+        <BalanceBlock
+          key={balance.typeId}
+          balance={balance}
+          request={balance === subject ? request : null}
+        />
+      ))}
+    </section>
+  );
+}
+
+/** One type's allowance block. `request` arrives only for the block the
+ *  request actually spends — its bar carries the amber requested segment
+ *  while the request is pending, and its heading names it. */
+function BalanceBlock({
+  balance,
+  request,
+}: {
+  balance: LeaveBalanceRow;
+  request: LeaveRow | null;
+}) {
   const gross = balance.credits + balance.accrued + balance.carryForward;
   const remaining = Math.max(balance.remaining, 0);
   if (gross <= 0) {
-    return (
-      <p className={styles.allowQuiet} role="status">
-        No balance recorded for {balance.name}.
-      </p>
-    );
+    return <p className={styles.allowQuiet}>No balance recorded for {balance.name}.</p>;
   }
   const pct = (days: number) => `${Math.min(Math.max(days / gross, 0), 1) * 100}%`;
-  const pending = request.status === "pending";
+  const pending = request !== null && request.status === "pending";
   const requested = pending ? request.workingDays : 0;
   const used = pending
     ? Math.max(gross - remaining - requested, 0)
@@ -451,6 +533,7 @@ function AllowanceSection({
     <section className={styles.allowance} aria-label={`${balance.name} allowance`}>
       <h4 className={styles.allowHead}>
         {balance.name} days allowance — {remaining} days remaining
+        {request !== null ? <span className={styles.allowTag}>this request</span> : null}
       </h4>
       <div className={styles.allowBar} aria-hidden="true">
         <span className={styles.allowAfter} style={{ width: pct(remaining) }} />
