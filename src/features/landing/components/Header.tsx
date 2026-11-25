@@ -5,7 +5,6 @@ import logo2x from "../../../assets/brand/logo-2x.png";
 import logo3x from "../../../assets/brand/logo-3x.png";
 import { SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../../../config/contact";
 import { useIsSignedIn } from "../../../hooks/useIsSignedIn";
-import { clearSession } from "../../../services/session";
 // TEMPORARY, LOCAL TEST ONLY. See the note where the wordmark is rendered.
 import startupIndiaWordmark from "../../../assets/brand/startupindia-wordmark.LOCAL-TEST.png";
 import styles from "./Header.module.css";
@@ -25,7 +24,7 @@ export function Header() {
   return (
     <>
       <div className={styles.strip}>
-        <p className={styles.stripText}>The Fenzit Android app is live on Google Play.</p>
+        <p className={styles.stripText}>The Fenzit app is live on Google Play and the App Store.</p>
         <a className={styles.stripLink} href="/#get-app">
           Get the app
         </a>
@@ -71,21 +70,17 @@ export function Header() {
                 ))}
               </ul>
             </nav>
+            {/* Signed in, the public pages lead into the console — the same landing the login
+              flow uses (/admin, where the console's own gates send members to their pages).
+              Logging out lives in the console's sidebar, not on the public pages. */}
             {!isSignedIn ? (
               <a className={styles.login} href="/login">
                 Log in
               </a>
             ) : (
-              <button
-                type="button"
-                className={`${styles.login} ${styles.logout}`}
-                onClick={() => {
-                  clearSession();
-                  window.location.reload();
-                }}
-              >
-                Log out
-              </button>
+              <Link to="/admin" className={styles.login}>
+                Dashboard
+              </Link>
             )}
           </div>
         </Container>

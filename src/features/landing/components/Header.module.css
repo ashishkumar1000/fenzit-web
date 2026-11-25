@@ -118,20 +118,8 @@
   text-decoration: none;
 }
 
-/* A button takes the link look: no browser box, and the same font, weight and colour as "Log in". */
-.logout {
-  appearance: none;
-  margin: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-}
-
 .navLink:focus-visible,
-.login:focus-visible,
-.logout:focus-visible {
+.login:focus-visible {
   outline: 2px solid var(--color-ring-focus);
   outline-offset: 2px;
   border-radius: var(--radius-xs);

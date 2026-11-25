@@ -486,7 +486,7 @@ describe("Console: section gating", () => {
 });
 
 describe("Console: logging out", () => {
-  it("clears the saved sign-in and returns to the home page", async () => {
+  it("clears the saved sign-in and lands on the login page", async () => {
     writeSession({ token: "tok-1", name: "Ravi" });
     // The layout's check, then the overview loader the owner is redirected to.
     meAnswers.push(me(), me());
@@ -495,10 +495,7 @@ describe("Console: logging out", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Log Out" }));
 
     expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: /run your jobs, attendance and leave/i,
-      }),
+      await screen.findByRole("heading", { level: 1, name: /log in to fenzit/i }),
     ).toBeInTheDocument();
     expect(window.localStorage.getItem(SESSION_KEY)).toBeNull();
   });

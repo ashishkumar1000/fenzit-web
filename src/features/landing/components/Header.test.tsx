@@ -39,14 +39,18 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: "Get the app" }).getAttribute("href")).toBe(
       "/#get-app",
     );
-    expect(screen.getByText("The Fenzit Android app is live on Google Play.")).toBeTruthy();
+    expect(
+      screen.getByText("The Fenzit app is live on Google Play and the App Store."),
+    ).toBeTruthy();
   });
 
-  it("shows Log out in place of Log in when a session is saved", () => {
+  // The console is the signed-in landing for every role — the same place the
+  // login flow redirects to (/admin; the console's own gates route members).
+  it("shows a Dashboard link into the console when a session is saved", () => {
     writeSession({ token: "test-token", name: "Mona" });
     renderHeader();
 
-    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Dashboard" }).getAttribute("href")).toBe("/admin");
     expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
   });
 
@@ -54,14 +58,14 @@ describe("Header", () => {
     renderHeader();
 
     expect(screen.getByRole("link", { name: "Log in" }).getAttribute("href")).toBe("/login");
-    expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Dashboard" })).toBeNull();
   });
 
   // Another tab signs out: the storage event must flip this tab's header to Log in.
   it("switches to Log in when the saved session is removed in another tab", () => {
     writeSession({ token: "test-token", name: "Mona" });
     renderHeader();
-    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeTruthy();
 
     clearSession();
     act(() => {
@@ -72,11 +76,11 @@ describe("Header", () => {
   });
 
   // The BE can return a user with no name. A saved token alone means signed in.
-  it("shows Log out when the saved sign-in has no display name", () => {
+  it("shows Dashboard when the saved sign-in has no display name", () => {
     writeSession({ token: "test-token", name: null });
     renderHeader();
 
-    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
   });
 

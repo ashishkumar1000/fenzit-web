@@ -206,7 +206,7 @@ export function AdminLayout() {
 
   const logOut = () => {
     clearSession();
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   if (data.status === "failed") {

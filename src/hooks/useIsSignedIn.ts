@@ -10,8 +10,9 @@ function subscribe(onChange: () => void): () => void {
  * Whether a sign-in is saved. A saved token is enough: the display name is
  * optional (the BE can return none), so it must not decide signed-in state.
  * Read through a store subscription so the first render matches the
- * pre-rendered HTML (no localStorage during hydration). The public pages
- * reload on log out, so no manual invalidation is needed.
+ * pre-rendered HTML (no localStorage during hydration). Every header mount
+ * re-reads the saved session, so route changes pick up writes and clears in
+ * this tab; the storage event covers another tab's.
  */
 export function useIsSignedIn(): boolean {
   return useSyncExternalStore(
