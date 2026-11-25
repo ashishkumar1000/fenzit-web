@@ -58,14 +58,14 @@ export function AdminMeNewJobPage() {
     return (
       <SectionCard title="New job">
         <p className={styles.refusal} role="alert">
-          The new-job form could not load.
+          We could not open the new job form.
           <button
             type="button"
             className={styles.retry}
             onClick={() => revalidator.revalidate()}
             disabled={revalidator.state !== "idle"}
           >
-            {revalidator.state !== "idle" ? "Retrying…" : "Retry"}
+            {revalidator.state !== "idle" ? "Trying Again…" : "Try Again"}
           </button>
         </p>
         <Link to={backTo} className={styles.back}>
@@ -79,7 +79,7 @@ export function AdminMeNewJobPage() {
     return (
       <SectionCard title="New job">
         <p className={styles.refusal} role="alert">
-          You are not allowed to create jobs. Ask your owner to turn this on for you.
+          You do not have permission to create jobs. Please ask your company owner to allow this.
         </p>
         <Link to={backTo} className={styles.back}>
           Back
@@ -104,17 +104,17 @@ export function AdminMeNewJobPage() {
           <p className={styles.outcomeTitle}>
             {owner
               ? action.pendingApproval
-                ? `${action.job.jobNumber} created — waiting for approval.`
-                : `${action.job.jobNumber} created and assigned.`
+                ? `${action.job.jobNumber} created successfully. Waiting for approval.`
+                : `${action.job.jobNumber} created and assigned successfully.`
               : action.pendingApproval
-                ? `${action.job.jobNumber} created — waiting for your owner's approval.`
-                : `${action.job.jobNumber} created and assigned to you.`}
+                ? `${action.job.jobNumber} created successfully. Waiting for your owner's approval.`
+                : `${action.job.jobNumber} created successfully and assigned to you.`}
           </p>
           <Link to={backTo} className={styles.back}>
             Back
           </Link>
           <Link to={selfRoute} className={styles.back}>
-            Create another job
+            Create Another Job
           </Link>
         </div>
       ) : (
@@ -122,8 +122,8 @@ export function AdminMeNewJobPage() {
           <input type="hidden" name="idempotencyKey" value={data.idempotencyKey} />
           <p className={styles.hint}>
             {owner
-              ? "The employee you assign sees the job in their app at once."
-              : "Your owner sees every job you create — the approval rule they set for you decides whether it waits for them first."}
+              ? "The employee you select will see this job in their app immediately."
+              : "Your owner can see all the jobs you create. Depending on their settings, your job may need approval before it is assigned."}
           </p>
           {action?.state === "error" ? (
             <p className={styles.error} role="alert">
@@ -132,12 +132,12 @@ export function AdminMeNewJobPage() {
           ) : null}
 
           <label className={styles.field}>
-            <span className={styles.label}>What needs doing</span>
+            <span className={styles.label}>What Work Needs to Be Done?</span>
             <textarea name="description" rows={3} required />
           </label>
 
           <label className={styles.field}>
-            <span className={styles.label}>Who is it for</span>
+            <span className={styles.label}>Who Is This Job For?</span>
             <select
               name="customerKind"
               value={customerKind}
@@ -145,8 +145,8 @@ export function AdminMeNewJobPage() {
                 setCustomerKind(event.target.value === "new" ? "new" : "existing")
               }
             >
-              <option value="existing">An existing customer</option>
-              <option value="new">A new customer</option>
+              <option value="existing">Existing Customer</option>
+              <option value="new">New Customer</option>
             </select>
           </label>
 
@@ -155,7 +155,7 @@ export function AdminMeNewJobPage() {
               <span className={styles.label}>Customer</span>
               {data.customers.ok ? (
                 <select name="customerId" required>
-                  <option value="">Pick a customer</option>
+                  <option value="">Select a Customer</option>
                   {data.customers.data.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -164,14 +164,14 @@ export function AdminMeNewJobPage() {
                 </select>
               ) : (
                 <p className={styles.quiet}>
-                  The customer list could not load. Refresh the page to retry.
+                  We could not load the customer list. Please refresh the page and try again.
                 </p>
               )}
             </label>
           ) : (
             <div className={styles.newCustomer}>
               <label className={styles.field}>
-                <span className={styles.label}>Customer name</span>
+                <span className={styles.label}>Customer Name</span>
                 <input type="text" name="newCustomerName" maxLength={120} required />
               </label>
               <label className={styles.field}>
@@ -180,16 +180,16 @@ export function AdminMeNewJobPage() {
                   type="tel"
                   name="newCustomerPhone"
                   pattern="\d{6,15}"
-                  title="6 to 15 digits, no spaces"
+                  title="Enter 6 to 15 digits without spaces"
                   required
                 />
               </label>
               <label className={styles.field}>
-                <span className={styles.label}>Address (optional)</span>
+                <span className={styles.label}>Address (Optional)</span>
                 <input type="text" name="newCustomerAddress" />
               </label>
               <label className={styles.field}>
-                <span className={styles.label}>City (optional)</span>
+                <span className={styles.label}>City (Optional)</span>
                 <input type="text" name="newCustomerCity" />
               </label>
             </div>
@@ -197,17 +197,17 @@ export function AdminMeNewJobPage() {
 
           {owner ? (
             <label className={styles.field}>
-              <span className={styles.label}>Assign to</span>
+              <span className={styles.label}>Assign to Employee</span>
               {data.technicians.ok ? (
                 data.technicians.data.length === 0 ? (
                   // An owner with nobody to assign to must know why the
                   // submit is stuck, not face a select with one placeholder.
                   <p className={styles.quiet}>
-                    No active employees to assign yet. Add employees first.
+                    No active employees available to assign this job. Please add employees first.
                   </p>
                 ) : (
                   <select name="technicianId" required defaultValue={data.technicianPrefill ?? ""}>
-                    <option value="">Pick an employee</option>
+                    <option value="">Select an Employee</option>
                     {data.technicians.data.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.name}
@@ -217,17 +217,17 @@ export function AdminMeNewJobPage() {
                 )
               ) : (
                 <p className={styles.quiet}>
-                  The employee list could not load. Refresh the page to retry.
+                  We could not load the employee list. Please refresh the page and try again.
                 </p>
               )}
             </label>
           ) : null}
 
           <label className={styles.field}>
-            <span className={styles.label}>What needs doing (skill)</span>
+            <span className={styles.label}>Work Type</span>
             {data.skills.ok ? (
               <select name="skillId" required defaultValue="">
-                <option value="">Pick a skill</option>
+                <option value="">Select a Work Type</option>
                 {data.skills.data.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -236,14 +236,14 @@ export function AdminMeNewJobPage() {
               </select>
             ) : (
               <p className={styles.quiet}>
-                The skill list could not load. Refresh the page to retry.
+                We could not load the work type list. Please refresh the page and try again.
               </p>
             )}
           </label>
 
           <div className={styles.fieldRow}>
             <label className={styles.field}>
-              <span className={styles.label}>Starts</span>
+              <span className={styles.label}>Start Date and Time</span>
               <input
                 type="datetime-local"
                 name="scheduledStart"
@@ -252,7 +252,7 @@ export function AdminMeNewJobPage() {
               />
             </label>
             <label className={styles.field}>
-              <span className={styles.label}>Ends (optional)</span>
+              <span className={styles.label}>End Date and Time (Optional)</span>
               <input type="datetime-local" name="scheduledEnd" />
             </label>
           </div>
@@ -266,26 +266,27 @@ export function AdminMeNewJobPage() {
           </label>
 
           <label className={styles.field}>
-            <span className={styles.label}>Where</span>
+            <span className={styles.label}>Work Location</span>
             <input type="text" name="serviceLocation" maxLength={500} required />
           </label>
 
           <label className={styles.field}>
             <span className={styles.label}>
-              {owner ? "Notes for the employee (optional)" : "Notes for your owner (optional)"}
+              {owner ? "Notes for Employee (Optional)" : "Notes for Owner (Optional)"}
             </span>
             <textarea name="notesForTechnician" rows={2} />
           </label>
 
           {!pickersReady ? (
             <p className={styles.quiet}>
-              The Create button is held until the lists above load. Refresh the page to retry.
+              Please wait until all lists are loaded before creating the job. Refresh the page if
+              needed.
             </p>
           ) : null}
 
           <div className={styles.actions}>
             <Button variant="primary" size="regular" type="submit" disabled={blocked}>
-              {creating ? "Creating…" : "Create job"}
+              {creating ? "Creating…" : "Create Job"}
             </Button>
           </div>
         </Form>

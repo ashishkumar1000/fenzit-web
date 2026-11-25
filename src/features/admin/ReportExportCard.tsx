@@ -130,8 +130,8 @@ export function ReportExportCard({
         setState({
           kind: "error",
           message: file.slow
-            ? "The report is taking unusually long. Try again in a minute."
-            : "The report could not be built. Try again.",
+            ? "This report is taking longer than expected. Please try again in a minute."
+            : "We could not create the report. Please try again.",
         });
         return;
       }
@@ -154,7 +154,7 @@ export function ReportExportCard({
       if (status.status === "ready" && status.file?.url) {
         await downloadLocally(status.file.url, status.file.filename ?? DEFAULT_FILENAME);
       } else {
-        setActionError("That report is not ready to download. Generate a new one.");
+        setActionError("This report is not ready to download. Please create a new report.");
       }
     } catch (error) {
       setActionError(messageForError(error));
@@ -179,8 +179,8 @@ export function ReportExportCard({
       if (!file.ok) {
         setActionError(
           file.slow
-            ? "Still building — give it a minute, then try downloading."
-            : "The report could not be built. Try again.",
+            ? "Your report is still being prepared. Please wait a minute and try again."
+            : "We could not create the report. Please try again.",
         );
       } else {
         await downloadLocally(file.url, file.filename);
@@ -200,7 +200,7 @@ export function ReportExportCard({
     <div>
       <div className={styles.pickers}>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>From</span>
+          <span className={styles.fieldLabel}>From Date</span>
           <input
             type="date"
             className={styles.control}
@@ -210,7 +210,7 @@ export function ReportExportCard({
           />
         </label>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>To</span>
+          <span className={styles.fieldLabel}>To Date</span>
           <input
             type="date"
             className={styles.control}
@@ -225,8 +225,9 @@ export function ReportExportCard({
               label="Employee"
               value={employeeId}
               onChange={setEmployeeId}
+              noMatchText={(query) => `No employee found for “${query}”.`}
               options={[
-                { value: "", label: "All employees" },
+                { value: "", label: "All Employees" },
                 ...employees.data.map((person) => ({
                   value: person.id,
                   label: person.name,
@@ -240,9 +241,9 @@ export function ReportExportCard({
             // A vanished control reads as "narrowing is gone forever" — say
             // what the report does instead, and that it still generates.
             <p className={styles.alert} role="alert">
-              The employee list could not load — the report will cover all employees.{" "}
+              We could not load the employee list. The report will include all employees.{" "}
               <button type="button" className={styles.retry} onClick={onRetryHistory}>
-                Try again
+                Try Again
               </button>
             </p>
           )
@@ -254,31 +255,31 @@ export function ReportExportCard({
             onClick={() => void generate()}
             disabled={datesInverted || datesMissing}
           >
-            Download report
+            Download Report
           </button>
         ) : null}
       </div>
       {datesInverted ? (
         <p className={styles.alert} role="alert">
-          The start date must be on or before the end date.
+          Start date cannot be after the end date.
         </p>
       ) : null}
       {datesMissing ? (
         <p className={styles.alert} role="alert">
-          Pick both dates to generate the report.
+          Please select both start and end dates to download the report.
         </p>
       ) : null}
 
       {state.kind === "working" ? (
         <p className={styles.line} role="status">
-          Building the report — this takes a few seconds…
+          Preparing your report. This may take a few seconds…
         </p>
       ) : null}
       {state.kind === "ready" ? (
         <p className={styles.line} role="status">
-          Report downloaded.{" "}
+          Report downloaded successfully.{" "}
           <a className={styles.link} href={state.url} target="_blank" rel="noreferrer">
-            Open it again
+            Download Again
           </a>
         </p>
       ) : null}
@@ -290,8 +291,8 @@ export function ReportExportCard({
       {state.kind === "idle" ? (
         <p className={styles.hint}>
           {jobReport
-            ? "A PDF of the chosen employees' job work over the chosen dates."
-            : "A PDF of attendance for all offices over the chosen dates."}
+            ? "A PDF showing the work done by the selected employees during the selected dates."
+            : "A PDF showing attendance for all offices during the selected dates."}
         </p>
       ) : null}
 

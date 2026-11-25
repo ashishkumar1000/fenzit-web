@@ -31,17 +31,17 @@ export function MasterRecordPanel({
 
   return (
     <div className={styles.stack}>
-      <SectionCard title="Workforce master record" meta="Legal and payroll identifiers">
+      <SectionCard title="Employee Details" meta="Personal, bank and salary-related details.">
         {employment.ok ? (
           <>
             {!setupDone ? (
               <div className={styles.banner} role="status">
                 <p>
-                  Statutory profile incomplete for automated EPF filing —{" "}
-                  {missingStatutory.map((f) => f.label).join(", ")} still missing.
+                  Some details are missing. Please add the following information:{" "}
+                  {missingStatutory.map((f) => f.label).join(", ")}
                 </p>
                 <button type="button" className={styles.bannerAction} onClick={openEmployment}>
-                  Complete master setup
+                  Complete Employee Details
                 </button>
               </div>
             ) : null}
@@ -67,16 +67,21 @@ export function MasterRecordPanel({
           </>
         ) : (
           <p className={styles.failed} role="alert">
-            The employment record could not load.{" "}
+            We could not load the employee details.{" "}
             <button type="button" className={styles.retryLink} onClick={openEmployment}>
-              Open it anyway
+              Open Anyway
             </button>
           </p>
         )}
       </SectionCard>
-      <SectionCard title="Skills & certifications" meta="Job dispatch matches on these">
+      <SectionCard
+        title="Skills and Certificates"
+        meta="These details help the system find the right employee for each job."
+      >
         {skills.length === 0 ? (
-          <p className={styles.empty}>No skills yet — the employee picks them in their app.</p>
+          <p className={styles.empty}>
+            No skills added yet. The employee can add their skills from their app.
+          </p>
         ) : (
           <ul className={styles.skills}>
             {skills.map((skill) => (

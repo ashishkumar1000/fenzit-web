@@ -33,11 +33,11 @@ export function consoleRole(me: CurrentUser): ConsoleRole {
 export function sectionsFor(role: ConsoleRole): SectionLink[] {
   if (role === "staff") {
     return [
-      { to: "/admin/inspect", label: "Inspect" },
-      { to: "/admin/account", label: "Account" },
+      { to: "/admin/inspect", label: "Inspect Person" },
+      { to: "/admin/account", label: "Account Details" },
       { to: "/admin/reports", label: "Reports" },
-      { to: "/admin/deletion-requests", label: "Deletion requests" },
-      { to: "/admin/config", label: "Config" },
+      { to: "/admin/deletion-requests", label: "Delete Requests" },
+      { to: "/admin/config", label: "App Settings" },
     ];
   }
   if (role === "owner") {
@@ -45,7 +45,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/company", label: "Overview" },
       { to: "/admin/company/customers", label: "Customers" },
       { to: "/admin/company/employees", label: "Employees" },
-      { to: "/admin/company/payroll", label: "Payroll" },
+      { to: "/admin/company/payroll", label: "Salary" },
       { to: "/admin/company/jobs", label: "Jobs" },
       { to: "/admin/company/holidays", label: "Holidays" },
       { to: "/admin/company/leave", label: "Leave" },
@@ -53,7 +53,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
     ];
   }
   return [
-    { to: "/admin/me", label: "Me" },
+    { to: "/admin/me", label: "My Details" },
     { to: "/admin/company/jobs", label: "Jobs" },
   ];
 }

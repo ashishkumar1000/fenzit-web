@@ -38,7 +38,7 @@ describe("Payroll: the runs tab", () => {
   it("defaults the month to the newest run's month", async () => {
     payroll.runs.history = [G_ROW];
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByText("Run summary");
+    await screen.findByText("Salary Calculation Summary");
     expect(sentRequests().some((r) => r.url.includes("/payroll/months/2026-11"))).toBe(true);
     expect(
       sentRequests().some((r) => r.url.includes("/payroll/off-cycle-lines?month=2026-11")),
@@ -47,7 +47,7 @@ describe("Payroll: the runs tab", () => {
 
   it("falls back to the current month on a fresh company", async () => {
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByText("Nobody has a joining date yet");
+    await screen.findByText("No employee joining date has been added yet.");
     // The fallback IS istToday — compute the expectation from the same
     // source so the test survives the wall clock leaving 2026-11.
     expect(
@@ -67,21 +67,21 @@ describe("Payroll: the runs tab", () => {
       notRunnableReason: null,
     };
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    await screen.findByText("Governed by");
-    expect(screen.getByText("The defaults")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Run payroll" })).toBeTruthy();
+    await screen.findByText("Salary Rule Used");
+    expect(screen.getByText("Default Settings")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Calculate Salary" })).toBeTruthy();
   });
 
   it("renders the completed summary exactly as the BE built it", async () => {
     payroll.runs.history = [G_ROW];
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByText("Run summary");
+    await screen.findByText("Salary Calculation Summary");
     expect(screen.getAllByText("5").length).toBeGreaterThan(0);
     expect(screen.getByText(/no joining date on the employment record/)).toBeTruthy();
-    expect(screen.getByText("No joining date")).toBeTruthy();
+    expect(screen.getByText("Joining Date Missing")).toBeTruthy();
     expect(screen.getByText(/no PAN on the employment record/)).toBeTruthy();
     expect(screen.getByText("₹2,646.15")).toBeTruthy();
-    expect(screen.getByText(/1 on payslips/)).toBeTruthy();
+    expect(screen.getByText(/1 included in salary slips/)).toBeTruthy();
   });
 
   it("renders the zero-employee completion as its own line, not an error", async () => {
@@ -101,7 +101,7 @@ describe("Payroll: the runs tab", () => {
       }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByText(/Nobody was on payroll this month/);
+    await screen.findByText(/No employees were included in this month's salary calculation/);
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -117,8 +117,8 @@ describe("Payroll: the runs tab", () => {
       },
     };
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    await screen.findByRole("button", { name: "Run payroll" });
-    fireEvent.click(screen.getByRole("button", { name: "Run payroll" }));
+    await screen.findByRole("button", { name: "Calculate Salary" });
+    fireEvent.click(screen.getByRole("button", { name: "Calculate Salary" }));
     await screen.findByText(/opens on day 25 of the month/);
     const sent = lastSent("/payroll/runs", "POST");
     expect(sent.body).toEqual({ month: "2026-11" });
@@ -129,11 +129,11 @@ describe("Payroll: the runs tab", () => {
     renderPayrollAt("/admin/company/payroll?tab=runs");
     // The same run shows in the month card, the run card and the history —
     // one pill each.
-    expect((await screen.findAllByText("Running")).length).toBe(3);
+    expect((await screen.findAllByText("In Progress")).length).toBe(3);
     expect(screen.getByRole("button", { name: "Refresh" })).toBeTruthy();
     // The re-post is the BE's reclaim (idempotent while genuinely running),
     // so the run form stays reachable during a run.
-    expect(screen.getByRole("button", { name: "Run again" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Calculate Again" })).toBeTruthy();
     const posts = sentRequests().filter((r) => r.method === "POST");
     expect(posts.length).toBe(0);
   });
@@ -144,8 +144,8 @@ describe("Payroll: the runs tab", () => {
       runRow({ month: "2026-11", status: "running", startedAt: staleStarted, finishedAt: null }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    await screen.findByText(/it may have stalled/);
-    expect(screen.getByRole("button", { name: "Run again" })).toBeTruthy();
+    await screen.findByText(/may have stopped working/);
+    expect(screen.getByRole("button", { name: "Calculate Again" })).toBeTruthy();
   });
 
   it("sends the month on the 202-queued trigger and shows the queued run", async () => {
@@ -159,7 +159,7 @@ describe("Payroll: the runs tab", () => {
       "POST /payroll/runs": { status: 202, body: queued as unknown as Record<string, unknown> },
     };
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    fireEvent.click(await screen.findByRole("button", { name: "Run payroll" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Calculate Salary" }));
     // Seed before the revalidation reads — the fake answers the POST
     // synchronously, so the follow-up GETs are the first thing that runs
     // after the click block.
@@ -170,7 +170,7 @@ describe("Payroll: the runs tab", () => {
     });
     // The revalidation reads the seeded history — the queued run renders in
     // the month card, the run card and the history.
-    expect((await screen.findAllByText("Queued")).length).toBe(3);
+    expect((await screen.findAllByText("Waiting to Start")).length).toBe(3);
   });
 
   it("renders the chosen month's failed run with the BE's message and the re-run", async () => {
@@ -182,9 +182,9 @@ describe("Payroll: the runs tab", () => {
       }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    await screen.findByText("The run failed");
+    await screen.findByText("Salary Calculation Failed");
     expect(screen.getByText(/the run executor stopped before finishing/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Run again" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Calculate Again" })).toBeTruthy();
   });
 
   it("renders the runs tab's failed reads as one retry line", async () => {
@@ -195,7 +195,7 @@ describe("Payroll: the runs tab", () => {
       },
     };
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    await screen.findByText(/The run page could not load/);
+    await screen.findByText(/We could not load the salary details/);
     expect(screen.getByRole("alert")).toBeTruthy();
   });
 
@@ -214,7 +214,7 @@ describe("Payroll: the runs tab", () => {
     };
     payroll.runs.history = [G_ROW];
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByRole("button", { name: "Lock this month…" });
+    await screen.findByRole("button", { name: "Lock This Month" });
     // The page sits idle here — seed the post-lock world BEFORE the submit:
     // the POST answers the BE's 200 LockView, and the revalidation GETs find
     // the locked month. (Seeding after the click races the fake's answer.)
@@ -229,9 +229,9 @@ describe("Payroll: the runs tab", () => {
       ...payroll.monthStatus,
       locked: true,
     };
-    fireEvent.click(screen.getByRole("button", { name: "Lock this month…" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lock This Month" }));
     const dialog = screen.getByRole("dialog");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Lock permanently" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lock Permanently" }));
     await waitFor(() => {
       const sent = lastSent("/payroll/months/2026-11/lock", "POST");
       expect(sent.body).toEqual({});
@@ -244,7 +244,7 @@ describe("Payroll: the runs tab", () => {
     ).toBeGreaterThan(0);
     expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Close" })).toBeTruthy();
     expect(screen.getByText(/A lock cannot be undone/)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Run payroll" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Calculate Salary" })).toBeNull();
   });
 
   it("renders the month's off-cycle lines with their status", async () => {
@@ -256,9 +256,11 @@ describe("Payroll: the runs tab", () => {
     await screen.findByText("Festival bonus");
     expect(screen.getByText("₹5,000.00")).toBeTruthy();
     expect(screen.getByText("-₹1,200.50")).toBeTruthy();
-    expect(screen.getByText("Waiting for the run")).toBeTruthy();
-    expect(screen.getByText("On the payslips")).toBeTruthy();
-    expect(screen.getByText(/Staging new lines from the console is coming/)).toBeTruthy();
+    expect(screen.getByText("Waiting for Salary Calculation")).toBeTruthy();
+    expect(screen.getByText("Included in Salary Slip")).toBeTruthy();
+    expect(
+      screen.getByText(/Adding new extra payments from this page will be available soon/),
+    ).toBeTruthy();
   });
 
   it("lists the run history with statuses and month links", async () => {
@@ -271,7 +273,7 @@ describe("Payroll: the runs tab", () => {
       }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=runs");
-    await screen.findByText("Run history");
+    await screen.findByText("Salary History");
     expect(screen.getByText("Failed")).toBeTruthy();
     const octoberLink = screen.getByRole("link", { name: "2026-10" });
     expect(octoberLink.getAttribute("href")).toBe("/admin/company/payroll?tab=runs&month=2026-10");
@@ -288,18 +290,20 @@ describe("Payroll: the runs tab", () => {
       },
     };
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    fireEvent.click(await screen.findByRole("button", { name: "Override a statutory amount" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change Government Deduction Amount" }),
+    );
     const dialog = screen.getByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Employee" }));
     fireEvent.click(screen.getByRole("option", { name: /Asha V/ }));
-    fireEvent.change(within(dialog).getByLabelText("Amount per month"), {
+    fireEvent.change(within(dialog).getByLabelText("Amount Per Month"), {
       target: { value: "12000.50" },
     });
-    // The employer-liability acknowledgment gates the save.
+    // The acknowledgment gates the save.
     const save = (): HTMLButtonElement =>
-      within(dialog).getByRole("button", { name: "Save override" }) as HTMLButtonElement;
+      within(dialog).getByRole("button", { name: "Save Changes" }) as HTMLButtonElement;
     expect(save().disabled).toBe(true);
-    fireEvent.click(within(dialog).getByLabelText(/employer-liability acknowledgment/));
+    fireEvent.click(within(dialog).getByLabelText(/company is responsible for this change/));
     expect(save().disabled).toBe(false);
     fireEvent.click(save());
     await screen.findByText(/the override amount cannot be zero/);
@@ -317,16 +321,18 @@ describe("Payroll: the runs tab", () => {
 
   it("saves the override and shows the saved note", async () => {
     renderPayrollAt("/admin/company/payroll?tab=runs&month=2026-11");
-    fireEvent.click(await screen.findByRole("button", { name: "Override a statutory amount" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change Government Deduction Amount" }),
+    );
     const dialog = screen.getByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Employee" }));
     fireEvent.click(screen.getByRole("option", { name: /Asha V/ }));
-    fireEvent.change(within(dialog).getByLabelText("Amount per month"), {
+    fireEvent.change(within(dialog).getByLabelText("Amount Per Month"), {
       target: { value: "12000.50" },
     });
-    fireEvent.click(within(dialog).getByLabelText(/employer-liability acknowledgment/));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Save override" }));
-    await screen.findByText("Override saved");
+    fireEvent.click(within(dialog).getByLabelText(/company is responsible for this change/));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save Changes" }));
+    await screen.findByText("Amount Updated");
     const sent = lastSent("/run-override", "PUT");
     expect(sent.body).toEqual({
       month: "2026-11",

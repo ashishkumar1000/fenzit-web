@@ -224,7 +224,7 @@ export async function adminCustomersAction({
     return {
       kind: "create",
       state: "error",
-      message: "That save could not be sent. Try again.",
+      message: "We could not save the customer. Please try again.",
     };
   }
   const name = typeof form.get("name") === "string" ? (form.get("name") as string).trim() : "";
@@ -241,7 +241,7 @@ export async function adminCustomersAction({
     return {
       kind: "create",
       state: "error",
-      message: "Enter a name and a phone number (6–15 digits) to save the customer.",
+      message: "Please enter the customer's name and a valid phone number (6 to 15 digits).",
     };
   }
   try {
@@ -259,14 +259,15 @@ export async function adminCustomersAction({
     );
     return { kind: "create", state: "done", customerCode: result.customerCode };
   } catch (error) {
-    // The shared DUPLICATE_RESOURCE line ("That already exists.") says too
-    // little here — a customer's phone IS their identity, so the dialog says
-    // which one clashed. Still branching on the code, never the message.
+    // The shared DUPLICATE_RESOURCE line ("This information already exists.")
+    // says too little here — a customer's phone IS their identity, so the
+    // dialog says which one clashed. Still branching on the code, never the
+    // message.
     if (error instanceof ApiError && error.errorCode === "DUPLICATE_RESOURCE") {
       return {
         kind: "create",
         state: "error",
-        message: "That phone number is already a customer of your company.",
+        message: "This phone number is already added as a customer in your company.",
       };
     }
     return withActionError<CustomerCreateResult>(error, request.signal, (message) => ({
@@ -751,7 +752,8 @@ export async function adminEmployeesAction({
       return {
         kind: "invite",
         state: "error",
-        message: "Enter a name and a phone number (6–15 digits) before sending the invite.",
+        message:
+          "Please enter the employee's name and a valid phone number (6 to 15 digits) before sending the invitation.",
       };
     }
     try {
@@ -780,7 +782,7 @@ export async function adminEmployeesAction({
           kind: "resend",
           state: "error",
           userId,
-          message: "That resend could not be sent. Try again.",
+          message: "We could not send the invitation again. Please try again.",
         };
       }
       const smsStatus = await resendInviteSms(token, userId, request.signal);
@@ -801,7 +803,7 @@ export async function adminEmployeesAction({
       kind: "job-settings",
       state: "error",
       userId,
-      message: "That save could not be sent. Try again.",
+      message: "We could not save the job settings. Please try again.",
     };
   }
   try {
@@ -811,7 +813,7 @@ export async function adminEmployeesAction({
         kind: "job-settings",
         state: "error",
         userId,
-        message: "That save could not be sent. Try again.",
+        message: "We could not save the job settings. Please try again.",
       };
     }
     await updateJobSettings(

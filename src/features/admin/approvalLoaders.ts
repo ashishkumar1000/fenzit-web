@@ -122,7 +122,7 @@ export async function loadApprovalQueueState(
           customersFailed: !customers.ok,
           technicians: roster
             .filter((m) => m.role === "employee" && m.status === "active")
-            .map((m) => ({ id: m.userId, name: m.name ?? "(no name)" })),
+            .map((m) => ({ id: m.userId, name: m.name ?? "No Name" })),
         },
       };
     }
@@ -163,7 +163,11 @@ export async function approvalQueueAction({
     if (intent === "decide") {
       const decision = form.get("decision");
       if (jobId === "" || typeof decision !== "string" || !DECISIONS.includes(decision)) {
-        return { state: "error", jobId, message: "That action could not be sent. Try again." };
+        return {
+          state: "error",
+          jobId,
+          message: "We could not complete this action. Please try again.",
+        };
       }
       const reason = form.get("reason");
       await decidePendingJob(
@@ -182,7 +186,11 @@ export async function approvalQueueAction({
 
     if (intent === "edit-save") {
       if (jobId === "") {
-        return { state: "error", jobId, message: "That save could not be sent. Try again." };
+        return {
+          state: "error",
+          jobId,
+          message: "We could not save your changes. Please try again.",
+        };
       }
       // Same validations as the employee's create form: a real start, a real
       // end, and the end after the start. Caught here with plain-English
@@ -193,7 +201,7 @@ export async function approvalQueueAction({
         return {
           state: "error",
           jobId,
-          message: "That start time did not read as a real time. Check it and try again.",
+          message: "Start time is not valid. Please check it and try again.",
         };
       }
       const endRaw = form.get("scheduledEnd");
@@ -202,21 +210,25 @@ export async function approvalQueueAction({
         return {
           state: "error",
           jobId,
-          message: "That end time did not read as a real time. Check it and try again.",
+          message: "End time is not valid. Please check it and try again.",
         };
       }
       if (start !== null && end !== null && end.getTime() <= start.getTime()) {
         return {
           state: "error",
           jobId,
-          message: "The end time must come after the start time.",
+          message: "End time must be later than start time.",
         };
       }
       await updatePendingJob(token, jobId, editFromBody(form), request.signal);
       return { state: "done", jobId };
     }
 
-    return { state: "error", jobId, message: "That action could not be sent. Try again." };
+    return {
+      state: "error",
+      jobId,
+      message: "We could not complete this action. Please try again.",
+    };
   } catch (error) {
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {

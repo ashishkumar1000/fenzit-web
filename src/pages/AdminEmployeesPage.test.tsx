@@ -150,7 +150,7 @@ async function openDialog(rowName: string): Promise<HTMLDialogElement> {
   const rowEl = screen.getByText(rowName).closest("tr");
   if (rowEl === null) throw new Error(`no row for ${rowName}`);
   const button = within(rowEl as HTMLElement).getByRole("button", {
-    name: /Change job settings|Creates jobs|Create \+ approval|Off/,
+    name: /Can Create Jobs with Approval|Can Create Jobs|Off/,
   });
   fireEvent.click(button);
   const dialog = (rowEl as HTMLElement).querySelector("dialog");
@@ -175,25 +175,25 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     expect(within(viewerRow as HTMLElement).queryByRole("button")).toBeNull();
     const ashaRow = screen.getByRole("cell", { name: /Asha V/ }).closest("tr");
     expect(
-      within(ashaRow as HTMLElement).getByRole("button", { name: "Create + approval" }),
+      within(ashaRow as HTMLElement).getByRole("button", { name: "Can Create Jobs with Approval" }),
     ).toBeInTheDocument();
     // An invited row offers no settings switch either — its cell carries the
     // resend link instead of a dash.
     const invitedRow = screen.getByRole("cell", { name: /Meera Joshi/ }).closest("tr");
     expect(
       within(invitedRow as HTMLElement).queryByRole("button", {
-        name: /Change job settings|Creates jobs|Create \+ approval|Off/,
+        name: /Can Create Jobs with Approval|Can Create Jobs|Off/,
       }),
     ).toBeNull();
     expect(
-      within(invitedRow as HTMLElement).getByRole("button", { name: "Resend invite" }),
+      within(invitedRow as HTMLElement).getByRole("button", { name: "Send Invitation Again" }),
     ).toBeInTheDocument();
     // A deactivated row reads a dash in the settings cell but keeps its
     // Employment button — the record stays openable, the switch is dead.
     const parkedRow = screen.getByRole("cell", { name: /Dinesh P/ }).closest("tr");
     expect(
       within(parkedRow as HTMLElement).queryByRole("button", {
-        name: /Change job settings|Creates jobs|Create \+ approval|Off/,
+        name: /Can Create Jobs with Approval|Can Create Jobs|Off/,
       }),
     ).toBeNull();
     expect(within(parkedRow as HTMLElement).getAllByText("—")).toHaveLength(1);
@@ -207,7 +207,9 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     await screen.findByText("Asha V");
     // Asha: create on + approval on; Bunty: both off.
     const ashaRow = screen.getByText("Asha V").closest("tr") as HTMLElement;
-    expect(within(ashaRow).getByRole("button", { name: "Create + approval" })).toBeInTheDocument();
+    expect(
+      within(ashaRow).getByRole("button", { name: "Can Create Jobs with Approval" }),
+    ).toBeInTheDocument();
     const buntyRow = screen.getByText("Bunty R").closest("tr") as HTMLElement;
     expect(within(buntyRow).getByRole("button", { name: "Off" })).toBeInTheDocument();
   });
@@ -230,7 +232,7 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     patchDelay?.();
     const patch = sentRequests().find((r) => r.method === "PATCH");
     expect(patch?.body).toMatchObject({ canCreateJobs: true, jobApprovalRequired: false });
-    expect(await screen.findByText("Job settings saved.")).toBeInTheDocument();
+    expect(await screen.findByText("Job settings saved successfully.")).toBeInTheDocument();
   });
 
   it("keeps the Save busy while the save is in flight", async () => {
@@ -244,7 +246,9 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     // it through — the button comes back and the mark appears.
     await waitFor(() => expect(patchDelay).not.toBeNull());
     patchDelay?.();
-    await waitFor(() => expect(within(dialog).queryByText("Job settings saved.")).not.toBeNull());
+    await waitFor(() =>
+      expect(within(dialog).queryByText("Job settings saved successfully.")).not.toBeNull(),
+    );
   });
 
   it("flips the row's label to the saved value after the refetch", async () => {
@@ -254,7 +258,7 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     const row = screen.getByRole("cell", { name: /Bunty R/ }).closest("tr") as HTMLElement;
     await waitFor(() =>
-      expect(within(row).getByRole("button", { name: "Creates jobs" })).toBeInTheDocument(),
+      expect(within(row).getByRole("button", { name: "Can Create Jobs" })).toBeInTheDocument(),
     );
   });
 
@@ -262,19 +266,19 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     renderEmployees();
     const bunty = await openDialog("Bunty R");
     fireEvent.click(within(bunty).getByRole("button", { name: "Save" }));
-    await screen.findByText("Job settings saved.");
+    await screen.findByText("Job settings saved successfully.");
     // Close Bunty's dialog (the saved state shows Close, not Cancel) and open
     // Asha's — her dialog has nothing saved.
     fireEvent.click(within(bunty).getByRole("button", { name: "Close" }));
     const asha = await openDialog("Asha V");
-    expect(within(asha).queryByText("Job settings saved.")).toBeNull();
+    expect(within(asha).queryByText("Job settings saved successfully.")).toBeNull();
   });
 
-  it("summarises create-on-approval-off as Creates jobs", async () => {
+  it("summarises create-on-approval-off as Can Create Jobs", async () => {
     renderEmployees();
     await screen.findByText("Asha V");
     const chitraRow = screen.getByRole("cell", { name: /Chitra D/ }).closest("tr") as HTMLElement;
-    expect(within(chitraRow).getByRole("button", { name: "Creates jobs" })).toBeInTheDocument();
+    expect(within(chitraRow).getByRole("button", { name: "Can Create Jobs" })).toBeInTheDocument();
   });
 
   it("shows the empty team line when nobody is on it yet", async () => {
@@ -300,7 +304,7 @@ describe("AdminEmployeesPage: the settings dialog", () => {
       return respondDefault(url);
     });
     renderEmployees();
-    expect(await screen.findByText("Nobody on the team yet.")).toBeInTheDocument();
+    expect(await screen.findByText("No employees added yet.")).toBeInTheDocument();
   });
 
   it("reports a failed save inside the dialog, not only at page level", async () => {
@@ -309,7 +313,9 @@ describe("AdminEmployeesPage: the settings dialog", () => {
     const dialog = await openDialog("Bunty R");
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     expect(
-      await within(dialog as unknown as HTMLElement).findByText(/Something went wrong/),
+      await within(dialog as unknown as HTMLElement).findByText(
+        "Something went wrong on our side. Please try again in a moment.",
+      ),
     ).toBeInTheDocument();
   });
 });

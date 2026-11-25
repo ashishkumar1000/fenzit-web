@@ -38,7 +38,7 @@ async function downloadEmployeesCsv(): Promise<void> {
   const rows = await fetchMembers(token);
   const quote = (cell: string): string => `"${cell.replace(/"/g, '""')}"`;
   const lines = [
-    ["Name", "Email", "Phone", "Code", "Role", "Status", "Joined"].join(","),
+    ["Name", "Email", "Phone", "Employee Code", "Role", "Status", "Joined On"].join(","),
     ...rows.map((m) =>
       [
         quote(guardFormula(m.name ?? "")),
@@ -79,12 +79,12 @@ export function ExportCsvButton() {
           setError(null);
           setBuilding(true);
           downloadEmployeesCsv()
-            .catch(() => setError("The file could not be created. Try again."))
+            .catch(() => setError("We could not create the file. Please try again."))
             .finally(() => setBuilding(false));
         }}
       >
         {building ? <Spinner size={14} /> : <DownloadIcon size={15} strokeWidth={2} />}
-        {building ? "Preparing…" : "Download list"}
+        {building ? "Preparing…" : "Download Employee List"}
       </button>
       {error ? (
         <p className={styles.exportError} role="alert">

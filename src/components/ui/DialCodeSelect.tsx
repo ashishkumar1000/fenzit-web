@@ -40,7 +40,7 @@ export function DialCodeSelect({
   return (
     <span className={styles.dialField}>
       <label htmlFor={id} className={styles.visuallyHidden}>
-        Country code
+        Country Code
       </label>
       <span className={styles.selectSizer}>
         <CountryFlag iso2={selected?.iso2} />

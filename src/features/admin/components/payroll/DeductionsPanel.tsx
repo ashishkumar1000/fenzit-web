@@ -25,21 +25,28 @@ export function DeductionsPanel({ heads }: { heads: HeadsSlice }) {
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The deduction heads could not load. Try opening this page again from the menu.
+          {
+            "We could not load the deduction details.\nPlease go back to the menu and open this page again."
+          }
         </p>
       </div>
     );
   }
   const rows: TableCell[][] = heads.data.map((head) => [
     { text: head.name },
-    { text: head.kind === "percent" ? `Percent of ${head.basis ?? "gross"}` : "Flat" },
+    {
+      text:
+        head.kind === "percent"
+          ? `Percentage of ${head.basis === "basic" ? "Basic Salary" : "Total Salary"}`
+          : "Fixed Amount",
+    },
     {
       text: head.kind === "percent" ? `${trimPercent(head.amount)}%` : fmtMoney(head.amount),
     },
     { text: head.effectiveFrom, quiet: true },
-    { text: head.active ? "Active" : "Retired", status: true },
+    { text: head.active ? "Active" : "Stopped", status: true },
     {
-      text: head.active ? "Deactivate" : "",
+      text: head.active ? "Stop" : "",
       node: head.active ? <DeactivateControl head={head} /> : undefined,
     },
   ]);
@@ -47,15 +54,16 @@ export function DeductionsPanel({ heads }: { heads: HeadsSlice }) {
     <div className={styles.card}>
       <div className={styles.panelHead}>
         <p className={styles.panelLede}>
-          Deductions come off every qualifying employee's pay — professional tax, insurance, any
-          agreed recovery. The newest row at or before a month applies to that month.
+          Deductions are amounts taken out of an employee's salary. For example: Professional Tax,
+          Insurance or money an employee has to repay to the company. The latest saved deduction
+          rule will be used for the selected month.
         </p>
         <AddHeadControl />
       </div>
       <DataTable
-        columns={["Name", "Kind", "Amount", "Applies from", "Status", ""]}
+        columns={["Deduction Name", "Deduction Type", "Amount", "Starts From", "Status", "Actions"]}
         rows={rows}
-        empty="No deduction heads yet."
+        empty="No deductions have been added yet."
       />
       {action !== undefined && isDeactivateResult(action) && action.state === "error" ? (
         <p className={styles.errorLine} role="alert">
@@ -101,12 +109,12 @@ function AddHeadControl() {
         }}
         aria-haspopup="dialog"
       >
-        Add deduction
+        Add Deduction
       </button>
       <dialog
         ref={dialogRef}
         className={dialogStyles.dialog}
-        aria-label="Add deduction"
+        aria-label="Add Deduction"
         onClick={(event) => {
           if (event.target === dialogRef.current) dialogRef.current?.close();
         }}
@@ -136,10 +144,10 @@ function AddHeadForm({ close }: { close: () => void }) {
     return (
       <div className={dialogStyles.dialogForm}>
         <h3 id={titleId} className={dialogStyles.dialogTitle}>
-          Deduction saved
+          Deduction Added
         </h3>
         <p className={dialogStyles.savedMark} role="status">
-          “{name.trim()}” applies from {effectiveFrom}.
+          "{name.trim()}" will be deducted from {effectiveFrom}.
         </p>
         <div className={dialogStyles.dialogActions}>
           <button type="button" className={dialogStyles.saveButton} onClick={close}>
@@ -153,64 +161,70 @@ function AddHeadForm({ close }: { close: () => void }) {
     <fetcher.Form method="post" className={dialogStyles.dialogForm}>
       <input type="hidden" name="intent" value="head-save" />
       <h3 id={titleId} className={dialogStyles.dialogTitle}>
-        Add deduction
+        Add Deduction
       </h3>
       <TextInput
         id={`${titleId}-name`}
         name="name"
-        label="Name"
+        label="Deduction Name"
         value={name}
         onChange={setName}
         autoComplete="off"
         maxLength={60}
       />
       <label className={styles.fieldLabel}>
-        Kind
+        Deduction Type
         <select
           name="kind"
           className={styles.select}
           value={kind}
           onChange={(event) => setKind(event.target.value === "percent" ? "percent" : "flat")}
         >
-          <option value="flat">Flat amount per month</option>
-          <option value="percent">Percent of pay</option>
+          <option value="flat">Fixed Amount Every Month</option>
+          <option value="percent">Percentage of Salary</option>
         </select>
       </label>
       <TextInput
         id={`${titleId}-amount`}
         name="amount"
-        label={kind === "percent" ? "Percent" : "Amount per month"}
+        label={kind === "percent" ? "Percentage" : "Amount Per Month"}
         inputMode="decimal"
         value={amount}
         onChange={setAmount}
         placeholder={kind === "percent" ? "2" : "200"}
         maxLength={16}
-        hint={kind === "percent" ? "Between 0 and 100, up to two decimals." : undefined}
+        hint={
+          kind === "percent"
+            ? "Enter a number between 0 and 100. You can enter up to 2 decimal places."
+            : undefined
+        }
       />
       {percentNeedsBasis ? (
         <label className={styles.fieldLabel}>
-          Percent of
+          Calculate Percentage On
           <select
             name="basis"
             className={styles.select}
             value={basis}
             onChange={(event) => setBasis(event.target.value === "basic" ? "basic" : "gross")}
           >
-            <option value="gross">Gross pay</option>
-            <option value="basic">Basic salary</option>
+            <option value="gross">Total Salary</option>
+            <option value="basic">Basic Salary</option>
           </select>
         </label>
       ) : null}
       <TextInput
         id={`${titleId}-date`}
         name="effectiveFrom"
-        label="Applies from"
+        label="Starts From"
         type="date"
         value={effectiveFrom}
         onChange={setEffectiveFrom}
       />
       <p className={dialogStyles.dialogHint}>
-        Saving with the same name and date replaces that row.
+        {
+          "Choose the date from which this deduction should start.\nIf you save another deduction with the same name and date, the old one will be replaced."
+        }
       </p>
       {result !== null && result.state === "error" ? (
         <p className={dialogStyles.dialogError} role="alert">
@@ -247,7 +261,7 @@ function DeactivateControl({ head }: { head: DeductionHeadView }) {
         }}
         aria-haspopup="dialog"
       >
-        Deactivate
+        Stop
       </button>
       <dialog
         ref={dialogRef}
@@ -261,11 +275,12 @@ function DeactivateControl({ head }: { head: DeductionHeadView }) {
           <input type="hidden" name="intent" value="head-deactivate" />
           <input type="hidden" name="headId" value={head.id} />
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Deactivate “{head.name}”?
+            Stop "{head.name}"?
           </h3>
           <p className={dialogStyles.dialogHint}>
-            Retired heads stop applying from the next run. Months already run keep their numbers.
-            This cannot be undone.
+            {
+              "Once you stop this deduction, it will not be applied to future salary payments.\nSalary payments that have already been completed will not change.\nThis action cannot be undone."
+            }
           </p>
           <label className={dialogStyles.switchRow}>
             <input
@@ -275,7 +290,7 @@ function DeactivateControl({ head }: { head: DeductionHeadView }) {
               checked={confirm}
               onChange={(event) => setConfirm(event.target.checked)}
             />
-            <span>I understand — deactivate this deduction</span>
+            <span>I understand. Stop this deduction.</span>
           </label>
           <div className={dialogStyles.dialogActions}>
             <button
@@ -287,7 +302,7 @@ function DeactivateControl({ head }: { head: DeductionHeadView }) {
             </button>
             <button type="submit" className={dialogStyles.saveButton} disabled={busy || !confirm}>
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Deactivating…" : "Deactivate"}
+              {busy ? "Stopping…" : "Stop Deduction"}
             </button>
           </div>
         </Form>

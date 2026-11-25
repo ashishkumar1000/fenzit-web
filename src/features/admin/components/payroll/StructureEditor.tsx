@@ -259,10 +259,9 @@ export function StructureEditorCard({
   if (saved) {
     return (
       <div className={styles.card}>
-        <h2 className={styles.panelTitle}>Structure saved</h2>
+        <h2 className={styles.panelTitle}>Salary Structure Saved</h2>
         <p className={styles.savedMark} role="status">
-          {employeeName}'s structure now applies from {editor.effectiveFrom}. It shows in the
-          revision list above.
+          {`${employeeName}'s new salary structure will start from ${editor.effectiveFrom}.\nYou can see it in the salary structure list above.`}
         </p>
         <div className={styles.editorActions}>
           <button type="button" className={styles.saveButton} onClick={() => setEditor(null)}>
@@ -275,27 +274,26 @@ export function StructureEditorCard({
 
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>
-        Salary for {employeeName} — applies from {editor.effectiveFrom}
-      </h2>
+      <h2 className={styles.panelTitle}>Salary Details for {employeeName}</h2>
       <p className={styles.panelLede}>
-        Saving replaces this dated revision in full. Keep the date to fix it; move the date to start
-        a new revision.
+        {`This salary structure will apply from ${editor.effectiveFrom}.\nIf you save it again with the same date, the old details for that date will be replaced.\nIf you choose a different date, a new salary structure will be created.`}
       </p>
       <div className={styles.editorGrid}>
         <TextInput
           id={`${titleId}-date`}
-          label="Applies from"
+          label="Applies From"
           type="date"
           value={editor.effectiveFrom}
           onChange={(value) => setEditor({ ...editor, effectiveFrom: value })}
-          hint="Runs resolve pay by the month's first day — date it on the 1st to govern that month; a mid-month date first governs the next month."
+          hint={
+            "Choose the date from which this salary structure should start.\nTo use it from the beginning of a month, select the 1st.\nIf you select a date after the 1st, the new salary structure will start from the next month."
+          }
         />
         {missingBasic ? (
           <p className={styles.hint} role="status">
-            Structures must include the Basic salary component — save will be refused without it.
+            Basic Salary is required. Please add it before saving this salary structure.
             {basicInactive
-              ? " The Basic component is inactive right now — reactivate it first."
+              ? " Basic Salary is currently turned off. Please turn it on before saving this salary structure."
               : ""}
           </p>
         ) : null}
@@ -314,12 +312,13 @@ export function StructureEditorCard({
                 </span>
                 {line.mode === "pinned" ? (
                   <span className={styles.pinnedNote}>
-                    This component is inactive — reactivate it first, or remove the line.
+                    {
+                      "This salary component is turned off.\nPlease turn it on again or remove it from this salary structure."
+                    }
                   </span>
                 ) : line.mode === "amount" && line.storedFormula !== undefined ? (
                   <span className={styles.pinnedNote}>
-                    Stored formula: {describeFormula(line.storedFormula, names)} — leave Amount
-                    empty to keep it, or type an amount to replace it.
+                    {`This component already has a saved calculation: ${describeFormula(line.storedFormula, names)}.\nLeave the Amount field empty to keep the existing calculation.\nEnter a new amount if you want to replace it.`}
                   </span>
                 ) : (
                   <span className={styles.lineControls}>
@@ -330,7 +329,7 @@ export function StructureEditorCard({
                         checked={line.mode === "amount"}
                         onChange={() => update(index, { mode: "amount" })}
                       />
-                      Amount
+                      Fixed Amount
                     </label>
                     <label className={styles.modeLabel}>
                       <input
@@ -339,7 +338,7 @@ export function StructureEditorCard({
                         checked={line.mode === "formula"}
                         onChange={() => update(index, { mode: "formula" })}
                       />
-                      Formula
+                      Percentage
                     </label>
                     {line.mode === "amount" ? (
                       <TextInput
@@ -371,7 +370,7 @@ export function StructureEditorCard({
                           value={line.ofComponentId}
                           onChange={(event) => update(index, { ofComponentId: event.target.value })}
                         >
-                          <option value="">choose…</option>
+                          <option value="">Choose salary component...</option>
                           {others.map((other) => (
                             <option key={other.componentId} value={other.componentId}>
                               {names.get(other.componentId) ?? "Component"}
@@ -386,14 +385,14 @@ export function StructureEditorCard({
                             update(index, { adjust: event.target.value as "" | "+" | "-" })
                           }
                         >
-                          <option value="">no adjustment</option>
-                          <option value="+">+ flat amount</option>
-                          <option value="-">− flat amount</option>
+                          <option value="">No change</option>
+                          <option value="+">Add a fixed amount</option>
+                          <option value="-">Subtract a fixed amount</option>
                         </select>
                         {line.adjust !== "" ? (
                           <TextInput
                             id={`${titleId}-adj-${index}`}
-                            label="Flat amount"
+                            label="Extra Amount"
                             hideLabel
                             inputMode="decimal"
                             value={line.adjustValue}
@@ -425,11 +424,11 @@ export function StructureEditorCard({
               value=""
               onChange={(event) => addLine(event.target.value)}
             >
-              <option value="">Add a component…</option>
+              <option value="">Add Salary Component...</option>
               {addable.map((component) => (
                 <option key={component.id} value={component.id}>
                   {component.name}
-                  {component.isBasic ? " (Basic)" : ""}
+                  {component.isBasic ? " (Basic Salary)" : ""}
                 </option>
               ))}
             </select>
@@ -450,7 +449,9 @@ export function StructureEditorCard({
             Cancel
           </button>
           {json === null ? (
-            <p className={styles.hint}>Fill every line — amounts and percentages — to save.</p>
+            <p className={styles.hint}>
+              Please enter an amount or percentage for every salary component before saving.
+            </p>
           ) : null}
           <fetcher.Form method="post" className={styles.saveForm}>
             <input type="hidden" name="intent" value="structure-save" />
@@ -459,7 +460,7 @@ export function StructureEditorCard({
             <input type="hidden" name="lines" value={json ?? ""} />
             <button type="submit" className={styles.saveButton} disabled={busy || !ready}>
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Saving…" : "Save revision"}
+              {busy ? "Saving…" : "Save Salary Structure"}
             </button>
           </fetcher.Form>
         </div>

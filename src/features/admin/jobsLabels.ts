@@ -4,8 +4,8 @@
 export const JOB_STATUS_WORDS: Record<string, string> = {
   "": "All",
   scheduled: "Scheduled",
-  in_progress: "In progress",
-  pending_approval: "Pending approval",
+  in_progress: "In Progress",
+  pending_approval: "Waiting for Approval",
   completed: "Completed",
   cancelled: "Cancelled",
   rejected: "Rejected",
@@ -18,6 +18,6 @@ export const JOB_PRIORITY_WORDS: Record<string, string> = {
 };
 
 export const JOB_SORT_WORDS: Record<string, string> = {
-  latest: "Latest",
-  soonest: "Soonest",
+  latest: "Latest First",
+  soonest: "Earliest First",
 };

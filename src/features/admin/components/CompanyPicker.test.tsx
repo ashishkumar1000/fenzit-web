@@ -50,7 +50,7 @@ describe("CompanyPicker: which memberships can be picked", () => {
     renderPicker([membership(null, "Beta Traders")], null);
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(screen.getByText("Beta Traders")).toBeTruthy();
-    expect(screen.getByText("Choosing this company is not available here yet.")).toBeTruthy();
+    expect(screen.getByText("You cannot select this company right now.")).toBeTruthy();
   });
 
   it("treats an empty-string company id as not pickable", () => {
@@ -60,7 +60,7 @@ describe("CompanyPicker: which memberships can be picked", () => {
 
   it("says the person has no companies when the list is empty", () => {
     renderPicker([], null);
-    expect(screen.getByText("This person has no companies to pick.")).toBeTruthy();
+    expect(screen.getByText("This person does not belong to any company.")).toBeTruthy();
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 });
@@ -85,18 +85,18 @@ describe("CompanyPicker: the links and the picked company", () => {
       .getAllByRole("link")
       .find((link) => link.getAttribute("aria-current") === "true");
     expect(current?.textContent).toContain("Alpha Pvt Ltd");
-    expect(current?.textContent).toContain("Picked");
-    expect(screen.getByText("You are working on Alpha Pvt Ltd.")).toBeTruthy();
+    expect(current?.textContent).toContain("Selected");
+    expect(screen.getByText("You are currently managing Alpha Pvt Ltd.")).toBeTruthy();
   });
 
   it("matches an upper-case company id in the URL to the membership", () => {
     renderPicker([membership(A, "Alpha Pvt Ltd")], A.toUpperCase());
-    expect(screen.getByText("You are working on Alpha Pvt Ltd.")).toBeTruthy();
+    expect(screen.getByText("You are currently managing Alpha Pvt Ltd.")).toBeTruthy();
   });
 
   it("offers a clear link that drops the company but keeps the phone", () => {
     renderPicker([membership(A, "Alpha Pvt Ltd")], A, `?phone=9876&company=${A}`);
-    const clear = screen.getByRole("link", { name: "Stop working on this company" });
+    const clear = screen.getByRole("link", { name: "Stop Managing This Company" });
     const url = new URL(clear.getAttribute("href") ?? "", "https://x.test");
     expect(url.searchParams.has("company")).toBe(false);
     expect(url.searchParams.get("phone")).toBe("9876");
@@ -105,8 +105,8 @@ describe("CompanyPicker: the links and the picked company", () => {
   it("says no company is picked, and offers no clear link, when the URL has none", () => {
     renderPicker([membership(A, "Alpha Pvt Ltd")], null);
     expect(
-      screen.getByText("No company picked. Pick one below before you act for a company."),
+      screen.getByText("Please select a company below before making any changes."),
     ).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "Stop working on this company" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Stop Managing This Company" })).toBeNull();
   });
 });

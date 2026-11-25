@@ -25,12 +25,12 @@ export function AddCustomerControl({ countries }: { countries: CountryCode[] | u
         }}
         aria-haspopup="dialog"
       >
-        Add customer
+        Add Customer
       </button>
       <dialog
         ref={dialogRef}
         className={dialogStyles.dialog}
-        aria-label="Add customer"
+        aria-label="Add Customer"
         onClick={(event) => {
           if (event.target === dialogRef.current) dialogRef.current?.close();
         }}
@@ -66,8 +66,8 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
   const phoneShort = phone.length < 6;
   const ready = !nameMissing && !phoneShort;
   const whyNotReady = nameMissing
-    ? "Enter the customer's name to save them."
-    : "Enter a phone number of 6 to 15 digits to save the customer.";
+    ? "Please enter the customer's name."
+    : "Please enter a valid phone number with 6 to 15 digits.";
   const saved =
     fetcher.data?.kind === "create" && fetcher.data.state === "done" ? fetcher.data : null;
   const error =
@@ -77,14 +77,14 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
       {saved ? (
         <div className={dialogStyles.dialogForm}>
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Customer saved
+            Customer Added Successfully
           </h3>
           <div className={styles.savedBlock} role="status">
-            <p className={dialogStyles.savedMark}>Customer saved.</p>
+            <p className={dialogStyles.savedMark}>Customer details saved successfully.</p>
             {/* Only the code is promised: active bucket/search filters can
                 hide a brand-new customer (0 jobs never shows under Repeat),
                 so the message must not claim the list shows them. */}
-            <p className={dialogStyles.dialogHint}>Their customer code is {saved.customerCode}.</p>
+            <p className={dialogStyles.dialogHint}>Customer Code: {saved.customerCode}</p>
           </div>
           <div className={dialogStyles.dialogActions}>
             <button type="button" className={dialogStyles.saveButton} onClick={close}>
@@ -96,15 +96,16 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
         <fetcher.Form method="post" className={dialogStyles.dialogForm}>
           <input type="hidden" name="intent" value="create" />
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Add customer
+            Add Customer
           </h3>
           <p className={dialogStyles.dialogHint}>
-            A phone number identifies a customer — one number per customer per company.
+            Add a customer's details here. Each customer must have a unique phone number in your
+            company.
           </p>
           <TextInput
             id={`${titleId}-name`}
             name="name"
-            label="Name"
+            label="Customer Name"
             value={name}
             onChange={setName}
             autoComplete="off"
@@ -113,14 +114,14 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
           <TextInput
             id={`${titleId}-phone`}
             name="phoneNumber"
-            label="Phone number"
+            label="Phone Number"
             type="tel"
             inputMode="numeric"
             value={phone}
             onChange={(value) => setPhone(value.replace(/\D/g, ""))}
             autoComplete="off"
             maxLength={15}
-            hint="Numbers only, 6 to 15 digits."
+            hint="Enter numbers only (6 to 15 digits)."
             prefix={
               <DialCodeSelect
                 id={`${titleId}-dial`}
@@ -134,7 +135,7 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
           <TextInput
             id={`${titleId}-address`}
             name="address"
-            label="Address (optional)"
+            label="Address (Optional)"
             value={address}
             onChange={setAddress}
             autoComplete="off"
@@ -143,7 +144,7 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
           <TextInput
             id={`${titleId}-city`}
             name="city"
-            label="City (optional)"
+            label="City (Optional)"
             value={city}
             onChange={setCity}
             autoComplete="off"
@@ -161,7 +162,7 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
             </button>
             <button type="submit" className={dialogStyles.saveButton} disabled={busy || !ready}>
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Saving…" : "Save customer"}
+              {busy ? "Saving…" : "Save Customer"}
             </button>
           </div>
         </fetcher.Form>

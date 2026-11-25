@@ -17,7 +17,7 @@ const JOBS_PATH = "/admin/company/jobs";
 function AttachmentPhoto({ url, alt }: { url: string; alt: string }) {
   const [broken, setBroken] = useState(false);
   if (broken) {
-    return <span className={styles.noImage}>Unavailable</span>;
+    return <span className={styles.noImage}>Image Not Available.</span>;
   }
   return <img src={url} alt={alt} onError={() => setBroken(true)} />;
 }
@@ -49,31 +49,31 @@ function facts(job: JobDetail): Array<[string, ReactNode]> {
       "Employee",
       job.technician === null
         ? "—"
-        : `${job.technician.name ?? "(no name)"}${
+        : `${job.technician.name ?? "No Name."}${
             job.technician.phoneNumber !== null && job.technician.countryCode !== null
               ? ` · ${fmtPhone(job.technician.countryCode, job.technician.phoneNumber)}`
               : ""
           }`,
     ],
-    ["Skill", job.skill?.name ?? "—"],
+    ["Work Type", job.skill?.name ?? "—"],
     ["Location", job.serviceLocation === "" ? "—" : job.serviceLocation],
   ];
   if (job.description !== null && job.description !== "") {
-    rows.push(["Description", job.description]);
+    rows.push(["Work Description", job.description]);
   }
   if (job.notesForTechnician !== null && job.notesForTechnician !== "") {
-    rows.push(["Notes for the employee", job.notesForTechnician]);
+    rows.push(["Notes for Employee", job.notesForTechnician]);
   }
   if (job.status === "rejected") {
     rows.push([
-      "Rejected",
-      `${job.rejectionReason ?? "No reason given"}${
-        job.decidedAt !== null ? ` — decided ${fmtWhen(job.decidedAt)}` : ""
+      "Rejection Details",
+      `${job.rejectionReason ?? "No reason given."}${
+        job.decidedAt !== null ? `. Decision made on ${fmtWhen(job.decidedAt)}.` : ""
       }`,
     ]);
   }
   if (job.completedAt !== null) {
-    rows.push(["Completed", fmtWhen(job.completedAt)]);
+    rows.push(["Completed On", fmtWhen(job.completedAt)]);
   }
   return rows;
 }
@@ -93,9 +93,9 @@ export function AdminJobDetailPage() {
         <p className={styles.failed} role="alert">
           {data.reason === "not-found"
             ? data.role === "member"
-              ? "This job is not available to you. You can open only the jobs assigned to you."
-              : "This job is not available. It may be mistyped, or outside your company."
-            : "The job could not load."}
+              ? "You cannot view this job because it is not assigned to you."
+              : "We could not find this job. Please check the job number or make sure it belongs to your company."
+            : "We could not load the job details."}
         </p>
         {data.reason !== "not-found" ? (
           <button
@@ -104,11 +104,11 @@ export function AdminJobDetailPage() {
             onClick={() => revalidator.revalidate()}
             disabled={busy}
           >
-            {busy ? "Retrying…" : "Try again"}
+            {busy ? "Trying Again…" : "Try Again"}
           </button>
         ) : null}
         <p className={styles.back}>
-          <Link to={JOBS_PATH}>Back to all jobs</Link>
+          <Link to={JOBS_PATH}>Back to All Jobs</Link>
         </p>
       </SectionCard>
     );
@@ -122,7 +122,7 @@ export function AdminJobDetailPage() {
   return (
     <div className={styles.stack}>
       <p className={styles.crumb}>
-        <Link to={JOBS_PATH}>All jobs</Link>
+        <Link to={JOBS_PATH}>All Jobs</Link>
         <span aria-hidden="true"> / </span>
         <span>{job.jobNumber}</span>
       </p>
@@ -144,7 +144,7 @@ export function AdminJobDetailPage() {
             </div>
           ))}
           <div className={styles.fact}>
-            <dt className={styles.factLabel}>Scheduled</dt>
+            <dt className={styles.factLabel}>Scheduled Date and Time</dt>
             <dd className={styles.factValue}>
               {fmtWhen(job.scheduledStart)}
               {job.scheduledEnd !== null ? ` – ${fmtWhen(job.scheduledEnd)}` : ""}
@@ -153,9 +153,9 @@ export function AdminJobDetailPage() {
         </dl>
       </SectionCard>
 
-      <SectionCard title="Workflow">
+      <SectionCard title="Work Steps">
         {steps.length === 0 ? (
-          <p className={styles.line}>This job has no workflow steps.</p>
+          <p className={styles.line}>No steps have been added to this job.</p>
         ) : (
           <ol className={styles.steps}>
             {steps.map((step, index) => {
@@ -177,10 +177,14 @@ export function AdminJobDetailPage() {
                     {step.label === "" ? humanize(step.key) : step.label}
                   </span>
                   <span className={styles.stepReq}>
-                    {step.requiresPhoto ? "Photo" : null}
+                    {step.requiresPhoto ? "Photo Required" : null}
                     {step.requiresPhoto && step.requiresSignature ? " · " : null}
-                    {step.requiresSignature ? "Signature" : null}
-                    {state === "done" ? " · done" : state === "current" ? " · current step" : null}
+                    {step.requiresSignature ? "Signature Required" : null}
+                    {state === "done"
+                      ? " · Completed"
+                      : state === "current"
+                        ? " · Current Step"
+                        : null}
                   </span>
                 </li>
               );
@@ -189,9 +193,9 @@ export function AdminJobDetailPage() {
         )}
       </SectionCard>
 
-      <SectionCard title="Activity">
+      <SectionCard title="Job Updates">
         {job.activityLog.length === 0 ? (
-          <p className={styles.line}>Nothing has happened on this job yet.</p>
+          <p className={styles.line}>No updates have been recorded for this job yet.</p>
         ) : (
           <ol className={styles.timeline}>
             {job.activityLog.map((entry, index) => (
@@ -208,12 +212,12 @@ export function AdminJobDetailPage() {
       </SectionCard>
 
       <SectionCard
-        title="Photos and signatures"
+        title="Job Photos and Signatures"
         meta={job.attachments.length > 0 ? `${job.attachments.length}` : undefined}
       >
         {job.attachments.length === 0 ? (
           <p className={styles.line}>
-            Nothing uploaded yet. The employee adds photos from the job in their app.
+            No photos uploaded yet. Employees can upload job photos from their app.
           </p>
         ) : (
           <ul className={styles.gallery}>
@@ -225,10 +229,12 @@ export function AdminJobDetailPage() {
                     alt={`${job.jobNumber} ${one.type} from ${fmtWhen(one.createdAt)}`}
                   />
                 ) : (
-                  <span className={styles.noImage}>Unavailable</span>
+                  <span className={styles.noImage}>Image Not Available.</span>
                 )}
                 <span className={styles.shotMeta}>
-                  {one.type === "signature" ? "Signature" : "Photo"} · {fmtWhen(one.createdAt)}
+                  {one.type === "signature"
+                    ? `Signature – ${fmtWhen(one.createdAt)}`
+                    : `Photo – ${fmtWhen(one.createdAt)}`}
                 </span>
               </li>
             ))}

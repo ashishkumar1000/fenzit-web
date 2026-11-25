@@ -30,10 +30,10 @@ function percent(rate: number | null): string {
 
 function minutesLabel(minutes: number | null): string {
   if (minutes === null) return "—";
-  if (minutes < 60) return `${Math.round(minutes)} min`;
+  if (minutes < 60) return `${Math.round(minutes)} minutes`;
   const hours = minutes / 60;
-  if (hours < 24) return `${Math.round(hours * 10) / 10} h`;
-  return `${Math.round((hours / 24) * 10) / 10} d`;
+  if (hours < 24) return `${Math.round(hours * 10) / 10} hours`;
+  return `${Math.round((hours / 24) * 10) / 10} days`;
 }
 
 /** A UTC instant as the calendar day it fell on in IST (the server's day),
@@ -54,10 +54,10 @@ export function MeReportCard({
 }) {
   return (
     <SectionCard
-      title="My job activity"
+      title="My Job Activity"
       meta={
         report.ok
-          ? `${fmtDay(report.data.range.from)} – ${fmtDay(report.data.range.to)}`
+          ? `${fmtDay(report.data.range.from)} to ${fmtDay(report.data.range.to)}`
           : undefined
       }
     >
@@ -74,12 +74,12 @@ export function MeReportCard({
           </Link>
         ))}
       </nav>
-      <LoadingLine label="Loading the activity…" path={basePath} />
+      <LoadingLine label="Loading your job activity…" path={basePath} />
       {report.ok ? (
         <MeReportBody report={report.data} />
       ) : (
         <p className={styles.quiet} role="alert">
-          Your job activity could not load for this period.
+          We could not load your job activity for this period.
         </p>
       )}
     </SectionCard>
@@ -102,11 +102,11 @@ export function MeRejectedCard({
 }) {
   return (
     <SectionCard
-      title="My rejected jobs"
+      title="My Rejected Jobs"
       meta={
         rejected.ok
           ? rejectedMore
-            ? `${rejected.data.length}+`
+            ? `${rejected.data.length}+ jobs`
             : String(rejected.data.length)
           : undefined
       }
@@ -114,17 +114,23 @@ export function MeRejectedCard({
       {rejected.ok ? (
         rejected.data.length === 0 ? (
           <p className={styles.quiet}>
-            Nothing of yours was rejected. Newer decisions appear here.
+            None of your jobs have been rejected. New decisions will appear here.
           </p>
         ) : (
           <>
             <DataTable
-              columns={["Job", "Task", "Reason", "Decided", "Was scheduled"]}
-              empty="Nothing of yours was rejected."
+              columns={[
+                "Job",
+                "Work Details",
+                "Reason for Rejection",
+                "Decision Date",
+                "Scheduled Date",
+              ]}
+              empty="None of your jobs have been rejected. New decisions will appear here."
               rows={rejected.data.map((row): TableCell[] => [
                 { text: row.jobNumber },
                 { text: row.description, quiet: true },
-                { text: row.rejectionReason ?? "No reason given" },
+                { text: row.rejectionReason ?? "No reason given." },
                 { text: day(row.decidedAt), quiet: true },
                 { text: day(row.scheduledStart), quiet: true },
               ])}
@@ -137,7 +143,7 @@ export function MeRejectedCard({
                   to={`${basePath}?tab=rejected&range=${encodeURIComponent(reportPreset)}&rejectedCursor=${encodeURIComponent(rejectedNext)}`}
                   className={styles.moreLink}
                 >
-                  Load older rejections
+                  Load Older Rejected Jobs
                 </Link>
               </p>
             ) : null}
@@ -145,7 +151,7 @@ export function MeRejectedCard({
         )
       ) : (
         <p className={styles.quiet} role="alert">
-          Your rejected jobs could not load.
+          We could not load your rejected jobs.
         </p>
       )}
     </SectionCard>
@@ -158,28 +164,28 @@ function MeReportBody({ report }: { report: EmployeeReportResponse }) {
     <>
       <StatTiles
         tiles={[
-          { label: "I created", value: c.created },
-          { label: "Approved", value: c.approved },
-          { label: "Auto-approved", value: c.autoApproved },
-          { label: "Rejected", value: c.rejected },
-          { label: "Waiting", value: c.pending },
+          { label: "Jobs I Created", value: c.created },
+          { label: "Approved Jobs", value: c.approved },
+          { label: "Automatically Approved Jobs", value: c.autoApproved },
+          { label: "Rejected Jobs", value: c.rejected },
+          { label: "Waiting for Approval", value: c.pending },
         ]}
       />
       <div className={styles.factGrid}>
-        <Fact label="Approval rate" value={percent(report.approvalRate)} />
-        <Fact label="Average wait" value={minutesLabel(report.averageMinutesToDecision)} />
-        <Fact label="Median wait" value={minutesLabel(report.medianMinutesToDecision)} />
-        <Fact label="Assigned to me now" value={String(report.assignedNow)} />
-        <Fact label="I completed in this period" value={String(report.completedInRange)} />
+        <Fact label="Approval Rate" value={percent(report.approvalRate)} />
+        <Fact label="Average Waiting Time" value={minutesLabel(report.averageMinutesToDecision)} />
+        <Fact label="Usual Waiting Time" value={minutesLabel(report.medianMinutesToDecision)} />
+        <Fact label="Jobs Currently Assigned to Me" value={String(report.assignedNow)} />
+        <Fact label="Jobs I Completed During This Period" value={String(report.completedInRange)} />
       </div>
       {report.rejectionReasons.length > 0 ? (
         <div className={styles.reasons}>
-          <p className={styles.reasonsTitle}>Rejection reasons I received, newest first</p>
+          <p className={styles.reasonsTitle}>Why My Jobs Were Rejected (Newest First)</p>
           <ul className={styles.reasonList}>
             {report.rejectionReasons.map((r) => (
               <li key={r.jobId} className={styles.reasonItem}>
                 <span className={styles.reasonJob}>{r.jobNumber}</span>
-                <span className={styles.reasonBody}>{r.reason ?? "No reason given"}</span>
+                <span className={styles.reasonBody}>{r.reason ?? "No reason given."}</span>
                 <span className={styles.reasonDay}>{day(r.decidedAt)}</span>
               </li>
             ))}
@@ -188,8 +194,8 @@ function MeReportBody({ report }: { report: EmployeeReportResponse }) {
       ) : null}
       {report.rejectionReasonsTotal > report.rejectionReasons.length ? (
         <p className={styles.moreLine}>
-          Showing the {report.rejectionReasons.length} newest of {report.rejectionReasonsTotal}{" "}
-          rejections in this period — the full history is on the Rejected tab.
+          Showing the {report.rejectionReasons.length} latest rejected jobs out of{" "}
+          {report.rejectionReasonsTotal}. See the Rejected Jobs tab for the full list.
         </p>
       ) : null}
     </>

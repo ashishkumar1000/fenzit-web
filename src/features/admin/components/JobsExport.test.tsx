@@ -124,7 +124,7 @@ describe("JobsExport: the whole-book CSV walk", () => {
   it("walks every page, names the file jobs.csv and stops at the real total", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
     const { getByRole } = render(<ExportJobsButton />);
-    fireEvent.click(getByRole("button", { name: /Download list/ }));
+    fireEvent.click(getByRole("button", { name: /Download Jobs List/ }));
     await waitFor(() => expect(createObjectUrlCalls).toBe(1));
     // Two pages for 120 rows at 100/page — never more than the walk needs.
     expect(sentRequests().filter((r) => r.url.includes("/jobs/page")).length).toBe(2);
@@ -134,7 +134,7 @@ describe("JobsExport: the whole-book CSV walk", () => {
     expect(lines.length).toBe(121); // header + 120 rows
     // The byte-order mark rides the first line, before the header.
     expect(lines[0]).toBe(
-      "\ufeffJob number,Description,Customer,Employee,Skill,Status,Priority,Place,Scheduled,Completed",
+      "\ufeffJob number,Job Description,Customer,Employee,Work Type,Status,Priority,Location,Scheduled Date,Completed Date",
     );
     // The last partial page reports 120 fetched, never 200.
     expect(lines[120]).toContain('"JB-2026-0120"');
@@ -143,7 +143,7 @@ describe("JobsExport: the whole-book CSV walk", () => {
   it("guards formula-triggering descriptions and humanizes the fixed words", async () => {
     writeSession({ token: "tok-1", name: "Beta" });
     const { getByRole } = render(<ExportJobsButton />);
-    fireEvent.click(getByRole("button", { name: /Download list/ }));
+    fireEvent.click(getByRole("button", { name: /Download Jobs List/ }));
     await waitFor(() => expect(createObjectUrlCalls).toBe(1));
     const text = await (savedBlob as unknown as Blob).text();
     // The leading = gets a quote-prefix so the spreadsheet reads it as text.
@@ -160,8 +160,8 @@ describe("JobsExport: the whole-book CSV walk", () => {
     writeSession({ token: "tok-1", name: "Beta" });
     setRespond((url) => (url.includes("/jobs/page") ? jsonResponse({}, 500) : respondDefault(url)));
     const { getByRole, findByText } = render(<ExportJobsButton />);
-    fireEvent.click(getByRole("button", { name: /Download list/ }));
-    expect(await findByText("The file could not be created. Try again.")).toBeTruthy();
+    fireEvent.click(getByRole("button", { name: /Download Jobs List/ }));
+    expect(await findByText("We could not create the file. Please try again.")).toBeTruthy();
     expect(createObjectUrlCalls).toBe(0);
   });
 });

@@ -34,7 +34,7 @@ export function ClearAllButton({ filters }: { filters: EmployeesFilters }) {
         )
       }
     >
-      Clear all
+      Clear All Filters
     </button>
   );
 }
@@ -69,7 +69,7 @@ export function SearchBox({ filters }: { filters: EmployeesFilters }) {
         name="q"
         type="search"
         className={styles.searchInput}
-        placeholder="Search name, code or phone…"
+        placeholder="Search by name, employee code or phone number…"
         aria-label="Search employees"
         value={query}
         onChange={(event) => setQuery(event.target.value)}

@@ -31,7 +31,7 @@ export function SubscriptionSection({
     if (unchanged) return;
     const token = readSession()?.token;
     if (!token) {
-      setError("Your session has ended. Sign in again to save.");
+      setError("Your session has ended. Please sign in again to save the changes.");
       return;
     }
     setSaving(true);
@@ -55,7 +55,7 @@ export function SubscriptionSection({
   return (
     <SectionCard
       title="Subscription"
-      meta={validityUntil ? `Valid until ${fmtIstDay(validityUntil)}` : "No end date"}
+      meta={validityUntil ? `Valid until ${fmtIstDay(validityUntil)}` : "No Expiry Date"}
     >
       <form
         className={styles.form}
@@ -65,7 +65,7 @@ export function SubscriptionSection({
         }}
       >
         <label className={styles.label}>
-          <span>Valid until (India time)</span>
+          <span>Subscription End Date (India Time)</span>
           <input
             className={styles.input}
             type="date"
@@ -77,17 +77,17 @@ export function SubscriptionSection({
           />
         </label>
         <button className={styles.button} type="submit" disabled={saving || unchanged}>
-          {saving ? "Saving…" : "Save date"}
+          {saving ? "Saving…" : "Save Date"}
         </button>
       </form>
       <p className={styles.note}>
         {unchanged
-          ? "Change the date to save it."
-          : "The subscription ends at the end of this day."}
+          ? "Change the date to save the new expiry date."
+          : "The subscription will remain active until the end of the selected date."}
       </p>
       {saved ? (
         <p className={styles.saved} role="status">
-          Saved.
+          Saved Successfully.
         </p>
       ) : null}
       {error ? (

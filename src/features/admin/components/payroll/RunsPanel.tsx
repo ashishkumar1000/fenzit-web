@@ -1,6 +1,6 @@
 import { Link, Form, useActionData, useFetcher, useNavigation, useRevalidator } from "react-router";
 import { useId, useRef } from "react";
-import { fmtWhen } from "../../format";
+import { fmtDay, fmtWhen } from "../../format";
 import type { adminPayrollAction } from "../../payrollAction";
 import { fmtMoney } from "../../payrollFormat";
 import type { PayrollMonthStatusView } from "../../payrollViews";
@@ -22,11 +22,28 @@ import styles from "./RunsPanel.module.css";
  */
 
 const SKIP_LABELS: Record<string, string> = {
-  missing_join_date: "No joining date",
-  not_configured: "No salary structure",
-  empty_window: "No payable days",
-  never_enrolled: "Never enrolled",
+  missing_join_date: "Joining Date Missing",
+  not_configured: "Salary Structure Missing",
+  empty_window: "No Salary Due",
+  never_enrolled: "PF / Other Benefit Not Added",
 };
+
+/** The divisor words the Calendar tab uses — no raw convention codes. */
+const DIVISOR_WORDS: Record<string, string> = {
+  calendar: "Actual days in the month",
+  "fixed-30": "Fixed 30 days",
+  "fixed-26": "Fixed 26 days",
+};
+
+/** A YYYY-MM month as the owner reads it — "October 2026". */
+function fmtMonthHead(month: string): string {
+  const [year, mon] = month.split("-").map(Number);
+  if (!year || !mon) return month;
+  return new Date(year, mon - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+}
 
 type SliceOf<T> = { ok: true; data: T } | { ok: false };
 
@@ -53,7 +70,9 @@ export function RunsPanel({
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The run page could not load. Try opening this page again from the menu.
+          We could not load the salary details.
+          <br />
+          Please go back to the menu and open this page again.
         </p>
       </div>
     );
@@ -61,20 +80,29 @@ export function RunsPanel({
   const status = monthStatus.data;
   return (
     <div className={styles.stack}>
+      <p className={styles.panelLede}>
+        Use this page to calculate employee salaries for a month.
+        <br />
+        You can check salary details, start salary calculations and see the results.
+      </p>
       <MonthCard month={month} status={status} run={run} members={members.data} />
       {run !== null ? <RunCard run={run} /> : null}
       {run !== null && runStale ? (
         <div className={styles.card}>
           <p className={styles.hint} role="status">
-            This run has said "running" for over 15 minutes — it may have stalled. Running the month
-            again starts it fresh.
+            Salary calculation has been running for more than 15 minutes.
+            <br />
+            It may have stopped working.
+            <br />
+            You can start the salary calculation again. This will start a fresh calculation for the
+            month.
           </p>
         </div>
       ) : null}
       {run !== null && run.status === "completed" ? <SummaryCard run={run} /> : null}
       {run !== null && run.status === "failed" && run.errorMessage !== null ? (
         <div className={styles.card}>
-          <h2 className={styles.panelTitle}>The run failed</h2>
+          <h2 className={styles.panelTitle}>Salary Calculation Failed</h2>
           <p className={styles.failedCopy} role="alert">
             {run.errorMessage}
           </p>
@@ -111,40 +139,42 @@ function MonthCard({
   return (
     <div className={styles.card}>
       <div className={styles.monthHead}>
-        <h2 className={styles.panelTitle}>{month}</h2>
+        <h2 className={styles.panelTitle}>{fmtMonthHead(month)}</h2>
         <Link
           to={`/admin/company/payroll?tab=calendar&month=${month}`}
           className={styles.calendarLink}
         >
-          Calendar
+          View Salary Calendar
         </Link>
       </div>
       <dl className={styles.policyFacts}>
         <div>
-          <dt>Divisor</dt>
-          <dd>{status.divisorConvention}</dd>
+          <dt>Daily Salary Calculation</dt>
+          <dd>{DIVISOR_WORDS[status.divisorConvention] ?? status.divisorConvention}</dd>
         </div>
         <div>
-          <dt>Cut-off</dt>
+          <dt>Attendance Cut-off</dt>
           <dd>{status.cutoffDay}</dd>
         </div>
         <div>
-          <dt>Pay date</dt>
+          <dt>Salary Payment Date</dt>
           <dd>{status.payDate}</dd>
         </div>
         <div>
-          <dt>Governed by</dt>
+          <dt>Salary Rule Used</dt>
           <dd>
-            {status.effectiveFrom === null ? "The defaults" : `Row from ${status.effectiveFrom}`}
+            {status.effectiveFrom === null
+              ? "Default Settings"
+              : `Rule from ${fmtDay(status.effectiveFrom)}`}
           </dd>
         </div>
         <div>
-          <dt>First payable month</dt>
-          <dd>{status.firstPayrollMonth ?? "Nobody has a joining date yet"}</dd>
+          <dt>First Month Salary Can Be Paid</dt>
+          <dd>{status.firstPayrollMonth ?? "No employee joining date has been added yet."}</dd>
         </div>
         <div>
-          <dt>Locked</dt>
-          <dd>{status.locked ? "Yes — permanently" : "No"}</dd>
+          <dt>Is This Month Locked?</dt>
+          <dd>{status.locked ? "Yes" : "No"}</dd>
         </div>
       </dl>
       {status.notRunnableReason !== null ? (
@@ -154,7 +184,9 @@ function MonthCard({
       ) : null}
       {status.locked ? (
         <p className={styles.lockedLine} role="status">
-          This month is locked — its payslips are final.
+          This month has been completed and locked.
+          <br />
+          Salary slips for this month are final and cannot be changed.
         </p>
       ) : (
         <>
@@ -177,8 +209,8 @@ function MonthCard({
                 {busy
                   ? "Starting…"
                   : inFlight || run?.status === "failed"
-                    ? "Run again"
-                    : "Run payroll"}
+                    ? "Calculate Again"
+                    : "Calculate Salary"}
               </button>
             </div>
           </Form>
@@ -198,10 +230,12 @@ function InFlightLine({ run }: { run: PayrollRunView }) {
     <div className={styles.inFlight}>
       <span className={styles.statusPill} data-status={run.status}>
         <span className={styles.statusDot} aria-hidden="true" />
-        {run.status === "queued" ? "Queued" : "Running"}
+        {run.status === "queued" ? "Waiting to Start" : "In Progress"}
       </span>
       <span className={styles.hint}>
-        Payroll is running in the background — press Refresh to check again.
+        Salary calculation is running in the background.
+        <br />
+        Press Refresh to check the latest status.
       </span>
       <button
         type="button"
@@ -222,7 +256,7 @@ function RunCard({ run }: { run: PayrollRunView }) {
   return (
     <div className={styles.card}>
       <div className={styles.monthHead}>
-        <h2 className={styles.panelTitle}>The run</h2>
+        <h2 className={styles.panelTitle}>Salary Calculation</h2>
         <span className={styles.statusPill} data-status={run.status}>
           <span className={styles.statusDot} aria-hidden="true" />
           {run.status === "completed"
@@ -230,17 +264,17 @@ function RunCard({ run }: { run: PayrollRunView }) {
             : run.status === "failed"
               ? "Failed"
               : run.status === "queued"
-                ? "Queued"
-                : "Running"}
+                ? "Waiting to Start"
+                : "In Progress"}
         </span>
       </div>
       <dl className={styles.policyFacts}>
         <div>
-          <dt>Started</dt>
+          <dt>Started At</dt>
           <dd>{fmtWhen(run.startedAt)}</dd>
         </div>
         <div>
-          <dt>{finished ? "Finished" : "Finished at"}</dt>
+          <dt>Finished At</dt>
           <dd>{finished ? fmtWhen(run.finishedAt) : "—"}</dd>
         </div>
       </dl>
@@ -256,50 +290,51 @@ function SummaryCard({ run }: { run: PayrollRunView }) {
   if (summary.status === "no_employees") {
     return (
       <div className={styles.card}>
-        <h2 className={styles.panelTitle}>Run summary</h2>
+        <h2 className={styles.panelTitle}>Salary Calculation Summary</h2>
         <p className={styles.empty} role="status">
-          Nobody was on payroll this month — the run completed with zero payslips. Employees appear
-          once their records carry a joining date and a salary structure.
+          No employees were included in this month's salary calculation.
+          <br />
+          To include an employee, make sure their joining date and salary structure have been added.
         </p>
       </div>
     );
   }
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>Run summary</h2>
+      <h2 className={styles.panelTitle}>Salary Calculation Summary</h2>
       <dl className={styles.policyFacts}>
         <div>
-          <dt>Employees</dt>
+          <dt>Total Employees</dt>
           <dd>{summary.employees}</dd>
         </div>
         <div>
-          <dt>Payslips</dt>
+          <dt>Salary Slips Created</dt>
           <dd>{summary.payslips}</dd>
         </div>
         <div>
-          <dt>Recovery outstanding</dt>
+          <dt>Pending Amounts to Recover</dt>
           <dd>
             {fmtMoney(summary.recovery.outstandingBefore)} →{" "}
             {fmtMoney(summary.recovery.outstandingAfter)}
           </dd>
         </div>
         <div>
-          <dt>New recoveries this run</dt>
+          <dt>New Amounts to Recover This Month</dt>
           <dd>{fmtMoney(summary.recovery.raisedThisRun)}</dd>
         </div>
         <div>
-          <dt>Off-cycle</dt>
+          <dt>Extra Salary Payments</dt>
           <dd>
-            {summary.offCycle.applied} on payslips
+            {summary.offCycle.applied} included in salary slips
             {summary.offCycle.staged > 0
-              ? `, ${summary.offCycle.staged} waiting for the next run`
+              ? `, ${summary.offCycle.staged} waiting for the next salary calculation`
               : ""}
           </dd>
         </div>
       </dl>
       {summary.skips.length > 0 ? (
         <div className={styles.listBlock}>
-          <h3 className={styles.listTitle}>Skipped</h3>
+          <h3 className={styles.listTitle}>Employees Not Included</h3>
           <ul className={styles.lineItems}>
             {summary.skips.map((skip) => (
               <li key={`${skip.employee}-${skip.reason}`} className={styles.lineItem}>
@@ -313,7 +348,7 @@ function SummaryCard({ run }: { run: PayrollRunView }) {
       ) : null}
       {summary.warnings.length > 0 ? (
         <div className={styles.listBlock}>
-          <h3 className={styles.listTitle}>Warnings</h3>
+          <h3 className={styles.listTitle}>Important Messages</h3>
           <ul className={styles.lineItems}>
             {summary.warnings.map((warning) => (
               <li key={warning} className={styles.lineItem}>
@@ -325,14 +360,17 @@ function SummaryCard({ run }: { run: PayrollRunView }) {
       ) : null}
       {summary.offCycle.orphaned.length > 0 ? (
         <div className={styles.listBlock}>
-          <h3 className={styles.listTitle}>One-off lines left behind</h3>
+          <h3 className={styles.listTitle}>Extra Payments Not Included</h3>
           <ul className={styles.lineItems}>
             {summary.offCycle.orphaned.map((orphan) => (
               <li key={`${orphan.employee}-${orphan.label}`} className={styles.lineItem}>
                 <strong className={styles.itemName}>{orphan.employee}</strong>
                 <span className={styles.itemDetail}>
-                  {orphan.label} ({fmtMoney(String(orphan.amount))}) — their run was skipped; move
-                  the line to another month.
+                  "{orphan.label}" – {fmtMoney(String(orphan.amount))}.
+                  <br />
+                  This employee's salary calculation was skipped.
+                  <br />
+                  Please move this extra payment to another month.
                 </span>
               </li>
             ))}
@@ -377,7 +415,7 @@ function LockCard({
     <div className={styles.card}>
       {lock !== null ? (
         <>
-          <h2 className={styles.panelTitle}>Locked</h2>
+          <h2 className={styles.panelTitle}>Month Locked</h2>
           <p className={styles.lockedLine} role="status">
             {lock.confirmation.statement}
           </p>
@@ -385,7 +423,7 @@ function LockCard({
           <p className={styles.hint}>{lock.confirmation.remedy}</p>
           {lock.confirmation.stagedOffCycleLines.length > 0 ? (
             <div className={styles.listBlock}>
-              <h3 className={styles.listTitle}>One-off lines the lock left behind</h3>
+              <h3 className={styles.listTitle}>Extra Payments Not Included</h3>
               <ul className={styles.lineItems}>
                 {lock.confirmation.stagedOffCycleLines.map((line) => (
                   <li key={`${line.employee}-${line.label}`} className={styles.lineItem}>
@@ -398,13 +436,16 @@ function LockCard({
               </ul>
             </div>
           ) : null}
-          <p className={styles.itemDetail}>Locked {fmtWhen(lock.lockedAt)}</p>
+          <p className={styles.itemDetail}>Locked At: {fmtWhen(lock.lockedAt)}</p>
         </>
       ) : (
         <>
-          <h2 className={styles.panelTitle}>Lock this month</h2>
+          <h2 className={styles.panelTitle}>Lock This Month</h2>
           <p className={styles.panelLede}>
-            Locking makes the month's payslips, deductions and attendance final. There is no unlock.
+            Once you lock this month, all salary slips, deductions and attendance details become
+            final.
+            <br />
+            You cannot unlock this month later.
           </p>
           <div className={styles.saveRow}>
             <button
@@ -415,7 +456,7 @@ function LockCard({
               aria-haspopup="dialog"
             >
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Locking…" : "Lock this month…"}
+              {busy ? "Locking…" : "Lock This Month"}
             </button>
           </div>
         </>
@@ -432,7 +473,7 @@ function LockCard({
           {saved && lock !== null ? (
             <div className={dialogStyles.dialogForm}>
               <h3 id={titleId} className={dialogStyles.dialogTitle}>
-                {month} is locked
+                {fmtMonthHead(month)} Locked Successfully
               </h3>
               <p className={dialogStyles.savedMark} role="status">
                 {lock.confirmation.statement}
@@ -455,18 +496,22 @@ function LockCard({
                 Lock {month}?
               </h3>
               <p className={dialogStyles.dialogHint}>
-                The month's payslips, deductions and attendance can no longer change.
+                After locking this month, you cannot change salary slips, deductions or attendance
+                details.
               </p>
               <p className={dialogStyles.dialogHint}>
-                A lock cannot be undone — there is no unlock.
+                This action cannot be undone. You cannot unlock this month later.
               </p>
               {staged.length > 0 ? (
                 <div>
                   <p className={dialogStyles.dialogHint}>
                     {staged.length === 1
-                      ? "One one-off line is still waiting for a run"
-                      : `${staged.length} one-off lines are still waiting for a run`}{" "}
-                    — the lock leaves {staged.length === 1 ? "it" : "them"} behind:
+                      ? "One extra payment is still waiting to be included in a salary calculation."
+                      : `${staged.length} extra payments are still waiting to be included in a salary calculation.`}
+                    <br />
+                    {staged.length === 1
+                      ? "It will not be included if you lock this month."
+                      : "They will not be included if you lock this month."}
                   </p>
                   <ul className={styles.lineItems}>
                     {staged.map((line) => (
@@ -495,7 +540,7 @@ function LockCard({
                 </button>
                 <button type="submit" className={styles.saveButton} disabled={busy}>
                   {busy ? <Spinner size={13} /> : null}
-                  {busy ? "Locking…" : "Lock permanently"}
+                  {busy ? "Locking…" : "Lock Permanently"}
                 </button>
               </div>
             </fetcher.Form>
@@ -520,21 +565,27 @@ function HistoryCard({ history, chosenMonth }: { history: PayrollRunView[]; chos
   if (history.length === 0) {
     return (
       <div className={styles.card}>
-        <h2 className={styles.panelTitle}>Run history</h2>
-        <p className={styles.empty}>No payroll runs yet — run a month above and it shows here.</p>
+        <h2 className={styles.panelTitle}>Salary History</h2>
+        <p className={styles.panelLede}>See the salary calculations that have been done earlier.</p>
+        <p className={styles.empty}>
+          No salary calculations have been done yet.
+          <br />
+          Once you calculate salary for a month, the details will appear here.
+        </p>
       </div>
     );
   }
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>Run history</h2>
+      <h2 className={styles.panelTitle}>Salary History</h2>
+      <p className={styles.panelLede}>See the salary calculations that have been done earlier.</p>
       <table className={styles.historyTable}>
         <thead>
           <tr>
             <th scope="col">Month</th>
             <th scope="col">Status</th>
-            <th scope="col">Payslips</th>
-            <th scope="col">Started</th>
+            <th scope="col">Salary Slips</th>
+            <th scope="col">Started On</th>
           </tr>
         </thead>
         <tbody>
@@ -560,8 +611,8 @@ function HistoryCard({ history, chosenMonth }: { history: PayrollRunView[]; chos
                     : run.status === "failed"
                       ? "Failed"
                       : run.status === "queued"
-                        ? "Queued"
-                        : "Running"}
+                        ? "Waiting to Start"
+                        : "In Progress"}
                 </span>
               </td>
               <td>{run.summary?.payslips ?? "—"}</td>
@@ -570,7 +621,7 @@ function HistoryCard({ history, chosenMonth }: { history: PayrollRunView[]; chos
           ))}
         </tbody>
       </table>
-      <p className={styles.hint}>The 50 most recent runs.</p>
+      <p className={styles.hint}>Showing the latest 50 salary calculations.</p>
     </div>
   );
 }

@@ -19,7 +19,7 @@ const LINE_SELECT = "Add a component";
 describe("Payroll: the structures tab", () => {
   it("renders the picker-only state on the bare tab", async () => {
     renderPayrollAt("/admin/company/payroll?tab=structures");
-    await screen.findByText(/Pick an employee to see their salary structure/);
+    await screen.findByText(/Please select an employee to see their salary details/);
     expect(sentCount("/salary-structures")).toBe(0);
   });
 
@@ -45,7 +45,7 @@ describe("Payroll: the structures tab", () => {
       ]),
     ];
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText(/Applies from/);
+    await screen.findByText(/Starts From/);
     expect(screen.getAllByText("₹20,000.00").length).toBe(2);
     expect(screen.getByText("40% of Basic salary")).toBeTruthy();
     expect(screen.getAllByText("₹8,000.00").length).toBe(1);
@@ -53,13 +53,13 @@ describe("Payroll: the structures tab", () => {
 
   it("saves an amount line as the exact wire body", async () => {
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText("New revision");
-    fireEvent.click(screen.getByRole("button", { name: "New revision" }));
-    fireEvent.change(screen.getByLabelText("Applies from"), { target: { value: "2026-12-01" } });
+    await screen.findByText("Add Salary Structure");
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Structure" }));
+    fireEvent.change(screen.getByLabelText("Applies From"), { target: { value: "2026-12-01" } });
     fireEvent.change(screen.getByLabelText(LINE_SELECT), { target: { value: BASIC_ID } });
     fireEvent.change(screen.getByPlaceholderText("20000.00"), { target: { value: "20000" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save revision" }));
-    await screen.findByText("Structure saved");
+    fireEvent.click(screen.getByRole("button", { name: "Save Salary Structure" }));
+    await screen.findByText("Salary Structure Saved");
     const sent = lastSent("/members/u-a/salary-structures", "PUT");
     expect(sent.body).toEqual({
       effectiveFrom: "2026-12-01",
@@ -69,23 +69,23 @@ describe("Payroll: the structures tab", () => {
 
   it("builds the two formula shapes the BE evaluates", async () => {
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText("New revision");
-    fireEvent.click(screen.getByRole("button", { name: "New revision" }));
+    await screen.findByText("Add Salary Structure");
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Structure" }));
     fireEvent.change(screen.getByLabelText(LINE_SELECT), { target: { value: BASIC_ID } });
     fireEvent.change(screen.getByPlaceholderText("20000.00"), { target: { value: "20000.00" } });
     fireEvent.change(screen.getByLabelText(LINE_SELECT), { target: { value: HRA_ID } });
     const dialogLine = screen.getByText("House rent allowance").closest("div")!;
-    fireEvent.click(within(dialogLine).getByLabelText("Formula"));
+    fireEvent.click(within(dialogLine).getByLabelText("Percentage"));
     fireEvent.change(within(dialogLine).getByLabelText("Percent"), { target: { value: "40" } });
     fireEvent.change(within(dialogLine).getByLabelText("Percent of component"), {
       target: { value: BASIC_ID },
     });
     fireEvent.change(within(dialogLine).getByLabelText("Adjustment"), { target: { value: "+" } });
-    fireEvent.change(within(dialogLine).getByLabelText("Flat amount"), {
+    fireEvent.change(within(dialogLine).getByLabelText("Extra Amount"), {
       target: { value: "1000" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save revision" }));
-    await screen.findByText("Structure saved");
+    fireEvent.click(screen.getByRole("button", { name: "Save Salary Structure" }));
+    await screen.findByText("Salary Structure Saved");
     const sent = lastSent("/members/u-a/salary-structures", "PUT");
     expect(sent.body).toEqual({
       effectiveFrom: expect.any(String),
@@ -120,11 +120,11 @@ describe("Payroll: the structures tab", () => {
       },
     };
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText("New revision");
-    fireEvent.click(screen.getByRole("button", { name: "New revision" }));
+    await screen.findByText("Add Salary Structure");
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Structure" }));
     fireEvent.change(screen.getByLabelText(LINE_SELECT), { target: { value: BASIC_ID } });
     fireEvent.change(screen.getByPlaceholderText("20000.00"), { target: { value: "20000.00" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save revision" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Salary Structure" }));
     await screen.findByText(/circles back on itself/);
     expect(screen.getByRole("alert")).toBeTruthy();
   });
@@ -143,8 +143,8 @@ describe("Payroll: the structures tab", () => {
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
     await screen.findByRole("button", { name: "Edit" });
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await screen.findByText(/This component is inactive/);
-    fireEvent.click(screen.getByRole("button", { name: "Save revision" }));
+    await screen.findByText(/This salary component is turned off/);
+    fireEvent.click(screen.getByRole("button", { name: "Save Salary Structure" }));
     await waitFor(() => {
       const sent = lastSent("/members/u-a/salary-structures", "PUT");
       expect(sent.body).toEqual({
@@ -156,12 +156,12 @@ describe("Payroll: the structures tab", () => {
 
   it("shows the advisory hint when Basic is missing, and still saves", async () => {
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText("New revision");
-    fireEvent.click(screen.getByRole("button", { name: "New revision" }));
+    await screen.findByText("Add Salary Structure");
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Structure" }));
     fireEvent.change(screen.getByLabelText(LINE_SELECT), { target: { value: HRA_ID } });
     fireEvent.change(screen.getByPlaceholderText("20000.00"), { target: { value: "8000.00" } });
-    expect(screen.getByText(/must include the Basic salary component/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Save revision" }));
+    expect(screen.getByText(/Basic Salary is required/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Save Salary Structure" }));
     await waitFor(() => {
       expect(sentCount("/salary-structures", "PUT")).toBe(1);
     });

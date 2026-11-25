@@ -138,7 +138,7 @@ describe("AdminJobDetailPage: the facts and the workflow", () => {
     const facts = await factsSection();
     expect(within(facts).getByText(/Sharma Traders/)).toBeInTheDocument();
     expect(within(facts).getByText(/Priya Nair · \+91 98765 43210/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "All jobs" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "All Jobs" })).toHaveAttribute(
       "href",
       "/admin/company/jobs",
     );
@@ -149,7 +149,7 @@ describe("AdminJobDetailPage: the facts and the workflow", () => {
     const workflow = (await screen.findByText("Work done")).closest("section") as HTMLElement;
     const steps = within(workflow).getAllByRole("listitem");
     for (const step of steps) expect(step.getAttribute("data-state")).toBe("done");
-    expect(within(workflow).getAllByText(/· done/).length).toBe(2);
+    expect(within(workflow).getAllByText(/· Completed/).length).toBe(2);
   });
 
   it("reads a running job's current step as current", async () => {
@@ -187,9 +187,7 @@ describe("AdminJobDetailPage: what the reader may see", () => {
     detailStatus = 404;
     renderDetail();
     expect(
-      await screen.findByText(
-        "This job is not available to you. You can open only the jobs assigned to you.",
-      ),
+      await screen.findByText("You cannot view this job because it is not assigned to you."),
     ).toBeInTheDocument();
   });
 
@@ -199,7 +197,7 @@ describe("AdminJobDetailPage: what the reader may see", () => {
     renderDetail();
     expect(
       await screen.findByText(
-        "This job is not available. It may be mistyped, or outside your company.",
+        "We could not find this job. Please check the job number or make sure it belongs to your company.",
       ),
     ).toBeInTheDocument();
   });
@@ -207,8 +205,8 @@ describe("AdminJobDetailPage: what the reader may see", () => {
   it("offers a retry, not a blank screen, when the job cannot load", async () => {
     detailStatus = 500;
     renderDetail();
-    expect(await screen.findByText("The job could not load.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(await screen.findByText("We could not load the job details.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
   });
 });
 
@@ -219,7 +217,7 @@ describe("AdminJobDetailPage: the attachments", () => {
       attachments: [{ id: "a1", type: "signature", url: null, createdAt: "2026-11-12T08:00:00Z" }],
     };
     renderDetail();
-    const shot = (await screen.findByText("Unavailable")).closest("li") as HTMLElement;
+    const shot = (await screen.findByText("Image Not Available.")).closest("li") as HTMLElement;
     // The tile still says what the attachment was and when it landed.
     expect(shot.textContent).toContain("Signature");
     expect(shot.textContent).toContain("12 Nov");

@@ -14,6 +14,8 @@ type TextInputProps = {
   inputMode?: "text" | "tel" | "numeric" | "email" | "decimal";
   autoComplete?: string;
   placeholder?: string;
+  /** Small extra content drawn inside the label after its text, such as an info tip. */
+  labelHint?: ReactNode;
   /** Content drawn inside the field before the text, such as a country code choice. */
   prefix?: ReactNode;
   /** Content drawn inside the field after the text, at its right edge, such as a show/hide button. */
@@ -41,6 +43,7 @@ export function TextInput({
   inputMode,
   autoComplete,
   placeholder,
+  labelHint,
   prefix,
   trailing,
   hint,
@@ -57,6 +60,7 @@ export function TextInput({
     <div className={styles.field}>
       <label className={hideLabel ? styles.hiddenLabel : styles.label} htmlFor={id}>
         {label}
+        {labelHint ? <span className={styles.labelHint}>{labelHint}</span> : null}
       </label>
       <div className={prefix ? `${styles.control} ${styles.boxed}` : styles.control}>
         {prefix}

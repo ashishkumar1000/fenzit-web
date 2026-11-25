@@ -35,6 +35,25 @@
 .empty {
   margin: 0;
   color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.emptyList {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.listTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
 }
 
 .configRows {
@@ -74,6 +93,9 @@
   color: var(--color-text-strong);
   border-radius: var(--radius-pill);
   padding: var(--space-2) var(--space-4);
+  min-height: var(--touch-comfort);
+  display: inline-flex;
+  align-items: center;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -112,6 +134,9 @@
 }
 
 .statusFacts dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
@@ -144,16 +169,27 @@
 
 .fieldLabel {
   display: grid;
-  gap: var(--space-1);
+  /* Matches TextInput's field rhythm, so the four controls share one row. */
+  gap: var(--space-2);
+  align-content: start;
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
   color: var(--color-text-strong);
+}
+
+.labelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* Matches TextInput's label: semibold body text above a strong-valued control. */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-body);
 }
 
 .select {
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
+  min-height: var(--touch-comfort);
   font-size: var(--font-size-sm);
   background: var(--color-surface-page);
   color: var(--color-text-strong);

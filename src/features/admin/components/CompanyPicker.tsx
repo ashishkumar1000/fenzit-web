@@ -24,14 +24,17 @@ export function CompanyPicker({ memberships, activeCompanyId }: CompanyPickerPro
   );
 
   return (
-    <SectionCard title="Work on a company" meta={active ? active.company : "None picked"}>
+    <SectionCard
+      title="Select Company to Manage"
+      meta={active ? active.company : "No Company Selected"}
+    >
       <p className={styles.status} role="status">
         {active
-          ? `You are working on ${active.company}.`
-          : "No company picked. Pick one below before you act for a company."}
+          ? `You are currently managing ${active.company}.`
+          : "Please select a company below before making any changes."}
       </p>
       {memberships.length === 0 ? (
-        <p className={styles.empty}>This person has no companies to pick.</p>
+        <p className={styles.empty}>This person does not belong to any company.</p>
       ) : (
         <ul className={styles.list}>
           {memberships.map((m, index) => {
@@ -40,9 +43,7 @@ export function CompanyPicker({ memberships, activeCompanyId }: CompanyPickerPro
               return (
                 <li key={key} className={styles.nameOnly}>
                   <span className={styles.name}>{m.company}</span>
-                  <span className={styles.hint}>
-                    Choosing this company is not available here yet.
-                  </span>
+                  <span className={styles.hint}>You cannot select this company right now.</span>
                 </li>
               );
             }
@@ -58,7 +59,9 @@ export function CompanyPicker({ memberships, activeCompanyId }: CompanyPickerPro
                   aria-current={isActive ? "true" : undefined}
                 >
                   <span className={styles.name}>{m.company}</span>
-                  <span className={styles.hint}>{isActive ? "Picked" : "Pick this company"}</span>
+                  <span className={styles.hint}>
+                    {isActive ? "Selected" : "Select This Company"}
+                  </span>
                 </Link>
               </li>
             );
@@ -70,7 +73,7 @@ export function CompanyPicker({ memberships, activeCompanyId }: CompanyPickerPro
           to={{ pathname: location.pathname, search: searchWithCompany(location.search, null) }}
           className={styles.clear}
         >
-          Stop working on this company
+          Stop Managing This Company
         </Link>
       ) : null}
     </SectionCard>

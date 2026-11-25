@@ -1,0 +1,162 @@
+/* An info icon whose tooltip opens on hover or keyboard focus. */
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.button {
+  border: none;
+  background: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  cursor: help;
+}
+
+.button:hover,
+.button:focus-visible {
+  color: var(--color-primary);
+}
+
+.tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  padding: var(--space-3);
+  background: var(--color-surface-card);
+  /* A strong top edge in the brand colour makes the tip read as its own card. */
+  border: 1px solid var(--color-border-default);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  text-align: left;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Near the page's right edge the tip anchors to the icon's right side and
+   grows leftward instead of clipping. */
+.tipEnd {
+  left: auto;
+  right: 0;
+}
+
+/* The title band ends in a hairline, so every tip opens with a divider. */
+.tipTitle {
+  display: block;
+  padding-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A tiny section label inside a tip, e.g. "Divisor options". */
+.tipHeading {
+  display: block;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Option rows: the choice named in bold, hairlines between rows — a table
+   that reads top to bottom. */
+.tipList {
+  list-style: none;
+  margin: var(--space-1) 0;
+  padding: 0;
+  display: grid;
+}
+
+.tipList li {
+  padding: var(--space-1) 0;
+}
+
+.tipList li + li {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.tipList strong {
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-medium);
+}
+
+/* A small maths table, e.g. salary → one day → pay. Row labels sit muted on
+   the left, amounts strong on the right, hairlines between rows. */
+.tipMath {
+  width: 100%;
+  margin: var(--space-2) 0 0;
+  border-collapse: collapse;
+}
+
+.tipMath th,
+.tipMath td {
+  padding: var(--space-1) 0;
+  font-size: inherit;
+  text-align: left;
+}
+
+.tipMath th {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.tipMath td {
+  text-align: right;
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-medium);
+}
+
+.tipMath tr + tr th,
+.tipMath tr + tr td {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* The final row answers the question ("what do they get?"), so it speaks
+   loudest. */
+.tipMath tr:last-child th,
+.tipMath tr:last-child td {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The worked example sits apart in a sunken box with a brand-coloured edge,
+   so the eye lands on it even in a skim. */
+.tipExample {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  background: var(--color-surface-sunken);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.tipExample strong {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.wrap:hover .tip,
+.button:focus-visible + .tip {
+  display: block;
+}
+
+/* A tip pinned open by a tap reads like the hovered one, but the pointer must
+   be able to travel onto it and the state must survive the pointer leaving, so
+   while open it stops being click-through; Escape or a second tap closes it
+   (found in review 2026-11-25, WCAG 1.4.13). */
+.wrap.open .tip {
+  display: block;
+  pointer-events: auto;
+}

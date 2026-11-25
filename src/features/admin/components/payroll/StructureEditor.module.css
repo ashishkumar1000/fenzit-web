@@ -18,6 +18,14 @@
   color: var(--color-text-strong);
 }
 
+/* Copy with real \n breaks (ledes, saved note, pinned hints) keeps them via
+   pre-line — found in review 2026-11-25. */
+.panelLede,
+.savedMark,
+.pinnedNote {
+  white-space: pre-line;
+}
+
 .panelLede {
   margin: 0;
   color: var(--color-text-muted);

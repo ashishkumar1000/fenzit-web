@@ -17,22 +17,22 @@ type SliceOf<T> = { ok: true; data: T } | { ok: false };
  *  prefix is stripped at the render boundary below, so the keys here are
  *  the bare names. */
 const ACTION_LABELS: Record<string, string> = {
-  run_completed: "Payroll run completed",
-  run_failed: "Payroll run failed",
+  run_completed: "Salary calculation completed",
+  run_failed: "Salary calculation failed",
   month_locked: "Month locked",
-  run_override_set: "Statutory amount overridden",
-  offcycle_staged: "Off-cycle line waiting for the run",
-  offcycle_updated: "Off-cycle line changed",
-  offcycle_cancelled: "Off-cycle line cancelled",
+  run_override_set: "Government deduction amount changed",
+  offcycle_staged: "Extra payment waiting",
+  offcycle_updated: "Extra payment updated",
+  offcycle_cancelled: "Extra payment cancelled",
   component_created: "Salary component added",
-  component_updated: "Salary component changed",
+  component_updated: "Salary component updated",
   structure_saved: "Salary structure saved",
-  head_saved: "Deduction saved",
-  head_deactivated: "Deduction deactivated",
-  calendar_saved: "Payroll calendar saved",
-  state_rules_updated: "State rules updated",
-  pf_config_saved: "PF switch saved",
-  pf_exclusion_set: "PF exclusion saved",
+  head_saved: "Deduction added",
+  head_deactivated: "Deduction stopped",
+  calendar_saved: "Salary settings updated",
+  state_rules_updated: "State government rules updated",
+  pf_config_saved: "PF settings updated",
+  pf_exclusion_set: "Employee's PF settings updated",
 };
 
 /** A one-line read of the entry's details, per action — keyed exactly as
@@ -50,34 +50,34 @@ function detailsLine(action: string, details: Record<string, unknown>): string {
   switch (action) {
     case "run_completed":
       return typeof details.payslips === "number"
-        ? `${month(details.month)} — ${details.payslips} payslips`
+        ? `${month(details.month)} – ${details.payslips} salary slips created.`
         : month(details.month);
     case "run_failed":
       return [month(details.month), typeof details.reason === "string" ? details.reason : ""]
         .filter((part) => part !== "")
-        .join(" — ");
+        .join(" – ");
     case "month_locked":
       return month(details.month);
-    case "run_override_set": {
-      const field = details.field === "tds" ? "TDS" : "PF employee share";
-      return `${field} set to ${money(details.amount)} for ${month(details.month)}`;
-    }
+    case "run_override_set":
+      return details.field === "tds"
+        ? `TDS changed to ${money(details.amount)} for ${month(details.month)}`
+        : `Employee's PF amount changed to ${money(details.amount)} for ${month(details.month)}`;
     case "offcycle_staged": {
       const signed = money(details.amount);
       const label = String(details.label ?? "");
-      return signed !== "" ? `${label} — ${signed}` : label;
+      return signed !== "" ? `${label} – ${signed}` : label;
     }
     case "offcycle_updated": {
       const oldBlock = details.old as Record<string, unknown> | undefined;
       const newBlock = details.new as Record<string, unknown> | undefined;
       const oldLabel = typeof oldBlock?.label === "string" ? oldBlock.label : "";
       const newLabel = typeof newBlock?.label === "string" ? newBlock.label : "";
-      return oldLabel !== newLabel ? `${oldLabel} → ${newLabel}` : newLabel;
+      return oldLabel !== newLabel ? `Old name: ${oldLabel}. New name: ${newLabel}.` : newLabel;
     }
     case "offcycle_cancelled": {
       const signed = money(details.amount);
       const label = String(details.label ?? "");
-      return signed !== "" ? `${label} — ${signed}` : label;
+      return signed !== "" ? `${label} – ${signed}` : label;
     }
     case "component_created":
     case "component_updated":
@@ -85,24 +85,30 @@ function detailsLine(action: string, details: Record<string, unknown>): string {
       // already says what happened.
       return "";
     case "structure_saved":
-      return month(details.effective_from) !== "" ? `from ${month(details.effective_from)}` : "";
+      return month(details.effective_from) !== ""
+        ? `Starts from ${month(details.effective_from)}.`
+        : "";
     case "head_saved": {
       const label = String(details.name ?? "");
       const signed = money(details.amount);
-      return signed !== "" ? `${label} — ${signed}` : label;
+      return signed !== "" ? `${label} – ${signed}` : label;
     }
     case "head_deactivated":
       return String(details.name ?? "");
     case "calendar_saved":
-      return month(details.effective_from) !== "" ? `from ${month(details.effective_from)}` : "";
+      return month(details.effective_from) !== ""
+        ? `Starts from ${month(details.effective_from)}.`
+        : "";
     case "state_rules_updated":
-      return details.notified === true ? "Marked as notified" : "Marked as not notified";
+      return details.notified === true ? "Marked as updated." : "Marked as not updated.";
     case "pf_config_saved":
-      return `from ${month(details.effective_from)} — ${
-        details.covered === true ? "covering employees" : "not covering employees"
+      return `From ${month(details.effective_from)} – ${
+        details.covered === true ? "PF will apply to employees." : "PF will not apply to employees."
       }`;
     case "pf_exclusion_set":
-      return details.excluded === true ? "Excluded from PF" : "PF exclusion removed";
+      return details.excluded === true
+        ? "Employee is not covered by PF."
+        : "Employee is covered by PF.";
     default:
       return "";
   }
@@ -119,22 +125,23 @@ export function AuditPanel({
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The audit trail could not load. Try opening this page again from the menu.
+          We could not load the history. Please go back to the menu and open this page again.
         </p>
       </div>
     );
   }
   const nameFor = (userId: string): string =>
-    members.data.find((m) => m.userId === userId)?.name ?? "someone";
+    members.data.find((m) => m.userId === userId)?.name ?? "Someone";
   return (
     <div className={styles.card}>
       <p className={styles.panelLede}>
-        Every payroll change your company has made, newest first — who did it, about whom, and what
-        changed.
+        See all changes made to salary settings in your company. You can check who made the change,
+        which employee it was for and what was changed.
       </p>
       {entries.data.length === 0 ? (
         <p className={styles.empty}>
-          Nothing recorded yet — payroll changes appear here once you start.
+          No changes have been recorded yet. Once you start making salary-related changes, they will
+          appear here.
         </p>
       ) : (
         <ul className={styles.entries}>
@@ -150,7 +157,9 @@ export function AuditPanel({
                 </div>
                 <p className={styles.entryLine}>
                   {nameFor(entry.actorId)}
-                  {entry.targetUserId !== null ? ` — about ${nameFor(entry.targetUserId)}` : ""}
+                  {entry.targetUserId !== null
+                    ? ` made a change for ${nameFor(entry.targetUserId)}`
+                    : " made a change"}
                   {line !== "" ? `: ${line}` : ""}
                 </p>
               </li>
@@ -159,7 +168,7 @@ export function AuditPanel({
         </ul>
       )}
       {entries.data.length >= 100 ? (
-        <p className={styles.hint}>The 100 most recent entries.</p>
+        <p className={styles.hint}>Showing the latest 100 changes.</p>
       ) : null}
     </div>
   );

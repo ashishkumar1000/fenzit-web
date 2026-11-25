@@ -41,13 +41,13 @@ describe("Payroll: the audit tab", () => {
       }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=audit");
-    await screen.findByText("Payroll run completed");
-    expect(screen.getByText(/2026-11 — 5 payslips/)).toBeTruthy();
+    await screen.findByText("Salary calculation completed");
+    expect(screen.getByText(/2026-11 – 5 salary slips created./)).toBeTruthy();
     expect(screen.getByText("Month locked")).toBeTruthy();
     expect(screen.getByText(/2026-10/)).toBeTruthy();
-    expect(screen.getByText(/Festival bonus — ₹5,000.00/)).toBeTruthy();
-    expect(screen.getByText(/about Asha V/)).toBeTruthy();
-    expect(screen.getByText(/TDS set to ₹12,000.00/)).toBeTruthy();
+    expect(screen.getByText(/Festival bonus – ₹5,000.00/)).toBeTruthy();
+    expect(screen.getByText(/made a change for Asha V/)).toBeTruthy();
+    expect(screen.getByText(/TDS changed to ₹12,000.00/)).toBeTruthy();
     expect(screen.getAllByText(/Ravi Kumar/).length).toBeGreaterThan(0);
     // No raw action code reaches the owner.
     expect(screen.queryByText(/payroll\./)).toBeNull();
@@ -86,15 +86,15 @@ describe("Payroll: the audit tab", () => {
       }),
     ];
     renderPayrollAt("/admin/company/payroll?tab=audit");
-    await screen.findByText(/from 2026-10-01 — covering employees/);
-    expect(screen.getByText(/from 2026-11-01/)).toBeTruthy();
-    expect(screen.getByText(/from 2026-09-01/)).toBeTruthy();
+    await screen.findByText(/From 2026-10-01 – PF will apply to employees/);
+    expect(screen.getByText(/Starts from 2026-11-01/)).toBeTruthy();
+    expect(screen.getByText(/Starts from 2026-09-01/)).toBeTruthy();
     expect(screen.getByText("Salary component added")).toBeTruthy();
     // The BE records changed fields only — no dangling "name — " line.
     expect(screen.queryByText(/Salary component added: /)).toBeNull();
     expect(screen.getByText(/Advance$/)).toBeTruthy();
-    expect(screen.getByText(/Festival bonus — ₹5,000.00/)).toBeTruthy();
-    expect(screen.getByText(/2026-10 — the run executor stopped before finishing/)).toBeTruthy();
+    expect(screen.getByText(/Festival bonus – ₹5,000.00/)).toBeTruthy();
+    expect(screen.getByText(/2026-10 – the run executor stopped before finishing/)).toBeTruthy();
   });
 
   it("shows the honest truncation note at the cap", async () => {
@@ -105,7 +105,7 @@ describe("Payroll: the audit tab", () => {
       }),
     );
     renderPayrollAt("/admin/company/payroll?tab=audit");
-    await screen.findByText("The 100 most recent entries.");
+    await screen.findByText("Showing the latest 100 changes.");
   });
 
   it("renders the retry line when the read fails", async () => {

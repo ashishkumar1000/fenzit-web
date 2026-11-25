@@ -22,17 +22,17 @@ import styles from "./DossierSections.module.css";
  *  capped recent slice. */
 
 function more(total: number, shown: number, what: string) {
-  return total > shown ? `and ${total - shown} more ${what}` : null;
+  return total > shown ? `And ${total - shown} more ${what}` : null;
 }
 
 export function CompaniesSection({ memberships }: { memberships: DossierMembership[] }) {
   return (
     <SectionCard title="Companies" meta={memberships.length > 0 ? `${memberships.length}` : null}>
       <DataTable
-        columns={["Company", "Role", "Status", "Code", "Invited by", "Joined"]}
-        empty="No company memberships."
+        columns={["Company Name", "Role", "Status", "Company Code", "Invited By", "Joined On"]}
+        empty="This person is not part of any company."
         rows={memberships.map((m): TableCell[] => [
-          { text: `${m.company}${m.isFounder ? " (founder)" : ""}` },
+          { text: `${m.company}${m.isFounder ? " (Founder)" : ""}` },
           { text: humanize(m.role) },
           { text: m.status, status: true },
           { text: m.employeeCode ?? "—" },
@@ -48,8 +48,16 @@ export function CompanySummarySection({ company }: { company: DossierCompany }) 
   return (
     <SectionCard title="Company" meta={company.name.trim()}>
       <DataTable
-        columns={["Members", "Customers", "Jobs", "Attendance", "GSTIN", "UPI", "State"]}
-        empty="No company."
+        columns={[
+          "Team Members",
+          "Customers",
+          "Jobs",
+          "Attendance",
+          "GST Number (GSTIN)",
+          "UPI ID",
+          "State",
+        ]}
+        empty="No company details available."
         rows={[
           [
             { text: String(company.members) },
@@ -70,8 +78,16 @@ export function JobsSection({ jobs, total }: { jobs: DossierJob[]; total: number
   return (
     <SectionCard title="Jobs" meta={String(total)} footer={more(total, jobs.length, "jobs")}>
       <DataTable
-        columns={["Job", "Status", "Step", "Skill", "Customer", "Scheduled", "Photos"]}
-        empty="No jobs as technician."
+        columns={[
+          "Job Number",
+          "Status",
+          "Current Step",
+          "Work Type",
+          "Customer",
+          "Scheduled Date",
+          "Photos",
+        ]}
+        empty="This person has not worked on any jobs."
         rows={jobs.map((j): TableCell[] => [
           { text: j.jobNumber },
           { text: j.status, status: true },
@@ -88,16 +104,18 @@ export function JobsSection({ jobs, total }: { jobs: DossierJob[]; total: number
 
 export function AttendanceSection({ attendance }: { attendance: DossierAttendance }) {
   const chips = [
-    `attempts ${attendance.attemptsCount}`,
-    `corrections ${attendance.corrections}`,
-    `overrides ${attendance.overrides} (authored ${attendance.overridesAuthored})`,
-    `weekly-off ${attendance.weeklyOff}`,
-    `enrolments ${attendance.enrolments}`,
+    `Check-in attempts ${attendance.attemptsCount}`,
+    `Attendance corrections ${attendance.corrections}`,
+    `Attendance changes ${attendance.overrides} (authored ${attendance.overridesAuthored})`,
+    `Weekly holidays ${attendance.weeklyOff}`,
+    `Attendance enrolments ${attendance.enrolments}`,
   ];
   return (
     <SectionCard
       title="Attendance"
-      meta={`${attendance.records} records · recent 5`}
+      meta={`Showing ${attendance.records} attendance records.${
+        attendance.records > 5 ? " Latest 5 are shown." : ""
+      }`}
       footer={
         <span className={styles.chips}>
           {chips.map((c) => (
@@ -107,21 +125,28 @@ export function AttendanceSection({ attendance }: { attendance: DossierAttendanc
       }
     >
       <DataTable
-        columns={["Day", "Check-in", "Check-out", "In dist.", "Out dist.", "GPS"]}
-        empty="No attendance records."
+        columns={[
+          "Date",
+          "Check-in",
+          "Check-out",
+          "Distance at Check-in",
+          "Distance at Check-out",
+          "GPS Status",
+        ]}
+        empty="No attendance records found."
         rows={attendance.recent.map((r): TableCell[] => [
           { text: fmtDay(r.workDate) },
           { text: fmtWhen(r.checkin), quiet: true },
           { text: fmtWhen(r.checkout), quiet: true },
           { text: fmtDistance(r.checkinDistance) },
           { text: fmtDistance(r.checkoutDistance) },
-          { text: r.mocked ? "mocked" : "ok", status: true },
+          { text: r.mocked ? "Test Location" : "Verified", status: true },
         ])}
       />
       {attendance.attempts.length > 0 ? (
         <div className={styles.stack}>
           <DataTable
-            columns={["Attempt kind", "Outcome", "Provider", "Distance", "When"]}
+            columns={["Attempt Type", "Result", "Service Provider", "Distance", "Date and Time"]}
             empty=""
             rows={attendance.attempts.map((a): TableCell[] => [
               { text: humanize(a.kind) },
@@ -145,8 +170,8 @@ export function LeaveSection({ d }: { d: LookupResponse }) {
       footer={more(d.counts.leaveRequests, d.leave.length, "requests")}
     >
       <DataTable
-        columns={["From", "To", "Part", "State", "Reason"]}
-        empty="No leave requests."
+        columns={["Start Date", "End Date", "Leave Duration", "Status", "Reason"]}
+        empty="No leave requests found."
         rows={d.leave.map((l): TableCell[] => [
           { text: fmtDay(l.start) },
           { text: fmtDay(l.end) },
@@ -157,7 +182,7 @@ export function LeaveSection({ d }: { d: LookupResponse }) {
       />
       {d.leaveDays.length > 0 ? (
         <div className={styles.stack}>
-          <p className={styles.caption}>Graded leave days</p>
+          <p className={styles.caption}>Leave Days by Status</p>
           <span className={styles.chips}>
             {d.leaveDays.map((day) => (
               <LeaveDayChip key={day.date} day={day} />
@@ -176,10 +201,10 @@ function LeaveDayChip({ day }: { day: DossierLeaveDay }) {
 /** The leave timeline as its own card — applying, cancelling, revoking. */
 export function LeaveEventsSection({ d }: { d: LookupResponse }) {
   return (
-    <SectionCard title="Leave timeline" meta={String(d.leaveEvents.length)}>
+    <SectionCard title="Leave History" meta={String(d.leaveEvents.length)}>
       <DataTable
-        columns={["Event", "Actor", "Dates", "When"]}
-        empty="No leave events."
+        columns={["Activity", "Changed By", "Leave Dates", "Date and Time"]}
+        empty="No leave activity found."
         rows={d.leaveEvents.map((e): TableCell[] => [
           { text: humanize(e.cause) },
           { text: e.actor ?? "—" },
@@ -195,7 +220,7 @@ export function SkillsSection({ skills }: { skills: string[] }) {
   return (
     <SectionCard title="Skills" meta={String(skills.length)}>
       {skills.length === 0 ? (
-        <DataTable columns={[]} rows={[]} empty="No skills enrolled." />
+        <DataTable columns={[]} rows={[]} empty="No skills added yet." />
       ) : (
         <span className={styles.chips}>
           {skills.map((s) => (
@@ -218,17 +243,17 @@ export function InvitesSection({
 }) {
   return (
     <SectionCard
-      title="Invites sent"
+      title="Invitations Sent"
       meta={String(total)}
       footer={
-        invitedBy !== null ? `invited by ${invitedBy}` : more(total, invites.length, "invites")
+        invitedBy !== null ? `Invited by ${invitedBy}` : more(total, invites.length, "invitations")
       }
     >
       <DataTable
-        columns={["Person", "Phone", "Company", "Role", "Status"]}
-        empty="Nobody invited by this person."
+        columns={["Person", "Phone Number", "Company", "Role", "Status"]}
+        empty="This person has not invited anyone yet."
         rows={invites.map((i): TableCell[] => [
-          { text: i.name ?? "(no name)" },
+          { text: i.name ?? "No Name" },
           { text: i.phone, quiet: true },
           { text: i.company },
           { text: humanize(i.role) },
@@ -245,10 +270,10 @@ export function ModerationsSection({
   corrections: LookupResponse["authored"]["corrections"];
 }) {
   return (
-    <SectionCard title="Attendance moderations" meta={String(corrections.length)}>
+    <SectionCard title="Attendance Changes" meta={String(corrections.length)}>
       <DataTable
-        columns={["Day", "Employee", "Note"]}
-        empty="No corrections authored."
+        columns={["Date", "Employee", "Reason"]}
+        empty="No attendance changes recorded."
         rows={corrections.map((c): TableCell[] => [
           { text: fmtDay(c.workDate) },
           { text: c.employee ?? "—" },
@@ -273,12 +298,12 @@ export function NotificationsSection({
       footer={more(total, notifications.length, "notifications")}
     >
       <DataTable
-        columns={["Event", "Summary", "Read", "When"]}
-        empty="No notifications."
+        columns={["Notification", "Details", "Read Status", "Date and Time"]}
+        empty="No notifications found."
         rows={notifications.map((n): TableCell[] => [
           { text: humanize(n.event) },
           { text: n.summary ?? "—" },
-          { text: n.read === null ? "unread" : fmtWhen(n.read), quiet: true },
+          { text: n.read === null ? "Not Read Yet" : fmtWhen(n.read), quiet: true },
           { text: fmtWhen(n.createdAt), quiet: true },
         ])}
       />
@@ -288,13 +313,17 @@ export function NotificationsSection({
 
 export function AuditSection({ rows, total }: { rows: LookupResponse["audit"]; total: number }) {
   return (
-    <SectionCard title="Audit trail" meta={String(total)} footer={more(total, rows.length, "rows")}>
+    <SectionCard
+      title="Change History"
+      meta={String(total)}
+      footer={more(total, rows.length, "changes")}
+    >
       <DataTable
-        columns={["Action", "Direction", "When"]}
-        empty="No audit rows."
+        columns={["Action", "Person Involved", "Date and Time"]}
+        empty="No changes recorded yet."
         rows={rows.map((a): TableCell[] => [
           { text: a.action },
-          { text: a.isActor ? "as actor" : "as target" },
+          { text: a.isActor ? "Changed by this person." : "Changed for this person." },
           { text: fmtWhen(a.createdAt), quiet: true },
         ])}
       />
@@ -310,10 +339,14 @@ export function ActivitySection({
   total: number;
 }) {
   return (
-    <SectionCard title="Activity" meta={String(total)} footer={more(total, rows.length, "events")}>
+    <SectionCard
+      title="Recent Activity"
+      meta={String(total)}
+      footer={more(total, rows.length, "activities")}
+    >
       <DataTable
-        columns={["Event", "Job", "When"]}
-        empty="No activity events."
+        columns={["Activity", "Job", "Date and Time"]}
+        empty="No recent activity found."
         rows={rows.map((a): TableCell[] => [
           { text: humanize(a.event) },
           { text: a.jobNumber ?? "—" },
@@ -326,10 +359,10 @@ export function ActivitySection({
 
 export function ReportsSection({ rows, total }: { rows: DossierReport[]; total: number }) {
   return (
-    <SectionCard title="Reports" meta={String(total)} footer={more(total, rows.length, "requests")}>
+    <SectionCard title="Reports" meta={String(total)} footer={more(total, rows.length, "reports")}>
       <DataTable
-        columns={["Type", "Status", "When"]}
-        empty="No report requests."
+        columns={["Report Type", "Status", "Date and Time"]}
+        empty="No reports have been requested yet."
         rows={rows.map((r): TableCell[] => [
           { text: humanize(r.type) },
           { text: r.status, status: true },
@@ -342,10 +375,10 @@ export function ReportsSection({ rows, total }: { rows: DossierReport[]; total: 
 
 export function OfficesSection({ offices }: { offices: DossierOffice[] }) {
   return (
-    <SectionCard title="Offices" meta={String(offices.length)}>
+    <SectionCard title="Office Assignments" meta={String(offices.length)}>
       <DataTable
-        columns={["Office", "Address", "Radius", "Validity"]}
-        empty="No office assignments."
+        columns={["Office Name", "Address", "Attendance Area", "Validity"]}
+        empty="No office has been assigned."
         rows={offices.map((o): TableCell[] => [
           { text: o.name },
           { text: o.address ?? "—" },

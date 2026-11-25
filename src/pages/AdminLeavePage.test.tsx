@@ -605,7 +605,9 @@ describe("AdminLeavePage: the requests tab", () => {
       return respondDefault(url);
     });
     renderLeave("/admin/company/leave?tab=requests&selected=r-1");
-    expect(await screen.findByRole("link", { name: "Leave, 1 pending" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("link", { name: "Leave – 1 request waiting" }),
+    ).toBeInTheDocument();
     // The dedupe itself: badge loader + pills loader = one network call.
     expect(summaryCalls).toBe(1);
     fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));

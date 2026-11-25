@@ -32,12 +32,12 @@ export function OverrideControl({ month, members }: { month: string; members: Me
         }}
         aria-haspopup="dialog"
       >
-        Override a statutory amount
+        Change Government Deduction Amount
       </button>
       <dialog
         ref={dialogRef}
         className={`${dialogStyles.dialog} ${styles.wideDialog}`}
-        aria-label="Override a statutory amount"
+        aria-label="Change Government Deduction Amount"
         onClick={(event) => {
           if (event.target === dialogRef.current) dialogRef.current?.close();
         }}
@@ -83,11 +83,13 @@ function OverrideForm({
     return (
       <div className={dialogStyles.dialogForm}>
         <h3 id={titleId} className={dialogStyles.dialogTitle}>
-          Override saved
+          Amount Updated
         </h3>
         <p className={dialogStyles.savedMark} role="status">
-          The next run of {month} pays this amount. The employer carries the statutory exposure for
-          it.
+          The next salary calculation for {month} will use this amount.
+          <br />
+          The company will be responsible for any government compliance difference caused by
+          changing this amount.
         </p>
         <div className={dialogStyles.dialogActions}>
           <button type="button" className={dialogStyles.saveButton} onClick={close}>
@@ -106,18 +108,20 @@ function OverrideForm({
       <input type="hidden" name="amount" value={amountValue ?? ""} />
       <input type="hidden" name="acknowledgedLiability" value={String(acknowledged)} />
       <h3 id={titleId} className={dialogStyles.dialogTitle}>
-        Override a statutory amount — {month}
+        Change Government Deduction Amount – {month}
       </h3>
       <p className={dialogStyles.dialogHint}>
-        The run pays this figure instead of the computed one. The employer carries the statutory
-        exposure for anything overridden.
+        The next salary calculation will use the amount you enter instead of the amount calculated
+        by the system.
+        <br />
+        The company will be responsible for any difference or legal issue caused by this change.
       </p>
       <div className={styles.pickerRow}>
         <Dropdown
           label="Employee"
           options={roster.map((m) => ({
             value: m.userId,
-            label: m.name ?? "(no name)",
+            label: m.name ?? "No Name",
             meta: m.employeeCode,
           }))}
           value={userId}
@@ -125,25 +129,25 @@ function OverrideForm({
         />
       </div>
       <label className={styles.fieldLabel}>
-        Which amount
+        Which Amount Do You Want to Change?
         <select
           className={styles.select}
           value={field}
           onChange={(event) => setField(event.target.value === "tds" ? "tds" : "pf_employee")}
         >
-          <option value="pf_employee">PF — employee share</option>
-          <option value="tds">TDS</option>
+          <option value="pf_employee">PF – Employee's Share</option>
+          <option value="tds">Income Tax (TDS)</option>
         </select>
       </label>
       <TextInput
         id={`${titleId}-amount`}
-        label="Amount per month"
+        label="Amount Per Month"
         inputMode="decimal"
         value={amount}
         onChange={(value) => setAmount(value.replace(/[^\d.]/g, ""))}
         placeholder="12000.00"
         maxLength={16}
-        hint="Digits only, up to two decimals."
+        hint="Enter numbers only. You can enter up to 2 decimal places."
       />
       <label className={dialogStyles.switchRow}>
         <input
@@ -152,17 +156,17 @@ function OverrideForm({
           onChange={(event) => setAcknowledged(event.target.checked)}
         />
         <span>
-          I accept the employer-liability acknowledgment
+          I understand that the company is responsible for this change.
           <small>
             {field === "pf_employee"
-              ? "The run pays this PF amount and the employer carries the statutory exposure."
-              : "The run pays this TDS figure and the employer carries the statutory exposure."}
+              ? "The next salary calculation will use this PF amount. The company is responsible for any difference from the government-required amount."
+              : "The next salary calculation will use this TDS amount. The company is responsible for any difference from the government-required amount."}
           </small>
         </span>
       </label>
       {amountValue !== null ? (
         <p className={dialogStyles.dialogHint}>
-          Saves as {fmtMoney(amountValue)} for {month}.
+          The amount saved will be {fmtMoney(amountValue)} for {month}.
         </p>
       ) : null}
       {error !== "" ? (
@@ -176,7 +180,7 @@ function OverrideForm({
         </button>
         <button type="submit" className={dialogStyles.saveButton} disabled={busy || !ready}>
           {busy ? <Spinner size={13} /> : null}
-          {busy ? "Saving…" : "Save override"}
+          {busy ? "Saving…" : "Save Changes"}
         </button>
       </div>
     </fetcher.Form>

@@ -232,7 +232,7 @@ afterEach(() => {
 });
 
 describe("Employee profile: the tabs fetch only their own section", () => {
-  it("opens on Master Record and asks only for the member and their employment", async () => {
+  it("opens on Personal Details and asks only for the member and their employment", async () => {
     renderAt("/admin/company/employees/u-a");
     await screen.findByText("Date of Birth");
     expect(screen.getByText("Pipe Leak Repair")).toBeTruthy();
@@ -241,7 +241,7 @@ describe("Employee profile: the tabs fetch only their own section", () => {
         (_, element) =>
           element?.tagName === "P" &&
           (element?.textContent ?? "").startsWith(
-            "Statutory profile incomplete for automated EPF filing",
+            "Some details are missing. Please add the following information:",
           ),
       ),
     ).toBeTruthy();
@@ -272,8 +272,8 @@ describe("Employee profile: the tabs fetch only their own section", () => {
   it("the Jobs tab fetches the person's own jobs with the technician scope", async () => {
     renderAt("/admin/company/employees/u-a?tab=jobs");
     await screen.findByText("JB-2026-0009");
-    const chipRow = screen.getByText("Total jobs", { exact: false }).closest("div");
-    expect(chipRow?.textContent).toContain("3 Total jobs");
+    const chipRow = screen.getByText("Total Jobs", { exact: false }).closest("div");
+    expect(chipRow?.textContent).toContain("3 Total Jobs");
     expect(chipRow?.textContent).toContain("1 In progress");
     expect(chipRow?.textContent).toContain("1 Scheduled");
     expect(chipRow?.textContent).toContain("1 Completed");
@@ -285,10 +285,10 @@ describe("Employee profile: the tabs fetch only their own section", () => {
     expect(sentRequests().some((r) => r.url.includes("/attendance/punches"))).toBe(false);
   });
 
-  it("an unknown tab value falls back to Master Record", async () => {
+  it("an unknown tab value falls back to Personal Details", async () => {
     renderAt("/admin/company/employees/u-a?tab=nonsense");
     await screen.findByText("Date of Birth");
-    expect(screen.getByRole("heading", { level: 3, name: "Workforce master record" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: "Employee Details" })).toBeTruthy();
   });
 });
 
@@ -304,9 +304,9 @@ describe("Employee profile: a stale or foreign id", () => {
       return jsonResponse({});
     });
     renderAt("/admin/company/employees/u-a");
-    await screen.findByText(/not on the team/i);
+    await screen.findByText(/no longer in your team/i);
     expect(screen.getByRole("heading", { level: 1, name: "Employee" })).toBeTruthy();
-    expect(screen.getByText("Back to all employees")).toBeTruthy();
+    expect(screen.getByText("Back to All Employees")).toBeTruthy();
   });
 
   it("lands a malformed id on the same state — the BE refuses it with 400, not 404", async () => {
@@ -319,7 +319,7 @@ describe("Employee profile: a stale or foreign id", () => {
       return jsonResponse({});
     });
     renderAt("/admin/company/employees/not-a-uuid");
-    await screen.findByText(/not on the team/i);
+    await screen.findByText(/no longer in your team/i);
     expect(screen.getByRole("heading", { level: 1, name: "Employee" })).toBeTruthy();
   });
 });
@@ -378,13 +378,13 @@ describe("Employee profile: deactivate / reinstate", () => {
     await screen.findByText("Date of Birth");
     await waitFor(() => expect(screen.getByRole("button", { name: "Deactivate" })).toBeTruthy());
     fireEvent.click(screen.getByRole("button", { name: "Deactivate" }));
-    await screen.findByRole("button", { name: "Confirm deactivate" });
+    await screen.findByRole("button", { name: "Confirm Deactivation" });
     // The confirm step is cancellable.
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.queryByRole("button", { name: "Confirm deactivate" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Confirm Deactivation" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Deactivate" }));
-    await screen.findByRole("button", { name: "Confirm deactivate" });
-    fireEvent.click(screen.getByRole("button", { name: "Confirm deactivate" }));
+    await screen.findByRole("button", { name: "Confirm Deactivation" });
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Deactivation" }));
 
     await waitFor(() => {
       const patch = sentRequests().find(
@@ -399,9 +399,11 @@ describe("Employee profile: deactivate / reinstate", () => {
     // is consumed by the action, never forwarded.
     expect(patch.body).toMatchObject({ active: false });
     // The action revalidates the page: the member read re-runs and the
-    // reloaded profile shows the parked status with a Reinstate action.
+    // reloaded profile shows the parked status with an Activate Again action.
     await waitFor(() => screen.getByText("Deactivated"));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reinstate" })).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Activate Again" })).toBeTruthy(),
+    );
   });
 
   it("never offers Deactivate on the signed-in owner's own profile", async () => {
@@ -409,20 +411,22 @@ describe("Employee profile: deactivate / reinstate", () => {
     renderAt("/admin/company/employees/u-owner");
     await screen.findByText("Asha V");
     expect(screen.queryByRole("button", { name: "Deactivate" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Reinstate" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Activate Again" })).toBeNull();
   });
 });
 
 describe("Employee profile: the Attendance tab", () => {
-  it("shows the assigned office, the shift rules and the honest punch empty state", async () => {
+  it("shows the assigned office, the work timings and the honest punch empty state", async () => {
     renderAt("/admin/company/employees/u-a?tab=attendance");
     await screen.findByText("Jha home");
     expect(screen.getByText("H1/104B, Block H, Vikaspuri, Delhi, 110018, India")).toBeTruthy();
-    expect(screen.getByText("200 m geofence radius")).toBeTruthy();
-    expect(screen.getByText("Assigned since 16 Jan 2026")).toBeTruthy();
-    expect(screen.getByText("Late cutoff")).toBeTruthy();
-    expect(screen.getByText("15 min")).toBeTruthy();
-    expect(screen.getByText("Punches appear here once Asha V checks in at Jha home.")).toBeTruthy();
+    expect(screen.getByText("200 metres around the office.")).toBeTruthy();
+    expect(screen.getByText("Assigned From: 16 Jan 2026")).toBeTruthy();
+    expect(screen.getByText("Late After")).toBeTruthy();
+    expect(screen.getByText("15 minutes")).toBeTruthy();
+    expect(
+      screen.getByText("Attendance details will appear here once Asha V checks in at Jha home."),
+    ).toBeTruthy();
   });
 
   it("lists real punch rows with their graded status when the month has punches", async () => {
@@ -464,7 +468,7 @@ describe("Employee profile: the Attendance tab", () => {
       return jsonResponse({});
     });
     renderAt("/admin/company/employees/u-a?tab=attendance");
-    await screen.findByText("Not enrolled in attendance yet.");
+    await screen.findByText("Attendance is not set up for this employee yet.");
   });
 
   it("does not call a failed enrolment read 'not enrolled'", async () => {
@@ -472,9 +476,15 @@ describe("Employee profile: the Attendance tab", () => {
       url.endsWith("/attendance/enrolments") ? jsonResponse({}, 500) : route(url),
     );
     renderAt("/admin/company/employees/u-a?tab=attendance");
-    await screen.findByText("The enrolment could not load — retry the page from the menu.");
-    expect(screen.queryByText("No shift rules — the person is not enrolled.")).toBeNull();
-    expect(screen.getByText("The shift rules could not load.")).toBeTruthy();
+    await screen.findByText(
+      "We could not load the office details. Please try opening this page again.",
+    );
+    expect(
+      screen.queryByText(
+        "No work timings have been set because this employee is not enrolled for attendance.",
+      ),
+    ).toBeNull();
+    expect(screen.getByText("We could not load the work timings.")).toBeTruthy();
   });
 
   it("shows only the rule that covers today, never a retired or future-dated one", async () => {
@@ -547,10 +557,10 @@ describe("Employee profile: the Attendance tab", () => {
     renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
     await screen.findByText("Jha home");
     const nav = screen.getByRole("navigation", { name: "Month" });
-    expect(within(nav).getByRole("link", { name: "‹ Previous" }).getAttribute("href")).toBe(
+    expect(within(nav).getByRole("link", { name: "‹ Previous Month" }).getAttribute("href")).toBe(
       "/admin/company/employees/u-a?tab=attendance&month=2026-09",
     );
-    expect(within(nav).getByRole("link", { name: "Next ›" }).getAttribute("href")).toBe(
+    expect(within(nav).getByRole("link", { name: "Next Month ›" }).getAttribute("href")).toBe(
       "/admin/company/employees/u-a?tab=attendance&month=2026-11",
     );
   });
@@ -559,9 +569,9 @@ describe("Employee profile: the Attendance tab", () => {
 describe("Employee profile: the Leave and Payroll tabs", () => {
   it("renders balance cards from the balances endpoint with their accrual captions", async () => {
     renderAt("/admin/company/employees/u-a?tab=leave");
-    await screen.findByText("Accrues 1 day / month");
+    await screen.findByText("1 day added every month.");
     const card = screen.getByText("Earned Leave").closest("div");
-    expect(card?.textContent).toContain("2 days left");
+    expect(card?.textContent).toContain("2 Days Available");
     expect(
       screen.getByText(
         (_, element) =>
@@ -570,7 +580,7 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
       ),
     ).toBeTruthy();
     // A whole list never claims there is more behind it.
-    expect(screen.queryByText(/not listed in the console yet/)).toBeNull();
+    expect(screen.queryByText(/not available here yet/)).toBeNull();
     // The requests list never fires without its own read.
     expect(sentRequests().some((r) => r.url.includes("/payroll/payslips"))).toBe(false);
   });
@@ -607,7 +617,7 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
         (_, element) =>
           element?.tagName === "P" &&
           (element?.textContent ?? "").startsWith(
-            "Only the newest 1 show here — older requests are not listed in the console yet.",
+            "Showing only the latest 1 leave request. Older requests are not available here yet.",
           ),
       ),
     ).toBeTruthy();
@@ -616,7 +626,7 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
   it("reads the recent payslip months and keeps only this employee's rows", async () => {
     renderAt("/admin/company/employees/u-a?tab=payroll");
     await screen.findByText("No salary structure yet");
-    expect(screen.getByText("Manage salary in Payroll")).toBeTruthy();
+    expect(screen.getByText("Manage salary")).toBeTruthy();
     const payslipReads = sentRequests().filter((r) => r.url.includes("/payroll/payslips"));
     expect(payslipReads.length).toBe(3);
     expect(screen.getByText(/No payslips yet/)).toBeTruthy();

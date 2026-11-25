@@ -26,12 +26,12 @@ export function AddEmployeeControl({ countries }: { countries: CountryCode[] | u
         }}
         aria-haspopup="dialog"
       >
-        Invite employee
+        Invite Employee
       </button>
       <dialog
         ref={dialogRef}
         className={dialogStyles.dialog}
-        aria-label="Invite employee"
+        aria-label="Invite Employee"
         onClick={(event) => {
           if (event.target === dialogRef.current) dialogRef.current?.close();
         }}
@@ -65,8 +65,8 @@ function AddEmployeeForm({ countries, close }: { countries: CountryCode[]; close
   const phoneShort = phone.length < 6;
   const ready = !nameMissing && !phoneShort;
   const whyNotReady = nameMissing
-    ? "Enter the employee's name to send the invite."
-    : "Enter a phone number of 6 to 15 digits to send the invite.";
+    ? "Please enter the employee's name before sending the invitation."
+    : "Please enter a valid phone number with 6 to 15 digits.";
   const saved =
     fetcher.data?.kind === "invite" && fetcher.data.state === "done" ? fetcher.data : null;
   const error =
@@ -76,13 +76,13 @@ function AddEmployeeForm({ countries, close }: { countries: CountryCode[]; close
       {saved ? (
         <div className={dialogStyles.dialogForm}>
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Invite employee
+            Invite Employee
           </h3>
           <div className={styles.savedBlock} role="status">
-            <p className={dialogStyles.savedMark}>Invite saved.</p>
+            <p className={dialogStyles.savedMark}>Invitation Saved Successfully</p>
             <p className={dialogStyles.dialogHint}>
-              {saved.employeeCode !== "" ? `Their employee code is ${saved.employeeCode}. ` : ""}
-              {smsOutcome(saved.smsStatus)} They appear in the team list below.
+              {saved.employeeCode !== "" ? `Employee Code: ${saved.employeeCode}. ` : ""}
+              {smsOutcome(saved.smsStatus)} The employee will appear in your team list below.
             </p>
           </div>
           <div className={dialogStyles.dialogActions}>
@@ -95,16 +95,16 @@ function AddEmployeeForm({ countries, close }: { countries: CountryCode[]; close
         <fetcher.Form method="post" className={dialogStyles.dialogForm}>
           <input type="hidden" name="intent" value="invite" />
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Invite employee
+            Invite Employee
           </h3>
           <p className={dialogStyles.dialogHint}>
-            We'll send an invite SMS to their phone. They appear in the team list as Invited until
-            they sign in.
+            We will send an invitation to the employee's phone number by SMS. The employee will
+            appear in your team list as "Invited" until they sign in.
           </p>
           <TextInput
             id={`${titleId}-name`}
             name="name"
-            label="Name"
+            label="Employee Name"
             value={name}
             onChange={setName}
             autoComplete="off"
@@ -113,14 +113,14 @@ function AddEmployeeForm({ countries, close }: { countries: CountryCode[]; close
           <TextInput
             id={`${titleId}-phone`}
             name="phoneNumber"
-            label="Phone number"
+            label="Phone Number"
             type="tel"
             inputMode="numeric"
             value={phone}
             onChange={(value) => setPhone(value.replace(/\D/g, ""))}
             autoComplete="off"
             maxLength={15}
-            hint="Numbers only, 6 to 15 digits."
+            hint="Enter numbers only (6 to 15 digits)."
             prefix={
               <DialCodeSelect
                 id={`${titleId}-dial`}
@@ -143,7 +143,7 @@ function AddEmployeeForm({ countries, close }: { countries: CountryCode[]; close
             </button>
             <button type="submit" className={dialogStyles.saveButton} disabled={busy || !ready}>
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Sending…" : "Send invite"}
+              {busy ? "Sending…" : "Send Invitation"}
             </button>
           </div>
         </fetcher.Form>

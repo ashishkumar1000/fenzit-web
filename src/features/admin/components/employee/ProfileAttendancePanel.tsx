@@ -46,69 +46,74 @@ export function ProfileAttendancePanel({
   return (
     <div className={styles.stack}>
       <div className={styles.topRow}>
-        <SectionCard title="Office assignment" meta="Tracked office & geofence">
+        <SectionCard title="Assigned Office" meta="Office location and attendance area.">
           {!enrolment.ok ? (
             <p className={styles.failed} role="alert">
-              The enrolment could not load — retry the page from the menu.
+              We could not load the office details. Please try opening this page again.
             </p>
           ) : assigned === null ? (
-            <p className={styles.empty}>Not enrolled in attendance yet.</p>
+            <p className={styles.empty}>Attendance is not set up for this employee yet.</p>
           ) : (
             <>
               <p className={styles.officeName}>{assigned.officeName ?? "—"}</p>
               {office.ok && office.data !== null ? (
                 <>
                   <p className={styles.address}>
-                    {office.data.formattedAddress ?? "Address not set"}
+                    {office.data.formattedAddress ?? "Address not added."}
                   </p>
-                  <p className={styles.radiusChip}>{office.data.radiusM} m geofence radius</p>
+                  <p className={styles.radiusChip}>
+                    {office.data.radiusM} metres around the office.
+                  </p>
                 </>
               ) : null}
               <p className={styles.since}>
                 {assigned.attendanceStartDate !== null
-                  ? `Assigned since ${fmtDay(assigned.attendanceStartDate)}`
-                  : "Assignment date not recorded"}
+                  ? `Assigned From: ${fmtDay(assigned.attendanceStartDate)}`
+                  : "Assignment date not available."}
               </p>
             </>
           )}
         </SectionCard>
-        <SectionCard title="Shift rules" meta="How the day is graded">
+        <SectionCard
+          title="Work Timings"
+          meta="These settings decide whether the employee has completed a full day, half day or arrived late."
+        >
           {rules !== null ? (
             <dl className={styles.rules}>
               <div className={styles.ruleRow}>
-                <dt>Start</dt>
+                <dt>Start Time</dt>
                 <dd>{rules.startTime}</dd>
               </div>
               <div className={styles.ruleRow}>
-                <dt>End</dt>
+                <dt>End Time</dt>
                 <dd>{rules.endTime}</dd>
               </div>
               <div className={styles.ruleRow}>
-                <dt>Late cutoff</dt>
-                <dd>{rules.lateCutoffMinutes} min</dd>
+                <dt>Late After</dt>
+                <dd>{rules.lateCutoffMinutes} minutes</dd>
               </div>
               <div className={styles.ruleRow}>
-                <dt>Full day</dt>
-                <dd>{rules.fullDayHours} h</dd>
+                <dt>Full Day Hours</dt>
+                <dd>{rules.fullDayHours} hours</dd>
               </div>
               <div className={styles.ruleRow}>
-                <dt>Half day</dt>
-                <dd>{rules.halfDayHours} h</dd>
+                <dt>Half Day Hours</dt>
+                <dd>{rules.halfDayHours} hours</dd>
               </div>
             </dl>
           ) : (
             <p className={styles.empty}>
-              {/* Only a settled not-enrolled enrolment says "not enrolled" —
+              {/* Only a settled not-enrolled enrolment says "not set up" —
                   a failed fetch is this card's failure line. */}
               {enrolment.ok && enrolment.data === null
-                ? "No shift rules — the person is not enrolled."
-                : "The shift rules could not load."}
+                ? "No work timings have been set because this employee is not enrolled for attendance."
+                : "We could not load the work timings."}
             </p>
           )}
         </SectionCard>
       </div>
       <SectionCard
-        title="Punch history"
+        title="Attendance History"
         meta={MONTH_LABEL.format(new Date(`${month}-01T00:00:00Z`))}
         footer={
           <nav className={styles.monthNav} aria-label="Month">
@@ -116,26 +121,34 @@ export function ProfileAttendancePanel({
               to={`${basePath}?tab=attendance&month=${shiftMonth(month, -1)}`}
               className={styles.monthLink}
             >
-              ‹ Previous
+              ‹ Previous Month
             </Link>
             <Link
               to={`${basePath}?tab=attendance&month=${shiftMonth(month, 1)}`}
               className={styles.monthLink}
             >
-              Next ›
+              Next Month ›
             </Link>
           </nav>
         }
       >
         {!punches.ok ? (
           <p className={styles.failed} role="alert">
-            The punch history could not load — retry the page from the menu.
+            We could not load the attendance history. Please go back to the menu and open this page
+            again.
           </p>
         ) : (
           <DataTable
-            columns={["Date", "Check-in", "Check-out", "In distance", "Out distance", "Status"]}
+            columns={[
+              "Date",
+              "Check-in Time",
+              "Check-out Time",
+              "Distance at Check-in",
+              "Distance at Check-out",
+              "Status",
+            ]}
             rows={punchRows(punches.data)}
-            empty={`Punches appear here once ${memberName} checks in${assigned?.officeName != null ? ` at ${assigned.officeName}` : ""}.`}
+            empty={`Attendance details will appear here once ${memberName} checks in${assigned?.officeName != null ? ` at ${assigned.officeName}` : ""}.`}
           />
         )}
       </SectionCard>

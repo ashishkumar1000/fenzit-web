@@ -40,12 +40,22 @@ export function Dropdown({
   options,
   value,
   onChange,
+  searchPlaceholder,
+  noMatchText,
 }: {
   /** The visible field label, rendered above the control. */
   label: string;
   options: DropdownOption[];
   value: string;
   onChange: (value: string) => void;
+  /** Overrides the derived "Search {label.toLowerCase()}…" placeholder of the
+   *  popup's search box (and its matching aria-label) — a label like "Select
+   *  Employee" would otherwise derive "Search select employee…". */
+  searchPlaceholder?: string;
+  /** Overrides the no-match line the popup shows when the search empties the
+   *  list; it receives the typed query so the line can still echo it
+   *  ("No employee found for “Anil”."). Default: `No match for “{query}”.`. */
+  noMatchText?: (query: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -167,8 +177,8 @@ export function Dropdown({
               ref={inputRef}
               type="text"
               className={styles.searchInput}
-              placeholder={`Search ${label.toLowerCase()}…`}
-              aria-label={`Search ${label.toLowerCase()}`}
+              placeholder={searchPlaceholder ?? `Search ${label.toLowerCase()}…`}
+              aria-label={searchPlaceholder ?? `Search ${label.toLowerCase()}`}
               role="combobox"
               aria-expanded="true"
               aria-controls={listId}
@@ -182,7 +192,11 @@ export function Dropdown({
             />
           </div>
           {filtered.length === 0 ? (
-            <p className={styles.empty}>No match for “{query.trim()}”.</p>
+            <p className={styles.empty}>
+              {noMatchText !== undefined
+                ? noMatchText(query.trim())
+                : `No match for “${query.trim()}”.`}
+            </p>
           ) : (
             <ul
               className={styles.list}

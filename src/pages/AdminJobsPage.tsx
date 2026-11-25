@@ -40,16 +40,16 @@ const JOBS_PATH = "/admin/company/jobs";
 /** Each page's panels, one tab each — the tab change is navigation
  *  (`?tab=`), and the loader fetches only the active tab's data. */
 const OWNER_TABS = [
-  { value: "jobs", label: "Jobs" },
-  { value: "approval", label: "Approval" },
-  { value: "activity", label: "Activity" },
-  { value: "report", label: "Report" },
+  { value: "jobs", label: "All Jobs" },
+  { value: "approval", label: "Approvals" },
+  { value: "activity", label: "Job Activity" },
+  { value: "report", label: "Reports" },
 ];
 const MEMBER_TABS = [
-  { value: "jobs", label: "Jobs" },
-  { value: "report", label: "My report" },
-  { value: "rejected", label: "Rejected" },
-  { value: "activity", label: "Activity" },
+  { value: "jobs", label: "My Jobs" },
+  { value: "report", label: "My Report" },
+  { value: "rejected", label: "Rejected Jobs" },
+  { value: "activity", label: "Job Activity" },
 ];
 
 /** The step column: "Step 2 of 5" once the job is on the template, the raw
@@ -75,8 +75,8 @@ function jobCell(job: JobRow): TableCell {
   const sub =
     job.status === "rejected"
       ? job.description !== null
-        ? `${job.rejectionReason ?? "No reason given"} · ${job.jobNumber}`
-        : (job.rejectionReason ?? "No reason given")
+        ? `${job.rejectionReason ?? "No reason given."} – Job Number: ${job.jobNumber}`
+        : (job.rejectionReason ?? "No reason given.")
       : job.description !== null
         ? job.jobNumber
         : job.serviceLocation;
@@ -107,6 +107,17 @@ function matches(job: JobRow, query: string): boolean {
     .toLowerCase();
   return haystack.includes(query.toLowerCase());
 }
+
+/** The per-status empty lines: each status in its own natural words, since
+ *  splicing the chip title into "No … jobs." read broken. */
+const EMPTY_STATUS_LINES: Record<string, string> = {
+  scheduled: "No scheduled jobs.",
+  in_progress: "No jobs in progress.",
+  pending_approval: "No jobs waiting for approval.",
+  completed: "No completed jobs.",
+  cancelled: "No cancelled jobs.",
+  rejected: "No rejected jobs.",
+};
 
 /** The member's jobs table, the first tab for a signed-in member: chips
  *  riding `?status=`, a client-side search box, and the `?sort=` toggle —
@@ -153,17 +164,20 @@ function MemberJobsSection({
     : searched;
   const meta =
     ordered.length === rows.length
-      ? `${ordered.length} jobs`
-      : `${ordered.length} of ${rows.length} jobs`;
+      ? `${ordered.length} Jobs`
+      : `Showing ${ordered.length} of ${rows.length} Jobs`;
+  // The status chips read as titles ("Waiting for Approval"), so the empty
+  // line names each status in its own natural words — splicing the title into
+  // "No … jobs." read broken ("No Waiting for Approval jobs.").
   const empty =
     query.trim() !== ""
-      ? "No job matches that search."
+      ? "No jobs match your search."
       : status === ""
-        ? "No jobs yet."
-        : `No ${chipLabel.toLowerCase()} jobs.`;
+        ? "No jobs assigned yet."
+        : (EMPTY_STATUS_LINES[status] ?? `No ${chipLabel} jobs.`);
 
   return (
-    <SectionCard title="Jobs" meta={meta}>
+    <SectionCard title="My Jobs" meta={meta}>
       <nav className={styles.chips} aria-label="Filter jobs by status">
         {[
           "",
@@ -188,7 +202,7 @@ function MemberJobsSection({
         <input
           type="search"
           className={styles.search}
-          placeholder="Search job, customer, employee, skill, place…"
+          placeholder="Search by job, customer, employee, work type or location…"
           aria-label="Search jobs"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
@@ -199,27 +213,27 @@ function MemberJobsSection({
             className={!soonest ? styles.chipActive : styles.chip}
             aria-current={!soonest ? "true" : undefined}
           >
-            Latest first
+            Latest First
           </Link>
           <Link
             to={sortHref("soonest")}
             className={soonest ? styles.chipActive : styles.chip}
             aria-current={soonest ? "true" : undefined}
           >
-            Soonest first
+            Earliest First
           </Link>
         </nav>
       </div>
       <DataTable
         columns={[
-          "Job",
+          "Job Details",
           "Customer",
           "Status",
-          "Step",
-          "Skill",
+          "Current Step",
+          "Work Type",
           "Employee",
           "Priority",
-          "Scheduled",
+          "Scheduled Date",
         ]}
         empty={empty}
         rows={ordered.map((j): TableCell[] => [
@@ -299,14 +313,14 @@ export function AdminJobsPage() {
           <Tabs basePath={JOBS_PATH} tabs={baseTabs} current={data.tab} />
           <SectionCard title="Jobs">
             <p className={styles.failed} role="alert">
-              The job list could not load.
+              We could not load the job list.
               <button
                 type="button"
                 className={styles.retry}
                 onClick={() => revalidator.revalidate()}
                 disabled={busy}
               >
-                {busy ? "Retrying…" : "Try again"}
+                {busy ? "Trying Again…" : "Try Again"}
               </button>
             </p>
           </SectionCard>
@@ -325,7 +339,7 @@ export function AdminJobsPage() {
               {data.selfName === null ? "Hello" : `Hello, ${data.selfName}`}
             </h1>
             <p className={styles.lede}>
-              Your jobs — what is scheduled for you and what you have finished.
+              See the jobs assigned to you, upcoming work and jobs you have completed.
             </p>
           </div>
         </header>
@@ -395,7 +409,7 @@ export function AdminJobsPage() {
             />
           ) : null}
           {data.tab === "report" ? (
-            <SectionCard title="Job activity report">
+            <SectionCard title="Job Activity Report">
               <ReportExportCard
                 reportType="technician_job_activity"
                 history={data.history}
@@ -415,32 +429,32 @@ export function AdminJobsPage() {
 
   const tiles: ConsoleTile[] = [
     {
-      label: "Total jobs",
+      label: "Total Jobs",
       value: result.stats.total,
       icon: ClipboardListIcon,
       tone: "primary",
-      sub: "Every job your company has run",
+      sub: "All jobs created by your company.",
     },
     {
-      label: "In progress",
+      label: "In Progress",
       value: result.stats.inProgress,
       icon: BellIcon,
       tone: "scheduled",
-      sub: "Started, waiting to be finished",
+      sub: "Jobs that have started but are not yet completed.",
     },
     {
-      label: "Job approvals",
+      label: "Waiting for Approval",
       value: result.stats.pendingApproval,
       icon: ApprovalTagIcon,
       tone: "violet",
-      sub: "Employee-created, waiting on you",
+      sub: "Jobs created by employees that need your approval.",
     },
     {
-      label: "Completed (30 days)",
+      label: "Completed (Last 30 Days)",
       value: result.stats.completed30d,
       icon: ZapIcon,
       tone: "done",
-      sub: "Finished work this month",
+      sub: "Jobs completed in the last 30 days.",
     },
   ];
 
@@ -466,8 +480,8 @@ export function AdminJobsPage() {
           <>
             <p className={styles.empty}>
               {result.total === 0
-                ? "No jobs yet. Create the first one and assign it to an employee."
-                : "No jobs match these filters, or this page is past the last one."}
+                ? "No jobs created yet. Create your first job and assign it to an employee."
+                : "No jobs found. Try changing your filters or search."}
             </p>
             {result.total > 0 ? (
               <footer className={styles.tableFooter}>
@@ -485,8 +499,8 @@ export function AdminJobsPage() {
             </div>
             <footer className={styles.tableFooter}>
               <p className={styles.showing}>
-                Showing {from}–{to} of {result.total} {result.total === 1 ? "job" : "jobs"}
-                {busy ? " — updating…" : ""}
+                Showing {from} to {to} of {result.total} {result.total === 1 ? "job" : "jobs"}
+                {busy ? " — Updating…" : ""}
               </p>
               <RowsPerPage filters={filters} />
               <Pager filters={filters} page={result.page} pages={result.pages} />
@@ -512,12 +526,12 @@ function OwnerHeader({ selfName }: { selfName: string | null }) {
           </span>
         </h1>
         <p className={styles.lede}>
-          Every job your company runs — create, assign and follow them to the finish.
+          Create jobs, assign them to employees and track every job until it is completed.
         </p>
       </div>
       <div className={styles.pageActions}>
         <Link to="/admin/company/jobs/new" className={styles.primaryButton}>
-          Create a job
+          Create New Job
         </Link>
         <ExportJobsButton />
       </div>

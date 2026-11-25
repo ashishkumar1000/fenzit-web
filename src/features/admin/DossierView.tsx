@@ -40,13 +40,13 @@ export function DossierView({
 }) {
   const tiles: StatTile[] = [
     { label: "Jobs", value: d.counts.jobs },
-    { label: "Attendance", value: d.counts.attendanceRecords },
-    { label: "Attempts", value: d.counts.attendanceAttempts },
-    { label: "Leave", value: d.counts.leaveRequests },
-    { label: "Invites sent", value: d.counts.invitesSent },
+    { label: "Attendance Records", value: d.counts.attendanceRecords },
+    { label: "Check-in Attempts", value: d.counts.attendanceAttempts },
+    { label: "Leave Requests", value: d.counts.leaveRequests },
+    { label: "Invitations Sent", value: d.counts.invitesSent },
     { label: "Notifications", value: d.counts.notifications },
-    { label: "Audit rows", value: d.counts.auditRows },
-    { label: "Activity", value: d.counts.activityRows },
+    { label: "Change History", value: d.counts.auditRows },
+    { label: "Recent Activity", value: d.counts.activityRows },
   ];
   return (
     <div className={styles.root}>
@@ -55,9 +55,9 @@ export function DossierView({
           <GlyphMe size={26} />
         </span>
         <div className={styles.who}>
-          <h2 className={styles.name}>{d.user.name ?? "(no name)"}</h2>
+          <h2 className={styles.name}>{d.user.name ?? "No Name"}</h2>
           <p className={styles.badges}>
-            {d.user.platformAdmin ? <Badge label="Fenzit staff" tone="progress" /> : null}
+            {d.user.platformAdmin ? <Badge label="Fenzit Staff" tone="progress" /> : null}
             {d.user.disabled ? <Badge label="Disabled" tone="cancelled" /> : null}
             {d.user.platformAdmin || d.user.disabled ? null : (
               <Badge label="Regular account" tone="neutral" />
@@ -71,10 +71,12 @@ export function DossierView({
       </header>
       <p className={styles.facts}>
         <span>{fmtPhone(d.user.countryCode, d.user.phoneNumber)}</span>
-        <span>{d.user.email ?? "no email"}</span>
-        <span>joined {fmtWhen(d.user.createdAt)}</span>
+        <span>{d.user.email ?? "Email: Not Available"}</span>
+        <span>Joined on {fmtWhen(d.user.createdAt)}</span>
         <span>
-          last sign-in {d.user.lastSignInAt === null ? "unknown" : fmtWhen(d.user.lastSignInAt)}
+          {d.user.lastSignInAt === null
+            ? "Never Signed In"
+            : `Last signed in ${fmtWhen(d.user.lastSignInAt)}`}
         </span>
         <span className={styles.uid}>{d.user.id}</span>
       </p>

@@ -46,7 +46,9 @@ export function StructuresPanel({
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The structures page could not load. Try opening this page again from the menu.
+          {
+            "We could not load the salary structures.\nPlease go back to the menu and open this page again."
+          }
         </p>
       </div>
     );
@@ -56,15 +58,17 @@ export function StructuresPanel({
     <div className={styles.stack}>
       <div className={styles.card}>
         <p className={styles.panelLede}>
-          A salary structure says what each component pays, from a date. The newest revision at or
-          before a month governs that month's run.
+          {
+            "A salary structure shows how much salary an employee will receive under each salary component.\nYou can create or update an employee's salary structure from a particular date.\nThe latest saved salary structure will be used when calculating that month's salary."
+          }
         </p>
         <div className={styles.pickerRow}>
           <Dropdown
-            label="Employee"
+            label="Select Employee"
+            searchPlaceholder="Search employee…"
             options={roster.map((m) => ({
               value: m.userId,
-              label: m.name ?? "(no name)",
+              label: m.name ?? "No Name",
               meta: m.employeeCode,
             }))}
             value={employee?.userId ?? ""}
@@ -76,18 +80,19 @@ export function StructuresPanel({
         </div>
         {employee === null ? (
           <p className={styles.empty}>
-            Pick an employee to see their salary structure. A revision stays in force from its date
-            until a later one replaces it.
+            {
+              "Please select an employee to see their salary details.\nOnce saved, a salary structure will continue to apply until you save a new one."
+            }
           </p>
         ) : !structures.ok ? (
           <p className={styles.failed} role="alert">
-            {employee.name ?? "This employee"}'s structure could not load. Try again.
+            {`We could not load the salary details for ${employee.name ?? "This employee"}.\nPlease try again.`}
           </p>
         ) : (
           <>
             <div className={styles.panelHead}>
               <h2 className={styles.panelTitle}>
-                {employee.name ?? "(no name)"} · {employee.employeeCode}
+                {employee.name ?? "No Name"} · {employee.employeeCode}
               </h2>
               <button
                 type="button"
@@ -100,12 +105,14 @@ export function StructuresPanel({
                   })
                 }
               >
-                New revision
+                Add Salary Structure
               </button>
             </div>
             {revisions.length === 0 && editor === null ? (
               <p className={styles.empty}>
-                No salary structure yet. Save the first revision to start pay for this employee.
+                {
+                  "No salary structure has been added for this employee yet.\nPlease add the first salary structure to start calculating their salary."
+                }
               </p>
             ) : null}
             <ul className={styles.revisions}>
@@ -113,7 +120,7 @@ export function StructuresPanel({
                 <li key={revision.effectiveFrom} className={styles.revision}>
                   <div className={styles.revisionHead}>
                     <span>
-                      Applies from{" "}
+                      Starts From{" "}
                       <strong className={styles.revisionDate}>{revision.effectiveFrom}</strong>
                     </span>
                     <button
@@ -137,7 +144,7 @@ export function StructuresPanel({
           editor={editor}
           setEditor={setEditor}
           employeeId={employee.userId}
-          employeeName={employee.name ?? "(no name)"}
+          employeeName={employee.name ?? "No Name"}
           activeComponents={activeComponents}
           library={library}
         />
@@ -161,9 +168,9 @@ function RevisionLines({
     <table className={styles.linesTable}>
       <thead>
         <tr>
-          <th scope="col">Component</th>
+          <th scope="col">Salary Component</th>
           <th scope="col">Amount</th>
-          <th scope="col">Computed</th>
+          <th scope="col">How It Is Calculated</th>
         </tr>
       </thead>
       <tbody>

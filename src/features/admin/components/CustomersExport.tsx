@@ -43,9 +43,7 @@ async function downloadCustomersCsv(onProgress: (done: number) => void): Promise
   // session never looks like a click that did nothing.
   if (token === undefined) throw new Error("No session");
   const quote = (cell: string): string => `"${cell.replace(/"/g, '""')}"`;
-  const header = ["Name", "Phone", "Code", "Address", "City", "Jobs", "Last job activity"].join(
-    ",",
-  );
+  const header = ["Name", "Phone", "Code", "Address", "City", "Jobs", "Last Job Date"].join(",");
   const lines: string[] = [header];
   const PAGE = 100;
   let page = 1;
@@ -101,13 +99,13 @@ export function ExportCustomersButton() {
           setError(null);
           setProgress(null);
           setBuilding(true);
-          downloadCustomersCsv((done) => setProgress(`${done} fetched…`))
-            .catch(() => setError("The file could not be created. Try again."))
+          downloadCustomersCsv((done) => setProgress(`${done} customers downloaded…`))
+            .catch(() => setError("We could not create the file. Please try again."))
             .finally(() => setBuilding(false));
         }}
       >
         {building ? <Spinner size={14} /> : <DownloadIcon size={15} strokeWidth={2} />}
-        {building ? (progress ?? "Preparing…") : "Download list"}
+        {building ? (progress ?? "Preparing…") : "Download Customer List"}
       </button>
       {error ? (
         <p className={styles.exportError} role="alert">

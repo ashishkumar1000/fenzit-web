@@ -64,9 +64,7 @@ describe("Employees: pages and the pager", () => {
     });
     renderAt("/admin/company/employees?page=9");
     expect(
-      await screen.findByText(
-        "No employees match these filters, or this page is past the last one.",
-      ),
+      await screen.findByText("No employees found. Try changing your filters or search."),
     ).toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: "Pages" });
     const back = within(nav).getByRole("link", { name: "1" });
@@ -76,7 +74,7 @@ describe("Employees: pages and the pager", () => {
   it("shows the empty-team line, and no pager, when nobody is on the team", async () => {
     team.rows = [];
     renderAt("/admin/company/employees");
-    expect(await screen.findByText("Nobody on the team yet.")).toBeInTheDocument();
+    expect(await screen.findByText("No employees added yet.")).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Pages" })).toBeNull();
   });
 
@@ -90,7 +88,7 @@ describe("Employees: pages and the pager", () => {
       .map((link) => link.textContent)
       .filter((text) => /^\d+$/.test(text ?? ""));
     expect(numbers).toEqual(["1", "2", "3", "4", "5"]);
-    expect(within(nav).getByRole("link", { name: "Last page" }).getAttribute("href")).toContain(
+    expect(within(nav).getByRole("link", { name: "Last Page" }).getAttribute("href")).toContain(
       "page=6",
     );
   });
@@ -105,31 +103,33 @@ describe("Employees: pages and the pager", () => {
       .map((link) => link.textContent)
       .filter((text) => /^\d+$/.test(text ?? ""));
     expect(numbers).toEqual(["2", "3", "4", "5", "6"]);
-    expect(within(nav).queryByRole("link", { name: "Next page" })).toBeNull();
+    expect(within(nav).queryByRole("link", { name: "Next Page" })).toBeNull();
   });
 
   it("explains an out-of-range go-to, keeps the typed number, and sends nothing", async () => {
     manyPeople();
     renderAt("/admin/company/employees");
     await screen.findByText("Person 00");
-    const box = screen.getByRole("textbox", { name: "Go to page" }) as HTMLInputElement;
+    const box = screen.getByRole("textbox", { name: "Go to Page" }) as HTMLInputElement;
     const before = sentRequests().length;
     fireEvent.change(box, { target: { value: "9" } });
     fireEvent.submit(box.closest("form") as HTMLFormElement);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Enter a page from 1 to 6.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Please enter a page number between 1 and 6.",
+    );
     expect(box.value).toBe("9");
     expect(box.getAttribute("aria-invalid")).toBe("true");
     expect(sentRequests().length).toBe(before);
   });
 
   it.each([
-    ["0", "Enter a page from 1 to 6."],
-    ["", "Enter a page from 1 to 6."],
+    ["0", "Please enter a page number between 1 and 6."],
+    ["", "Please enter a page number between 1 and 6."],
   ])("rejects go-to %j with a message", async (value, message) => {
     manyPeople();
     renderAt("/admin/company/employees");
     await screen.findByText("Person 00");
-    const box = screen.getByRole("textbox", { name: "Go to page" });
+    const box = screen.getByRole("textbox", { name: "Go to Page" });
     fireEvent.change(box, { target: { value: value } });
     fireEvent.submit(box.closest("form") as HTMLFormElement);
     expect(await screen.findByRole("alert")).toHaveTextContent(message);
@@ -139,7 +139,7 @@ describe("Employees: pages and the pager", () => {
     manyPeople();
     renderAt("/admin/company/employees");
     await screen.findByText("Person 00");
-    const box = screen.getByRole("textbox", { name: "Go to page" });
+    const box = screen.getByRole("textbox", { name: "Go to Page" });
     fireEvent.change(box, { target: { value: "4" } });
     fireEvent.submit(box.closest("form") as HTMLFormElement);
     await waitFor(() => expect(lastPageRequest().searchParams.get("page")).toBe("4"));
@@ -171,7 +171,7 @@ describe("Employees: the search box and Clear all", () => {
       name: "Search employees",
     })) as HTMLInputElement;
     expect(input.value).toBe("asha");
-    fireEvent.click(screen.getByRole("button", { name: "Clear all" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear All Filters" }));
     await waitFor(() => expect(input.value).toBe(""));
     expect(lastPageRequest().searchParams.get("search") ?? "").toBe("");
   });

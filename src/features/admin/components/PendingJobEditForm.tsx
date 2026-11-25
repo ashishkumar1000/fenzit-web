@@ -45,11 +45,12 @@ export function PendingJobEditForm({
       <input type="hidden" name="jobId" value={job.id} />
       <h3 className={styles.title}>Edit {job.jobNumber}</h3>
       <p className={styles.hint}>
-        The employee is told about every change you save. Your edits stay visible on the job.
+        The employee will be informed whenever you save a change. All changes will also be visible
+        in the job details.
       </p>
       {saved ? (
         <p className={styles.saved} role="status">
-          Changes saved.
+          Changes saved successfully.
         </p>
       ) : null}
       {error ? (
@@ -59,23 +60,24 @@ export function PendingJobEditForm({
       ) : null}
       {bundle.skillsFailed ? (
         <p className={styles.pickerWarn} role="status">
-          The skill list could not load — the job keeps its current skill unless you pick another.
+          We could not load the work types. The current work type will remain unchanged unless you
+          select another one.
         </p>
       ) : null}
       {bundle.customersFailed ? (
         <p className={styles.pickerWarn} role="status">
-          The customer list could not load — the job keeps its current customer.
+          We could not load the customers. The current customer will remain unchanged.
         </p>
       ) : null}
 
       <label className={styles.field}>
-        <span className={styles.label}>What needs doing</span>
+        <span className={styles.label}>What Work Needs to Be Done?</span>
         <textarea name="description" rows={3} defaultValue={job.description} required />
       </label>
 
       <div className={styles.fieldRow}>
         <label className={styles.field}>
-          <span className={styles.label}>Starts</span>
+          <span className={styles.label}>Start Date and Time</span>
           <input
             type="datetime-local"
             name="scheduledStart"
@@ -84,7 +86,7 @@ export function PendingJobEditForm({
           />
         </label>
         <label className={styles.field}>
-          <span className={styles.label}>Ends (optional)</span>
+          <span className={styles.label}>End Date and Time (Optional)</span>
           <input
             type="datetime-local"
             name="scheduledEnd"
@@ -95,9 +97,9 @@ export function PendingJobEditForm({
 
       <div className={styles.fieldRow}>
         <label className={styles.field}>
-          <span className={styles.label}>Assign to</span>
+          <span className={styles.label}>Assign to Employee</span>
           <select name="technicianId" defaultValue={job.technicianId ?? ""}>
-            <option value="">Unassigned</option>
+            <option value="">Not Assigned</option>
             {technicians.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -123,15 +125,15 @@ export function PendingJobEditForm({
       </div>
 
       <label className={styles.field}>
-        <span className={styles.label}>Where</span>
+        <span className={styles.label}>Work Location</span>
         <input type="text" name="serviceLocation" defaultValue={job.serviceLocation} required />
       </label>
 
       <div className={styles.fieldRow}>
         <label className={styles.field}>
-          <span className={styles.label}>Skill</span>
+          <span className={styles.label}>Work Type</span>
           <select name="skillId" defaultValue={job.skill?.id ?? ""}>
-            <option value="">No skill</option>
+            <option value="">No Work Type</option>
             {skills.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -152,16 +154,16 @@ export function PendingJobEditForm({
       </div>
 
       <label className={styles.field}>
-        <span className={styles.label}>Notes for the employee (optional)</span>
+        <span className={styles.label}>Notes for Employee (Optional)</span>
         <textarea name="notesForTechnician" rows={2} defaultValue={job.notesForTechnician ?? ""} />
       </label>
 
       <div className={styles.actions}>
         <Button variant="primary" size="regular" type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Save changes"}
+          {busy ? "Saving…" : "Save Changes"}
         </Button>
         <Link to="/admin/company/jobs?tab=approval" className={styles.backLink}>
-          Back to the queue
+          Back to Approval List
         </Link>
       </div>
     </Form>
@@ -178,5 +180,5 @@ function withCurrent(
   if (currentId === null || currentId === "" || options.some((o) => o.id === currentId)) {
     return options;
   }
-  return [{ id: currentId, name: currentName ?? "(the job's current value)" }, ...options];
+  return [{ id: currentId, name: currentName ?? "Current Selection" }, ...options];
 }

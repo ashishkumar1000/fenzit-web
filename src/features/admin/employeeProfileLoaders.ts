@@ -253,7 +253,7 @@ export async function employeeProfileAction({
 }: ActionFunctionArgs): Promise<EmployeeActivateResult> {
   const form = await request.formData();
   if (form.get("intent") !== "activate") {
-    return { state: "error", message: "Nothing to do — unknown action." };
+    return { state: "error", message: "We could not understand this request. Please try again." };
   }
   const userId = params.userId ?? "";
   const active = form.get("active") === "true";

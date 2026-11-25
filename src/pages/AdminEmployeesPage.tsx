@@ -42,7 +42,7 @@ export function AdminEmployeesPage() {
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The team list could not load. Try opening this page again from the menu.
+          We could not load the employee list. Please go back to the menu and open this page again.
         </p>
       </div>
     );
@@ -64,35 +64,35 @@ export function AdminEmployeesPage() {
 
   const tiles: ConsoleTile[] = [
     {
-      label: "Total employees",
+      label: "Total Employees",
       value: result.stats.total,
       icon: UsersIcon,
       tone: "primary",
-      sub: `${result.stats.active} active, ${result.stats.invited} invited, ${result.stats.deactivated} deactivated`,
+      sub: `${result.stats.active} Active, ${result.stats.invited} Invited and ${result.stats.deactivated} Deactivated.`,
     },
     {
-      label: "Active employees",
+      label: "Active Employees",
       value: result.stats.active,
       icon: UserCheckIcon,
       tone: "done",
       bar: activePct,
-      sub: `${activePct}% of all employees`,
+      sub: `${activePct}% of all employees.`,
     },
     {
-      label: "Pending invites",
+      label: "Pending Invitations",
       value: result.stats.invited,
       icon: BellIcon,
       tone: "scheduled",
       pill: { label: "Invited", tone: "scheduled" },
-      sub: "Waiting for their first sign-in",
+      sub: "Waiting for the employee to sign in for the first time.",
     },
     {
-      label: "Needs approval",
+      label: "Jobs Waiting for Approval",
       value: result.stats.needsApproval,
       icon: ClipboardListIcon,
       tone: "violet",
-      pill: { label: "Approval pending", tone: "violet" },
-      sub: "Their new jobs need your approval",
+      pill: { label: "Approval Pending", tone: "violet" },
+      sub: "New jobs created by these employees need your approval.",
     },
   ];
 
@@ -109,7 +109,8 @@ export function AdminEmployeesPage() {
             </span>
           </h1>
           <p className={styles.lede}>
-            Your team directory, their invites and their job approvals — all in one place.
+            Manage your team, send invitations, update employee details and approve their jobs from
+            one place.
           </p>
         </div>
         <div className={styles.pageActions}>
@@ -131,7 +132,7 @@ export function AdminEmployeesPage() {
               valueLabel={ROLE_WORDS[filters.role]}
               defaultValue="all"
               options={[
-                { value: "all", text: "All roles", count: result.stats.byRole.all },
+                { value: "all", text: "All Roles", count: result.stats.byRole.all },
                 { value: "company_admin", text: "Owner", count: result.stats.byRole.company_admin },
                 { value: "employee", text: "Employee", count: result.stats.byRole.employee },
                 { value: "viewer", text: "Viewer", count: result.stats.byRole.viewer },
@@ -146,21 +147,25 @@ export function AdminEmployeesPage() {
               valueLabel={JOB_WORDS[filters.jobSetting]}
               defaultValue="all"
               options={[
-                { value: "all", text: "All settings", count: result.stats.byJobSetting.all },
+                { value: "all", text: "All Settings", count: result.stats.byJobSetting.all },
                 {
                   value: "off",
                   chip: { label: "Off", tone: "gray", Icon: PowerIcon },
-                  text: "Cannot create jobs",
+                  text: "Cannot Create Jobs",
                   count: result.stats.byJobSetting.off,
                 },
                 {
                   value: "create_only",
-                  chip: { label: "Creates jobs", tone: "green", Icon: ZapIcon },
+                  chip: { label: "Can Create Jobs", tone: "green", Icon: ZapIcon },
                   count: result.stats.byJobSetting.createOnly,
                 },
                 {
                   value: "approval",
-                  chip: { label: "Create + approval", tone: "violet", Icon: ApprovalTagIcon },
+                  chip: {
+                    label: "Can Create Jobs with Approval",
+                    tone: "violet",
+                    Icon: ApprovalTagIcon,
+                  },
                   count: result.stats.byJobSetting.approval,
                 },
               ]}
@@ -175,12 +180,12 @@ export function AdminEmployeesPage() {
               defaultValue="joined_new"
               showSearch={false}
               options={[
-                { value: "joined_new", text: "Joined (newest)" },
-                { value: "joined_old", text: "Joined (oldest)" },
-                { value: "name_az", text: "Name (A–Z)" },
-                { value: "name_za", text: "Name (Z–A)" },
-                { value: "code_az", text: "Code (A–Z)" },
-                { value: "code_za", text: "Code (Z–A)" },
+                { value: "joined_new", text: "Recently Joined" },
+                { value: "joined_old", text: "First Joined" },
+                { value: "name_az", text: "Name (A to Z)" },
+                { value: "name_za", text: "Name (Z to A)" },
+                { value: "code_az", text: "Code (A to Z)" },
+                { value: "code_za", text: "Code (Z to A)" },
               ]}
               filters={filters}
             />
@@ -190,8 +195,8 @@ export function AdminEmployeesPage() {
           <>
             <p className={styles.empty}>
               {result.total === 0
-                ? "Nobody on the team yet."
-                : "No employees match these filters, or this page is past the last one."}
+                ? "No employees added yet."
+                : "No employees found. Try changing your filters or search."}
             </p>
             {result.total > 0 ? (
               <footer className={styles.tableFooter}>
@@ -214,9 +219,9 @@ export function AdminEmployeesPage() {
             </div>
             <footer className={styles.tableFooter}>
               <p className={styles.showing}>
-                Showing {from}–{to} of {result.total}{" "}
+                Showing {from} to {to} of {result.total}{" "}
                 {result.total === 1 ? "employee" : "employees"}
-                {busy ? " — updating…" : ""}
+                {busy ? " — Updating…" : ""}
               </p>
               <RowsPerPage filters={filters} />
               <Pager filters={filters} page={result.page} pages={result.pages} />

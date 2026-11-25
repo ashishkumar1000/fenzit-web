@@ -7,25 +7,26 @@ import { resendOutcomeLine, smsOutcome } from "./smsOutcome";
 
 describe("smsOutcome: the invite dialog", () => {
   it.each([
-    ["sent", /went out to their phone/],
+    ["sent", /Invitation sent successfully to the employee's phone/],
     ["refused_cap", /too many messages/],
-    ["failed", /could not be sent just now/],
+    ["failed", /could not be sent right now/],
   ])("status %s says its own outcome", (status, expected) => {
     expect(smsOutcome(status)).toMatch(expected);
   });
 
   it("tells the owner the invite is saved whenever the SMS did not go out", () => {
     for (const status of ["refused_cap", "failed", null, "something_new"]) {
-      expect(smsOutcome(status)).toMatch(/invite is saved/);
+      expect(smsOutcome(status)).toMatch(/Invitation saved/);
     }
   });
 });
 
 describe("resendOutcomeLine: the table row", () => {
   it.each([
-    ["sent", "Invite resent."],
+    ["sent", "Invitation sent again successfully."],
     ["refused_cap", /too many messages/],
-    ["failed", /could not be sent just now/],
+    // A resend saves nothing new — the failure line must not claim it did.
+    ["failed", /could not be sent again right now/],
   ])("status %s says its own outcome", (status, expected) => {
     const line = resendOutcomeLine(status);
     if (typeof expected === "string") expect(line).toBe(expected);

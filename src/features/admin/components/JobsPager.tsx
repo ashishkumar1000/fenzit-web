@@ -11,7 +11,7 @@ export function RowsPerPage({ filters }: { filters: JobsFilters }) {
   const navigate = useNavigate();
   return (
     <ConsoleFilterDropdown
-      label="Rows per page"
+      label="Rows to show"
       valueLabel={String(filters.pageSize)}
       value={String(filters.pageSize)}
       defaultValue="10"
@@ -47,8 +47,8 @@ export function Pager({
   );
   return (
     <nav className={styles.pager} aria-label="Pages">
-      {page > 1 ? step(1, "First page", "«") : null}
-      {page > 1 ? step(page - 1, "Previous page", "‹") : null}
+      {page > 1 ? step(1, "First Page", "«") : null}
+      {page > 1 ? step(page - 1, "Previous Page", "‹") : null}
       {from > 1 ? <span className={styles.pagerEllipsis}>…</span> : null}
       {numbers.map((n) => (
         <Link
@@ -61,8 +61,8 @@ export function Pager({
         </Link>
       ))}
       {from + 4 < pages ? <span className={styles.pagerEllipsis}>…</span> : null}
-      {page < pages ? step(page + 1, "Next page", "›") : null}
-      {page < pages ? step(pages, "Last page", "»") : null}
+      {page < pages ? step(page + 1, "Next Page", "›") : null}
+      {page < pages ? step(pages, "Last Page", "»") : null}
       <form
         className={styles.goTo}
         onSubmit={(event) => {
@@ -74,12 +74,12 @@ export function Pager({
             navigate(jobsUrl(filters, { page: n }));
           } else {
             // Keep the typed text so the owner can correct it, and say why.
-            setGoToError(`Enter a page from 1 to ${pages}.`);
+            setGoToError(`Please enter a page number between 1 and ${pages}.`);
           }
         }}
       >
         <label className={styles.selectLabel} htmlFor="go-to-jobs-page">
-          Go to page:
+          Go to Page:
         </label>
         <input
           id="go-to-jobs-page"
@@ -88,7 +88,7 @@ export function Pager({
           value={goTo}
           onChange={(event) => setGoTo(event.target.value.replace(/\D/g, ""))}
           placeholder={String(page)}
-          aria-label="Go to page"
+          aria-label="Go to Page"
           aria-invalid={goToError !== null}
           aria-describedby={goToError !== null ? "go-to-jobs-page-error" : undefined}
         />

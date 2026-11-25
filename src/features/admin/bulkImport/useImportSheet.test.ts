@@ -111,7 +111,7 @@ describe("loading a file and applying the check", () => {
     await act(async () => {
       await result.current.loadFile(csvFile(CSV_TWO_ROWS));
     });
-    expect(result.current.checkError).toMatch(/Pick a company first/);
+    expect(result.current.checkError).toMatch(/select a company first/);
     expect(sentRequests()).toHaveLength(0);
     expect(new NoCompanySelectedError().message).toBe("No company selected");
   });
@@ -128,7 +128,7 @@ describe("loading a file and applying the check", () => {
     });
     await waitFor(() => expect(result.current.checkError).not.toBeNull());
     expect(result.current.checkError).toBe(
-      "Something went wrong on our side. Try again in a moment.",
+      "Something went wrong on our side. Please try again in a moment.",
     );
     expect(result.current.sheet?.rows).toHaveLength(2);
     fail = false;

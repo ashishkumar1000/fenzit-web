@@ -34,7 +34,7 @@ describe("Payroll: the tabs fetch only their own section", () => {
       ]),
     ];
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-a");
-    await screen.findByText(/Applies from/);
+    await screen.findByText(/Starts From/);
     expect(sentRequests().some((r) => r.url.includes("/members/u-a/salary-structures"))).toBe(true);
     // The picker needs the team and the line builder needs the library.
     expect(sentRequests().some((r) => r.url.endsWith("/members"))).toBe(true);
@@ -45,14 +45,14 @@ describe("Payroll: the tabs fetch only their own section", () => {
     // The kit 404s a member id that is not on the team — this exercises the
     // loader's BE-404 mapping, not just an empty fake answer.
     renderPayrollAt("/admin/company/payroll?tab=structures&employee=u-gone");
-    await screen.findByText(/Pick an employee to see their salary structure/);
+    await screen.findByText(/Please select an employee to see their salary details/);
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("maps a refused exclusion read to the not-loaded line, not a broken page", async () => {
     renderPayrollAt("/admin/company/payroll?tab=statutory&pfEmployee=u-gone");
     // The picked id is unknown: the exclusion read 404s into "nobody picked".
-    await screen.findByText(/Pick an employee to see their PF exclusion/);
+    await screen.findByText(/Please select an employee to check their PF details/);
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -70,16 +70,16 @@ describe("Payroll: the tabs fetch only their own section", () => {
 
   it("reads the heads, statutory trio and calendar for their tabs", async () => {
     renderPayrollAt("/admin/company/payroll?tab=deductions");
-    await screen.findByText("No deduction heads yet.");
+    await screen.findByText("No deductions have been added yet.");
     renderPayrollAt("/admin/company/payroll?tab=statutory");
-    await screen.findByText("Provident Fund");
+    await screen.findByText("Provident Fund (PF)");
     expect(sentRequests().some((r) => r.url.includes("/payroll/tds-config"))).toBe(true);
     expect(sentRequests().some((r) => r.url.includes("/payroll/pf-config"))).toBe(true);
   });
 
   it("probes the month the address asks about", async () => {
     renderPayrollAt("/admin/company/payroll?tab=calendar&month=2026-10");
-    await screen.findByText("What does a month look like?");
+    await screen.findByText("Check Salary Settings for a Month");
     expect(sentRequests().some((r) => r.url.includes("/payroll/months/2026-10"))).toBe(true);
     expect(sentRequests().some((r) => r.url.includes("/payroll/state-rules"))).toBe(true);
   });

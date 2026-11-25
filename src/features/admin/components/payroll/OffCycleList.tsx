@@ -22,21 +22,27 @@ export function OffCycleList({
   void locked;
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>Off-cycle lines</h2>
+      <h2 className={styles.panelTitle}>Extra Payments</h2>
       <p className={styles.panelLede}>
-        One-off earnings and recoveries outside the salary structure. Staging new lines from the
-        console is coming — lines a run has already paid show below.
+        Add extra payments or amounts that employees need to repay, outside their regular salary
+        structure.
+        <br />
+        For example: Bonus, extra wages or money to be recovered from an employee.
+        <br />
+        Adding new extra payments from this page will be available soon.
+        <br />
+        Payments already included in a salary calculation will appear below.
       </p>
       {lines.length === 0 ? (
-        <p className={styles.empty}>No off-cycle lines for this month.</p>
+        <p className={styles.empty}>No extra payments found for this month.</p>
       ) : (
         <table className={styles.linesTable}>
           <thead>
             <tr>
               <th scope="col">Employee</th>
-              <th scope="col">Label</th>
+              <th scope="col">Payment Details</th>
               <th scope="col">Amount</th>
-              <th scope="col">Kind</th>
+              <th scope="col">Type</th>
               <th scope="col">Status</th>
             </tr>
           </thead>
@@ -46,10 +52,12 @@ export function OffCycleList({
                 <td>{line.employeeName ?? "—"}</td>
                 <td>{line.label}</td>
                 <td className={styles.amountCell}>{fmtMoney(String(line.amount))}</td>
-                <td>{line.tag === "wage" ? "Wage" : "Bonus"}</td>
+                <td>{line.tag === "wage" ? "Salary" : "Bonus"}</td>
                 <td>
                   <span className={styles.statePill} data-staged={line.status === "staged"}>
-                    {line.status === "staged" ? "Waiting for the run" : "On the payslips"}
+                    {line.status === "staged"
+                      ? "Waiting for Salary Calculation"
+                      : "Included in Salary Slip"}
                   </span>
                 </td>
               </tr>

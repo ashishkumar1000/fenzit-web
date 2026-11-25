@@ -36,8 +36,8 @@ function JobCell({ job }: { job: JobRow }) {
   const sub =
     job.status === "rejected"
       ? description !== null
-        ? `${job.rejectionReason ?? "No reason given"} · ${job.jobNumber}`
-        : (job.rejectionReason ?? "No reason given")
+        ? `${job.rejectionReason ?? "No reason given."} – Job Number: ${job.jobNumber}`
+        : (job.rejectionReason ?? "No reason given.")
       : description !== null
         ? job.jobNumber
         : job.serviceLocation;
@@ -75,14 +75,14 @@ export function JobsTable({ rows }: { rows: JobRow[] }) {
     <table className={styles.table}>
       <thead>
         <tr>
-          <th scope="col">Job</th>
+          <th scope="col">Job Details</th>
           <th scope="col">Customer</th>
           <th scope="col">Status</th>
-          <th scope="col">Step</th>
-          <th scope="col">Skill</th>
+          <th scope="col">Current Step</th>
+          <th scope="col">Work Type</th>
           <th scope="col">Employee</th>
           <th scope="col">Priority</th>
-          <th scope="col">Scheduled</th>
+          <th scope="col">Scheduled Date</th>
         </tr>
       </thead>
       <tbody>

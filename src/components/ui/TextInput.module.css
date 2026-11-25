@@ -2,6 +2,9 @@
   position: relative;
   display: grid;
   gap: var(--space-2);
+  /* A stretched cell hands its spare height to auto rows, pushing labels and
+     controls out of line across a form row — keep rows content-sized. */
+  align-content: start;
   min-width: 0;
 }
 
@@ -9,6 +12,15 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-body);
+}
+
+.labelHint {
+  display: inline-flex;
+  margin-left: var(--space-1);
+  /* Centred on the text line, not hung on the baseline — a baseline-aligned
+     icon inflates the label's line box and shifts the field below it. */
+  vertical-align: middle;
+  font-weight: var(--font-weight-regular);
 }
 
 /* Still read by screen readers, but takes no room and is not shown. */

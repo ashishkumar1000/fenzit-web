@@ -9,7 +9,7 @@ describe("messageForError: known codes", () => {
     ["OTP_EXPIRED", /has expired/i],
     ["RATE_LIMIT_EXCEEDED", /too many attempts/i],
     ["DUPLICATE_RESOURCE", /already exists/i],
-    ["ALREADY_IN_TEAM", /already on your team/i],
+    ["ALREADY_IN_TEAM", /already part of your team/i],
     ["LEAVE_TYPE_NOT_CONFIGURABLE", /kept for history/i],
     ["LEAVE_NOT_PENDING", /no longer waiting/i],
     ["LEAVE_NOT_REVOKABLE", /not started yet/i],

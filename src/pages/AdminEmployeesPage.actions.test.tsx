@@ -23,18 +23,22 @@ describe("Employees: the invite dialog's send rules", () => {
   }> {
     renderAt("/admin/company/employees");
     await screen.findByText("Asha V");
-    fireEvent.click(screen.getByRole("button", { name: "Invite employee" }));
+    fireEvent.click(screen.getByRole("button", { name: "Invite Employee" }));
     const dialog = document.querySelector("dialog") as HTMLDialogElement;
-    const send = within(dialog).getByRole("button", { name: "Send invite" }) as HTMLButtonElement;
-    const name = within(dialog).getByLabelText("Name") as HTMLInputElement;
-    const phone = within(dialog).getByLabelText("Phone number") as HTMLInputElement;
+    const send = within(dialog).getByRole("button", {
+      name: "Send Invitation",
+    }) as HTMLButtonElement;
+    const name = within(dialog).getByLabelText("Employee Name") as HTMLInputElement;
+    const phone = within(dialog).getByLabelText("Phone Number") as HTMLInputElement;
     return { send, name, phone };
   }
 
   it("keeps Send off and says why when the name is empty", async () => {
     const { send, name, phone } = await openInvite();
     expect(send.disabled).toBe(true);
-    expect(screen.getByText("Enter the employee's name to send the invite.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Please enter the employee's name before sending the invitation."),
+    ).toBeInTheDocument();
     fireEvent.change(phone, { target: { value: "9812345678" } });
     expect(send.disabled).toBe(true);
     fireEvent.change(name, { target: { value: "   " } });
@@ -59,7 +63,7 @@ describe("Employees: the invite dialog's send rules", () => {
     expect(phone.value).toBe("9800");
     expect(send.disabled).toBe(true);
     expect(
-      screen.getByText("Enter a phone number of 6 to 15 digits to send the invite."),
+      screen.getByText("Please enter a valid phone number with 6 to 15 digits."),
     ).toBeInTheDocument();
   });
 });
@@ -83,12 +87,12 @@ describe("Employees: Download list", () => {
     const blobs = captureBlobs();
     renderAt("/admin/company/employees");
     await screen.findByText('Meera "Mee" K');
-    fireEvent.click(screen.getByRole("button", { name: "Download list" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download Employee List" }));
     await waitFor(() => expect(blobs.length).toBe(1));
     const text = await blobs[0].text();
     expect(text.charCodeAt(0)).toBe(0xfeff);
     const [header, first, second] = text.slice(1).split("\n");
-    expect(header).toBe("Name,Email,Phone,Code,Role,Status,Joined");
+    expect(header).toBe("Name,Email,Phone,Employee Code,Role,Status,Joined On");
     expect(first).toContain(`"'=HYPERLINK(""x"")"`);
     expect(first).toContain(`"Owner"`);
     expect(second).toContain(`"Meera ""Mee"" K"`);
@@ -107,9 +111,9 @@ describe("Employees: Download list", () => {
     captureBlobs();
     renderAt("/admin/company/employees");
     await screen.findByText("Asha V");
-    fireEvent.click(screen.getByRole("button", { name: "Download list" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download Employee List" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The file could not be created. Try again.",
+      "We could not create the file. Please try again.",
     );
   });
 
@@ -118,9 +122,9 @@ describe("Employees: Download list", () => {
     renderAt("/admin/company/employees");
     await screen.findByText("Asha V");
     window.localStorage.clear();
-    fireEvent.click(screen.getByRole("button", { name: "Download list" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download Employee List" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The file could not be created. Try again.",
+      "We could not create the file. Please try again.",
     );
   });
 });

@@ -35,19 +35,21 @@ describe("Payroll: deduction heads", () => {
     ];
     renderPayrollAt("/admin/company/payroll?tab=deductions");
     await screen.findByText("Professional tax");
-    expect(screen.getByText("Percent of gross")).toBeTruthy();
+    expect(screen.getByText("Percentage of Total Salary")).toBeTruthy();
     expect(screen.getByText("2%")).toBeTruthy();
     expect(screen.getByText("₹200.00")).toBeTruthy();
   });
 
   it("saves a flat head without a basis", async () => {
     renderPayrollAt("/admin/company/payroll?tab=deductions");
-    await screen.findByRole("button", { name: "Add deduction" });
-    fireEvent.click(screen.getByRole("button", { name: "Add deduction" }));
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Professional tax" } });
-    fireEvent.change(screen.getByLabelText("Amount per month"), { target: { value: "200" } });
+    await screen.findByRole("button", { name: "Add Deduction" });
+    fireEvent.click(screen.getByRole("button", { name: "Add Deduction" }));
+    fireEvent.change(screen.getByLabelText("Deduction Name"), {
+      target: { value: "Professional tax" },
+    });
+    fireEvent.change(screen.getByLabelText("Amount Per Month"), { target: { value: "200" } });
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
-    await screen.findByText(/applies from/);
+    await screen.findByText(/will be deducted from/);
     const sent = lastSent("/payroll/deduction-heads", "POST");
     expect(sent.body).toEqual({
       name: "Professional tax",
@@ -60,13 +62,15 @@ describe("Payroll: deduction heads", () => {
 
   it("saves a percent head with its basis", async () => {
     renderPayrollAt("/admin/company/payroll?tab=deductions");
-    await screen.findByRole("button", { name: "Add deduction" });
-    fireEvent.click(screen.getByRole("button", { name: "Add deduction" }));
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Group insurance" } });
-    fireEvent.change(screen.getByLabelText("Kind"), { target: { value: "percent" } });
-    fireEvent.change(screen.getByLabelText("Percent"), { target: { value: "2" } });
+    await screen.findByRole("button", { name: "Add Deduction" });
+    fireEvent.click(screen.getByRole("button", { name: "Add Deduction" }));
+    fireEvent.change(screen.getByLabelText("Deduction Name"), {
+      target: { value: "Group insurance" },
+    });
+    fireEvent.change(screen.getByLabelText("Deduction Type"), { target: { value: "percent" } });
+    fireEvent.change(screen.getByLabelText("Percentage"), { target: { value: "2" } });
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
-    await screen.findByText(/applies from/);
+    await screen.findByText(/will be deducted from/);
     const sent = lastSent("/payroll/deduction-heads", "POST");
     expect(sent.body).toEqual({
       name: "Group insurance",
@@ -88,10 +92,10 @@ describe("Payroll: deduction heads", () => {
       },
     };
     renderPayrollAt("/admin/company/payroll?tab=deductions");
-    await screen.findByRole("button", { name: "Add deduction" });
-    fireEvent.click(screen.getByRole("button", { name: "Add deduction" }));
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Big cut" } });
-    fireEvent.change(screen.getByLabelText("Amount per month"), { target: { value: "150" } });
+    await screen.findByRole("button", { name: "Add Deduction" });
+    fireEvent.click(screen.getByRole("button", { name: "Add Deduction" }));
+    fireEvent.change(screen.getByLabelText("Deduction Name"), { target: { value: "Big cut" } });
+    fireEvent.change(screen.getByLabelText("Amount Per Month"), { target: { value: "150" } });
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
     await screen.findByText(/outside the range/);
   });
@@ -110,11 +114,11 @@ describe("Payroll: deduction heads", () => {
       },
     ];
     renderPayrollAt("/admin/company/payroll?tab=deductions");
-    await screen.findByRole("button", { name: "Deactivate" });
-    fireEvent.click(screen.getByRole("button", { name: "Deactivate" }));
+    await screen.findByRole("button", { name: "Stop" });
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
     const dialog = screen.getByRole("dialog");
     const deactivate = within(dialog).getByRole("button", {
-      name: "Deactivate",
+      name: "Stop Deduction",
     }) as HTMLButtonElement;
     expect(deactivate.disabled).toBe(true);
     fireEvent.click(screen.getByLabelText(/I understand/));

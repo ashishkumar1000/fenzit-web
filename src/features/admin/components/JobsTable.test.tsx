@@ -69,14 +69,14 @@ describe("JobsTable: the cells", () => {
       />,
     );
     expect(screen.getByText("AC service")).toBeTruthy();
-    expect(screen.getByText("Bad work · JB-2026-0008")).toBeTruthy();
+    expect(screen.getByText("Bad work – Job Number: JB-2026-0008")).toBeTruthy();
   });
 
   it("says no reason was given when the owner declined without one", () => {
     renderTable(
       <JobsTable rows={[row({ status: "rejected", description: null, rejectionReason: null })]} />,
     );
-    expect(screen.getByText("No reason given")).toBeTruthy();
+    expect(screen.getByText("No reason given.")).toBeTruthy();
   });
 
   it("carries the visit's place under the customer's name", () => {

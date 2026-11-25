@@ -287,7 +287,7 @@ describe("submit", () => {
     });
     expect(hook.result.current.commit).toEqual({
       state: "error",
-      message: "Something went wrong on our side. Try again in a moment.",
+      message: "Something went wrong on our side. Please try again in a moment.",
     });
     expect(hook.result.current.sheet?.rows).toHaveLength(2);
   });

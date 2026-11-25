@@ -77,10 +77,10 @@ describe("LoginForm: the sign-in step", () => {
     await screen.findByRole("heading", { name: "Log in to Fenzit" });
 
     change("Phone or email", "98765 43210");
-    expect(screen.getByLabelText("Country code")).toBeInTheDocument();
+    expect(screen.getByLabelText("Country Code")).toBeInTheDocument();
 
     change("Phone or email", "+91 98765 43210");
-    expect(screen.queryByLabelText("Country code")).toBeNull();
+    expect(screen.queryByLabelText("Country Code")).toBeNull();
   });
 
   it("never shows a password field for a phone number, and shows one for an email", async () => {
@@ -166,7 +166,7 @@ describe("LoginForm: the sign-in step", () => {
     fireEvent.click(loginButton());
 
     expect(
-      await screen.findByText("Too many attempts. Wait a few minutes and try again."),
+      await screen.findByText("Too many attempts. Please wait a few minutes and try again."),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Phone or email")).toHaveAttribute(
       "aria-describedby",
@@ -234,6 +234,6 @@ describe("LoginForm: the sign-in step", () => {
     await screen.findByRole("heading", { name: "Hello, Ravi Kumar" });
     // The sign-in really landed: the console greets the person by name and
     // the sidebar chip names their role (a company admin lands as the owner).
-    expect(screen.getByText("Company owner")).toBeInTheDocument();
+    expect(screen.getByText("Company Owner")).toBeInTheDocument();
   });
 });

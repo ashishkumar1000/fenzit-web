@@ -5,13 +5,13 @@
 export function smsOutcome(status: string | null): string {
   switch (status) {
     case "sent":
-      return "The invite SMS went out to their phone.";
+      return "Invitation sent successfully to the employee's phone.";
     case "refused_cap":
-      return "The invite is saved, but too many messages went to this number in a short time. Try again after some time.";
+      return "Invitation saved, but too many messages have been sent to this number in a short time. Please try again later.";
     case "failed":
-      return "The invite is saved, but the SMS could not be sent just now.";
+      return "Invitation saved, but the SMS could not be sent right now.";
     default:
-      return "The invite is saved. SMS sending is switched off, so no SMS went out.";
+      return "Invitation saved, but SMS sending is turned off. No SMS was sent.";
   }
 }
 
@@ -20,12 +20,12 @@ export function smsOutcome(status: string | null): string {
 export function resendOutcomeLine(status: string | null): string {
   switch (status) {
     case "sent":
-      return "Invite resent.";
+      return "Invitation sent again successfully.";
     case "refused_cap":
-      return "Resent, but too many messages went to this number. Try again after some time.";
+      return "Invitation sent again, but too many messages have been sent to this number. Please try again later.";
     case "failed":
-      return "Resent, but the SMS could not be sent just now.";
+      return "The invitation could not be sent again right now.";
     default:
-      return "Resent. SMS sending is switched off, so no SMS went out.";
+      return "The invitation could not be sent again. SMS sending is turned off.";
   }
 }

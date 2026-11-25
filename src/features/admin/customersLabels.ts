@@ -4,14 +4,14 @@
 export const BUCKET_WORDS: Record<string, string> = {
   all: "All",
   new: "New",
-  single: "Single job",
-  repeat: "Repeat",
+  single: "One Job",
+  repeat: "Repeat Customers",
 };
 
 export const CUSTOMER_SORT_WORDS: Record<string, string> = {
-  created_new: "Added (newest)",
-  created_old: "Added (oldest)",
-  name_az: "Name (A–Z)",
-  name_za: "Name (Z–A)",
-  recent_activity: "Recent activity",
+  created_new: "Newest Added",
+  created_old: "Oldest Added",
+  name_az: "Name (A to Z)",
+  name_za: "Name (Z to A)",
+  recent_activity: "Recently Active",
 };

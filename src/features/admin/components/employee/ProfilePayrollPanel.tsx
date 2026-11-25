@@ -42,13 +42,13 @@ export function ProfilePayrollPanel({
           <div className={styles.emptyBlock}>
             <p className={styles.emptyLead}>No salary structure yet</p>
             <p className={styles.empty}>
-              Add one to include this employee in the monthly payroll runs.
+              Add one to include this employee in the monthly salary runs.
             </p>
             <LinkButton
               to={`/admin/company/payroll?tab=structures&employee=${encodeURIComponent(memberUserId)}`}
               variant="primary"
             >
-              Manage salary in Payroll
+              Manage salary
             </LinkButton>
           </div>
         ) : (

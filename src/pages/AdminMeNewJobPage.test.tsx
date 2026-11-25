@@ -131,12 +131,16 @@ function renderNewJob(entry = "/admin/me/new-job"): void {
 }
 
 function fillRequiredFields(): void {
-  fireEvent.change(screen.getByLabelText("What needs doing"), { target: { value: "Fan repair" } });
-  fireEvent.change(screen.getByLabelText("What needs doing (skill)"), {
+  fireEvent.change(screen.getByLabelText("What Work Needs to Be Done?"), {
+    target: { value: "Fan repair" },
+  });
+  fireEvent.change(screen.getByLabelText("Work Type"), {
     target: { value: "s1" },
   });
-  fireEvent.change(screen.getByLabelText("Starts"), { target: { value: "2026-11-15T10:00" } });
-  fireEvent.change(screen.getByLabelText("Where"), { target: { value: "Andheri West" } });
+  fireEvent.change(screen.getByLabelText("Start Date and Time"), {
+    target: { value: "2026-11-15T10:00" },
+  });
+  fireEvent.change(screen.getByLabelText("Work Location"), { target: { value: "Andheri West" } });
 }
 
 function selectCustomer(id: string): void {
@@ -144,7 +148,7 @@ function selectCustomer(id: string): void {
 }
 
 async function submit(): Promise<void> {
-  fireEvent.click(screen.getByRole("button", { name: /Create job/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Create Job/ }));
 }
 
 describe("AdminMeNewJobPage: the refusal is the page (CAP-2)", () => {
@@ -154,10 +158,10 @@ describe("AdminMeNewJobPage: the refusal is the page (CAP-2)", () => {
     renderNewJob();
     expect(
       await screen.findByText(
-        "You are not allowed to create jobs. Ask your owner to turn this on for you.",
+        "You do not have permission to create jobs. Please ask your company owner to allow this.",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByLabelText("What needs doing")).toBeNull();
+    expect(screen.queryByLabelText("What Work Needs to Be Done?")).toBeNull();
     expect(window.sessionStorage.getItem(KEY_STORE)).toBeNull();
   });
 
@@ -174,8 +178,8 @@ describe("AdminMeNewJobPage: the refusal is the page (CAP-2)", () => {
       return respondDefault(url);
     });
     renderNewJob();
-    expect(await screen.findByText(/The new-job form could not load/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(await screen.findByText(/We could not open the new job form/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
   });
 });
 
@@ -183,7 +187,7 @@ describe("AdminMeNewJobPage: the idempotency key (CAP-2)", () => {
   it("mints the key once and carries it in the hidden field", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     const key = window.sessionStorage.getItem(KEY_STORE);
     expect(key).not.toBeNull();
     const hidden = document.querySelector('input[name="idempotencyKey"]') as HTMLInputElement;
@@ -196,11 +200,11 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
     defaultState();
     setRespond((url) => (url.endsWith("/skills") ? jsonResponse({}, 500) : respondDefault(url)));
     renderNewJob();
-    await screen.findByText(/The skill list could not load/);
-    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    await screen.findByText(/We could not load the work type list/);
+    const create = screen.getByRole("button", { name: /Create Job/ }) as HTMLButtonElement;
     expect(create.disabled).toBe(true);
     expect(
-      screen.getByText(/The Create button is held until the lists above load/),
+      screen.getByText(/Please wait until all lists are loaded before creating the job/),
     ).toBeInTheDocument();
     fireEvent.click(create);
     expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
@@ -210,24 +214,24 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
     defaultState();
     setRespond((url) => (url.includes("/customers") ? jsonResponse({}, 500) : respondDefault(url)));
     renderNewJob();
-    await screen.findByText(/The customer list could not load/);
-    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    await screen.findByText(/We could not load the customer list/);
+    const create = screen.getByRole("button", { name: /Create Job/ }) as HTMLButtonElement;
     expect(create.disabled).toBe(true);
     // A brand-new customer needs no picker — the button must come back.
-    fireEvent.change(screen.getByLabelText("Who is it for"), { target: { value: "new" } });
-    fireEvent.change(screen.getByLabelText("Customer name"), {
+    fireEvent.change(screen.getByLabelText("Who Is This Job For?"), { target: { value: "new" } });
+    fireEvent.change(screen.getByLabelText("Customer Name"), {
       target: { value: "Mehta Foods" },
     });
     fireEvent.change(screen.getByLabelText(/Phone number/), {
       target: { value: "9876543210" },
     });
-    fireEvent.change(screen.getByLabelText("Address (optional)"), {
+    fireEvent.change(screen.getByLabelText("Address (Optional)"), {
       target: { value: "MG Road" },
     });
     fillRequiredFields();
     expect(create.disabled).toBe(false);
     await submit();
-    await screen.findByText(/created — waiting for your owner's approval/);
+    await screen.findByText(/created successfully. Waiting for your owner's approval/);
     const post = sentRequests().find((r) => r.method === "POST" && r.url.endsWith("/jobs"));
     // Whitespace leaves the phone before it reaches the wire; the address
     // rides along; no customerId may appear for a new customer.
@@ -245,32 +249,28 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
   it("refuses an end time before the start without sending anything", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     selectCustomer("c1");
-    fireEvent.change(screen.getByLabelText("Ends (optional)"), {
+    fireEvent.change(screen.getByLabelText("End Date and Time (Optional)"), {
       target: { value: "2026-11-15T09:00" },
     });
     await submit();
-    expect(
-      await screen.findByText("The end time must come after the start time."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("End time must be later than start time.")).toBeInTheDocument();
     expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
   });
 
   it("refuses an end time exactly equal to the start too", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     selectCustomer("c1");
-    fireEvent.change(screen.getByLabelText("Ends (optional)"), {
+    fireEvent.change(screen.getByLabelText("End Date and Time (Optional)"), {
       target: { value: "2026-11-15T10:00" },
     });
     await submit();
-    expect(
-      await screen.findByText("The end time must come after the start time."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("End time must be later than start time.")).toBeInTheDocument();
     expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
   });
 
@@ -279,17 +279,17 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
     // submit exercises the action's own normalisation, which must hold too.
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
-    fireEvent.change(screen.getByLabelText("Who is it for"), { target: { value: "new" } });
-    fireEvent.change(screen.getByLabelText("Customer name"), {
+    fireEvent.change(screen.getByLabelText("Who Is This Job For?"), { target: { value: "new" } });
+    fireEvent.change(screen.getByLabelText("Customer Name"), {
       target: { value: "Mehta Foods" },
     });
     fireEvent.change(screen.getByLabelText(/Phone number/), {
       target: { value: " 9876543210 " },
     });
     fireEvent.submit(document.querySelector("form") as HTMLFormElement);
-    await screen.findByText(/created — waiting for your owner's approval/);
+    await screen.findByText(/created successfully. Waiting for your owner's approval/);
     const post = sentRequests().find((r) => r.method === "POST" && r.url.endsWith("/jobs"));
     expect(post?.body).toMatchObject({
       newCustomer: { name: "Mehta Foods", countryCode: "+91", phoneNumber: "9876543210" },
@@ -299,7 +299,7 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
   it("mirrors the backend's blank-field refusals without sending anything", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     // Each blank the browser's required attributes would normally catch must
     // also be refused by the action itself (programmatic submits).
     fireEvent.submit(document.querySelector("form") as HTMLFormElement);
@@ -310,10 +310,10 @@ describe("AdminMeNewJobPage: local validation answers before any request", () =>
   it("refuses a new customer without a valid phone without sending anything", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
-    fireEvent.change(screen.getByLabelText("Who is it for"), { target: { value: "new" } });
-    fireEvent.change(screen.getByLabelText("Customer name"), {
+    fireEvent.change(screen.getByLabelText("Who Is This Job For?"), { target: { value: "new" } });
+    fireEvent.change(screen.getByLabelText("Customer Name"), {
       target: { value: "Mehta Foods" },
     });
     fireEvent.change(screen.getByLabelText(/Phone number/), { target: { value: "123" } });
@@ -332,13 +332,13 @@ describe("AdminMeNewJobPage: the create goes out with the caller as its technici
   it("posts the form for an existing customer and reports the waiting outcome", async () => {
     defaultState();
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     selectCustomer("c1");
     fireEvent.change(screen.getByLabelText("Priority"), { target: { value: "urgent" } });
     const keyBefore = window.sessionStorage.getItem(KEY_STORE);
     await submit();
-    await screen.findByText(/created — waiting for your owner's approval/);
+    await screen.findByText(/created successfully. Waiting for your owner's approval/);
     const post = sentRequests().find((r) => r.method === "POST" && r.url.endsWith("/jobs"));
     expect(post?.headers.get("x-idempotency-key")).toBe(keyBefore);
     expect(post?.body).toMatchObject({
@@ -361,18 +361,18 @@ describe("AdminMeNewJobPage: the create goes out with the caller as its technici
     defaultState();
     state.createdStatus = "assigned";
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     selectCustomer("c1");
     await submit();
-    expect(await screen.findByText(/created and assigned to you/)).toBeInTheDocument();
+    expect(await screen.findByText(/created successfully and assigned to you/)).toBeInTheDocument();
   });
 
   it("reuses the same key when the first attempt fails, and readies a new one on success", async () => {
     defaultState();
     failFirstPost = true;
     renderNewJob();
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     const keyBefore = window.sessionStorage.getItem(KEY_STORE);
     selectCustomer("c1");
@@ -381,7 +381,7 @@ describe("AdminMeNewJobPage: the create goes out with the caller as its technici
     // The failed attempt keeps its key — a retry replays, not mints.
     expect(window.sessionStorage.getItem(KEY_STORE)).toBe(keyBefore);
     await submit();
-    await screen.findByText(/created — waiting for your owner's approval/);
+    await screen.findByText(/created successfully. Waiting for your owner's approval/);
     const posts = sentRequests().filter((r) => r.method === "POST" && r.url.endsWith("/jobs"));
     expect(posts.length).toBe(2);
     expect(posts[0]?.headers.get("x-idempotency-key")).toBe(
@@ -402,26 +402,28 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
   }
 
   async function submitAsOwner(employeeId: string): Promise<void> {
-    await screen.findByLabelText("What needs doing");
+    await screen.findByLabelText("What Work Needs to Be Done?");
     fillRequiredFields();
     selectCustomer("c1");
-    fireEvent.change(screen.getByLabelText("Assign to"), { target: { value: employeeId } });
+    fireEvent.change(screen.getByLabelText("Assign to Employee"), {
+      target: { value: employeeId },
+    });
     await submit();
   }
 
   it("offers the active employees only — not the owner themself, not the removed", async () => {
     ownerEntry();
-    await screen.findByText(/The employee you assign sees the job in their app/);
-    const select = screen.getByLabelText("Assign to") as HTMLSelectElement;
+    await screen.findByText(/The employee you select will see this job in their app immediately/);
+    const select = screen.getByLabelText("Assign to Employee") as HTMLSelectElement;
     const names = Array.from(select.options).map((o) => o.textContent);
-    expect(names).toEqual(["Pick an employee", "Priya Nair"]);
+    expect(names).toEqual(["Select an Employee", "Priya Nair"]);
   });
 
   it("prefills Assign to from the profile's ?technician= deep link", async () => {
     meRole = "owner";
     renderNewJob("/admin/company/jobs/new?technician=u-emp");
-    await screen.findByText(/The employee you assign sees the job in their app/);
-    expect((screen.getByLabelText("Assign to") as HTMLSelectElement).value).toBe("u-emp");
+    await screen.findByText(/The employee you select will see this job in their app immediately/);
+    expect((screen.getByLabelText("Assign to Employee") as HTMLSelectElement).value).toBe("u-emp");
   });
 
   it("leaves Assign to empty when the deep link names someone who cannot be assigned", async () => {
@@ -429,8 +431,8 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
     // u-gone is on the roster but removed — not a real pick, so nothing is
     // prefilled and the form still demands a conscious choice.
     renderNewJob("/admin/company/jobs/new?technician=u-gone");
-    await screen.findByText(/The employee you assign sees the job in their app/);
-    expect((screen.getByLabelText("Assign to") as HTMLSelectElement).value).toBe("");
+    await screen.findByText(/The employee you select will see this job in their app immediately/);
+    expect((screen.getByLabelText("Assign to Employee") as HTMLSelectElement).value).toBe("");
   });
 
   it("assigns the employee the owner picked — never themself", async () => {
@@ -438,7 +440,7 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
     state.createdStatus = "assigned";
     ownerEntry();
     await submitAsOwner("u-emp");
-    expect(await screen.findByText(/created and assigned\./)).toBeInTheDocument();
+    expect(await screen.findByText(/created and assigned successfully./)).toBeInTheDocument();
     const post = sentRequests().find((r) => r.method === "POST" && r.url.endsWith("/jobs"));
     expect(post?.body).toMatchObject({ technicianId: "u-emp" });
     // The owner's own back address is the shared jobs page, not Me.
@@ -453,7 +455,9 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
     state.createdStatus = "pending_approval";
     ownerEntry();
     await submitAsOwner("u-emp");
-    expect(await screen.findByText(/created — waiting for approval\./)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/created successfully. Waiting for approval./),
+    ).toBeInTheDocument();
   });
 
   it("holds Create while the employee list failed, and sends nothing", async () => {
@@ -468,8 +472,8 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
         : respondDefault(url),
     );
     renderNewJob("/admin/company/jobs/new");
-    await screen.findByText(/The employee list could not load/);
-    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    await screen.findByText(/We could not load the employee list/);
+    const create = screen.getByRole("button", { name: /Create Job/ }) as HTMLButtonElement;
     expect(create.disabled).toBe(true);
     fireEvent.click(create);
     expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
@@ -478,8 +482,10 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
   it("says why Create is stuck when nobody can be assigned", async () => {
     memberRows = ownerRoster().filter((m) => m.role !== "employee" || m.status !== "active");
     ownerEntry();
-    expect(await screen.findByText(/No active employees to assign yet/)).toBeInTheDocument();
-    const create = screen.getByRole("button", { name: /Create job/ }) as HTMLButtonElement;
+    expect(
+      await screen.findByText(/No active employees available to assign this job/),
+    ).toBeInTheDocument();
+    const create = screen.getByRole("button", { name: /Create Job/ }) as HTMLButtonElement;
     expect(create.disabled).toBe(true);
     fireEvent.click(create);
     expect(sentRequests().filter((r) => r.method === "POST")).toHaveLength(0);
@@ -496,7 +502,7 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
       return respondDefault(url);
     });
     renderNewJob("/admin/company/jobs/new");
-    expect(await screen.findByText(/The new-job form could not load/)).toBeInTheDocument();
+    expect(await screen.findByText(/We could not open the new job form/)).toBeInTheDocument();
     const back = screen.getByRole("link", { name: "Back" });
     expect(back).toHaveAttribute("href", "/admin/company/jobs");
   });

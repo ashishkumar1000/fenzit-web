@@ -217,14 +217,14 @@ describe("AdminJobsPage owner queue: the Approval tab's badge", () => {
     pipelinePending = 2;
     renderQueue();
     await screen.findByText(/JOB-1/);
-    expect(screen.getByRole("link", { name: "Approval 2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Approvals 2" })).toBeInTheDocument();
   });
 
   it("shows no badge when the count could not load — the tab still works", async () => {
     pipelinePending = null;
     renderQueue();
     await screen.findByText(/JOB-1/);
-    const approvalTab = screen.getByRole("link", { name: "Approval" });
+    const approvalTab = screen.getByRole("link", { name: "Approvals" });
     expect(approvalTab.textContent).not.toMatch(/\d/);
   });
 });
@@ -245,12 +245,12 @@ describe("AdminJobsPage owner queue: the rows", () => {
     expect(items[0]?.textContent).toContain("JOB-1");
     expect(items[1]?.textContent).toContain("JOB-2");
     expect(screen.getByText(/Sharma Traders/)).toBeInTheDocument();
-    expect(screen.getByText(/no name/)).toBeInTheDocument();
+    expect(screen.getByText(/No Name/)).toBeInTheDocument();
     // 26 hours reads as days now (critique 2026-11-14): the machine's "42 h"
     // is noise, the person's "1 d" is a fact.
     expect(screen.getAllByText(/waiting 1 d/).length).toBe(2);
     // More pages exist beyond these two rows.
-    expect(screen.getByText("2+ waiting")).toBeInTheDocument();
+    expect(screen.getByText("2+ Jobs Waiting")).toBeInTheDocument();
   });
 
   it("sends the filters and the cursor as query parameters, not just the URL", async () => {
@@ -277,13 +277,13 @@ describe("AdminJobsPage owner queue: the rows", () => {
     queueExhausted = true;
     renderQueue("/admin/company/jobs?cursor=c-x");
     await screen.findByText(/JOB-1/);
-    expect(screen.queryByRole("link", { name: "Older submissions" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "View Older Requests" })).toBeNull();
   });
 
   it("shows the empty line, naming the filters, when nothing matches", async () => {
     queueRows = [];
     renderQueue("/admin/company/jobs?olderThan=24");
-    await screen.findByText(/Nothing is waiting for approval for these filters/);
+    await screen.findByText(/No jobs are waiting for approval with these filters/);
   });
 
   it("always shows the queue card on its own tab, with the empty line when nothing is pending", async () => {
@@ -292,7 +292,7 @@ describe("AdminJobsPage owner queue: the rows", () => {
     // card. The jobs tab (the default) never renders the queue at all.
     queueRows = [];
     renderQueue("/admin/company/jobs?tab=approval");
-    await screen.findByText(/Nothing is waiting for approval\./);
+    await screen.findByText(/No jobs are waiting for approval\./);
   });
 
   it("leads a row with its work and keeps the number and the slot beside it", async () => {
@@ -323,7 +323,7 @@ describe("AdminJobsPage owner queue: the rows", () => {
     renderQueue("/admin/company/jobs?employeeId=e-gone");
     await screen.findByText(/JOB-1/);
     const ghost = document.querySelector('select option[value="e-gone"]');
-    expect(ghost?.textContent).toBe("(this employee)");
+    expect(ghost?.textContent).toBe("This Employee");
   });
 
   it("says the filter failed but the address still applies", async () => {
@@ -332,7 +332,7 @@ describe("AdminJobsPage owner queue: the rows", () => {
     await screen.findByText(/JOB-1/);
     expect(
       screen.getByText(
-        /The employee filter could not load\. The employee filter already in the address still applies\./,
+        /We could not load the employee list\. The selected filter will still be used\./,
       ),
     ).toBeInTheDocument();
   });
@@ -340,7 +340,7 @@ describe("AdminJobsPage owner queue: the rows", () => {
   it("points the older page at the next cursor with the filters kept", async () => {
     renderQueue("/admin/company/jobs?employeeId=e-gone&olderThan=24");
     await screen.findByText(/JOB-1/);
-    const link = screen.getByRole("link", { name: "Older submissions" });
+    const link = screen.getByRole("link", { name: "View Older Requests" });
     const href = link.getAttribute("href") ?? "";
     expect(href).toContain("employeeId=e-gone");
     expect(href).toContain("olderThan=24");
@@ -373,10 +373,13 @@ describe("AdminJobsPage owner queue: decisions", () => {
     fireEvent.click(within(firstRow).getByRole("button", { name: "Reject" }));
     const dialog = firstRow.querySelector("dialog");
     expect(dialog?.open).toBe(true);
-    fireEvent.change(within(dialog as HTMLElement).getByLabelText("Reason (optional)"), {
-      target: { value: "Customer cancelled" },
-    });
-    fireEvent.click(within(dialog as HTMLElement).getByRole("button", { name: "Reject job" }));
+    fireEvent.change(
+      within(dialog as HTMLElement).getByLabelText("Reason for Rejection (Optional)"),
+      {
+        target: { value: "Customer cancelled" },
+      },
+    );
+    fireEvent.click(within(dialog as HTMLElement).getByRole("button", { name: "Reject Job" }));
     await waitFor(() =>
       expect(sentRequests().some((r) => r.method === "POST" && r.url.includes("/approval"))).toBe(
         true,
@@ -393,7 +396,7 @@ describe("AdminJobsPage owner queue: decisions", () => {
     const firstRow = screen.getByText(/JOB-1/).closest("li") as HTMLElement;
     fireEvent.click(within(firstRow).getByRole("button", { name: "Reject" }));
     const dialog = firstRow.querySelector("dialog") as HTMLDialogElement;
-    fireEvent.click(within(dialog).getByRole("button", { name: "Reject job" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Reject Job" }));
     await waitFor(() =>
       expect(sentRequests().some((r) => r.method === "POST" && r.url.includes("/approval"))).toBe(
         true,
@@ -410,7 +413,7 @@ describe("AdminJobsPage owner queue: decisions", () => {
     const firstRow = screen.getByText(/JOB-1/).closest("li") as HTMLElement;
     fireEvent.click(within(firstRow).getByRole("button", { name: "Reject" }));
     const dialog = firstRow.querySelector("dialog") as HTMLDialogElement;
-    fireEvent.click(within(dialog).getByRole("button", { name: "Reject job" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Reject Job" }));
     // Never hidden behind the overlay: the dialog stays open with the news.
     expect(await within(dialog).findByText(/That job was already decided/)).toBeInTheDocument();
     expect(dialog.open).toBe(true);
@@ -454,21 +457,21 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     editDetail = editJob();
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
-    expect(screen.getAllByText(/being edited/).length).toBe(1);
+    expect(screen.getAllByText(/Being Edited/).length).toBe(1);
   });
 
   it("refuses a full form for a job that is no longer pending", async () => {
     editDetail = editJob("approved");
     renderQueue("/admin/company/jobs?edit=j1");
     expect(
-      await screen.findByText(/That job is no longer waiting for approval/),
+      await screen.findByText(/This job is no longer waiting for approval/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Edit JOB-1/)).toBeNull();
   });
 
   it("shows a retry line, not a form, when the job fails to load", async () => {
     renderQueue("/admin/company/jobs?edit=j1");
-    expect(await screen.findByText(/That job could not load for editing/)).toBeInTheDocument();
+    expect(await screen.findByText(/We could not load this job for editing/)).toBeInTheDocument();
   });
 
   it("keeps the job's own pickers selectable when their lists failed", async () => {
@@ -478,7 +481,9 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
     expect(
-      screen.getByText(/The skill list could not load — the job keeps its current skill/),
+      screen.getByText(
+        /We could not load the work types. The current work type will remain unchanged/,
+      ),
     ).toBeInTheDocument();
     const skillOption = document.querySelector(
       'select[name="skillId"] option[value="s-cur"]',
@@ -493,7 +498,7 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     expect(technician.textContent).toBe("Current hand");
     // An untouched save keeps every field — exact body: nothing silently
     // cleared, no stray keys.
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
     await waitFor(() =>
       expect(sentRequests().some((r) => r.method === "PATCH" && r.url.includes("/jobs/j1"))).toBe(
         true,
@@ -518,15 +523,15 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     editDetail = editJob();
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
-    fireEvent.change(screen.getByLabelText("What needs doing"), {
+    fireEvent.change(screen.getByLabelText("What Work Needs to Be Done?"), {
       target: { value: "Rewritten brief" },
     });
     fireEvent.change(screen.getByLabelText("Priority"), { target: { value: "urgent" } });
-    fireEvent.change(screen.getByLabelText("Where"), { target: { value: "Bandra East" } });
-    fireEvent.change(screen.getByLabelText("Notes for the employee (optional)"), {
+    fireEvent.change(screen.getByLabelText("Work Location"), { target: { value: "Bandra East" } });
+    fireEvent.change(screen.getByLabelText("Notes for Employee (Optional)"), {
       target: { value: "Call before arriving" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
     await waitFor(() =>
       expect(sentRequests().some((r) => r.method === "PATCH" && r.url.includes("/jobs/j1"))).toBe(
         true,
@@ -545,13 +550,13 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     editDetail = editJob();
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
-    fireEvent.change(screen.getByLabelText("Ends (optional)"), {
+    fireEvent.change(screen.getByLabelText("End Date and Time (Optional)"), {
       target: { value: "2026-11-15T04:00" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
     // The action's refusal also repeats inside the row's hidden reject dialog.
     expect(
-      (await screen.findAllByText("The end time must come after the start time.")).length,
+      (await screen.findAllByText("End time must be later than start time.")).length,
     ).toBeGreaterThanOrEqual(1);
     expect(sentRequests().filter((r) => r.method === "PATCH")).toHaveLength(0);
   });
@@ -561,7 +566,7 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     patchConflicts = true;
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
     expect(
       (await screen.findAllByText(/That job can no longer be edited/)).length,
     ).toBeGreaterThanOrEqual(1);
@@ -571,13 +576,13 @@ describe("AdminJobsPage owner queue: the edit form", () => {
     editDetail = editJob();
     renderQueue("/admin/company/jobs?edit=j1");
     await screen.findByText(/Edit JOB-1/);
-    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
     await waitFor(() =>
       expect(sentRequests().some((r) => r.method === "PATCH" && r.url.includes("/jobs/j1"))).toBe(
         true,
       ),
     );
-    expect(await screen.findByText("Changes saved.")).toBeInTheDocument();
+    expect(await screen.findByText("Changes saved successfully.")).toBeInTheDocument();
     const patch = sentRequests().find((r) => r.method === "PATCH" && r.url.includes("/jobs/j1"));
     const body = patch?.body as Record<string, unknown>;
     expect(body.scheduledStart).toBe("2026-11-15T05:00:00.000Z");

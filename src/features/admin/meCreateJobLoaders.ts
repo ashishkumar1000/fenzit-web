@@ -95,7 +95,7 @@ export async function meCreateJobLoader({ request }: LoaderFunctionArgs): Promis
         ? settle(async () =>
             (await fetchMembers(token, request.signal))
               .filter((m) => m.role === "employee" && m.status === "active")
-              .map((m): PickOption => ({ id: m.userId, name: m.name ?? "(no name)" })),
+              .map((m): PickOption => ({ id: m.userId, name: m.name ?? "No Name" })),
           )
         : Promise.resolve({ ok: true, data: [] as PickOption[] }),
     ]);
@@ -150,7 +150,7 @@ export async function meCreateJobAction({ request }: ActionFunctionArgs): Promis
     if (Number.isNaN(scheduledStart.getTime())) {
       return {
         state: "error",
-        message: "That start time did not read as a real time. Check it and try again.",
+        message: "Start time is not valid. Please check it and try again.",
       };
     }
 
@@ -187,11 +187,11 @@ export async function meCreateJobAction({ request }: ActionFunctionArgs): Promis
       if (Number.isNaN(end.getTime())) {
         return {
           state: "error",
-          message: "That end time did not read as a real time. Check it and try again.",
+          message: "End time is not valid. Please check it and try again.",
         };
       }
       if (end.getTime() <= scheduledStart.getTime()) {
-        return { state: "error", message: "The end time must come after the start time." };
+        return { state: "error", message: "End time must be later than start time." };
       }
       job.scheduledEnd = end.toISOString();
     }

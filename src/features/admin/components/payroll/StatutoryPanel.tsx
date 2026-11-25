@@ -41,7 +41,9 @@ export function StatutoryPanel({
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The statutory settings could not load. Try opening this page again from the menu.
+          {
+            "We could not load the government rule settings.\nPlease go back to the menu and open this page again."
+          }
         </p>
       </div>
     );
@@ -77,24 +79,25 @@ function PfSwitchCard({ pfRows }: { pfRows: PayrollPfConfigView[] }) {
   const [covered, setCovered] = useState("true");
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>Provident Fund</h2>
+      <h2 className={styles.panelTitle}>Provident Fund (PF)</h2>
       <p className={styles.panelLede}>
-        PF is 12% of earned Basic, up to the statutory wage ceiling. Employees with a UAN or PF
-        number are always covered; this switch covers everyone else from a date.
+        {
+          "PF is normally deducted at 12% of an employee's Basic Salary, subject to the government salary limit.\nEmployees who already have a UAN or PF account number are always included in PF.\nFor other employees, you can choose whether PF should apply from a particular date."
+        }
       </p>
       {pfRows.length === 0 ? (
         <p className={styles.empty}>
-          The switch is off — only employees with a UAN or PF account number are covered.
+          PF is currently not enabled for employees without a UAN or PF account number.
         </p>
       ) : (
         <ul className={styles.configRows}>
           {pfRows.map((row) => (
             <li key={row.effectiveFrom} className={styles.configRow}>
               <span>
-                From <strong className={styles.rowDate}>{row.effectiveFrom}</strong>
+                Starts From <strong className={styles.rowDate}>{row.effectiveFrom}</strong>
               </span>
               <span className={styles.statePill} data-covered={row.covered ? "on" : "off"}>
-                {row.covered ? "Covered" : "Not covered"}
+                {row.covered ? "PF Enabled" : "PF Disabled"}
               </span>
             </li>
           ))}
@@ -105,21 +108,21 @@ function PfSwitchCard({ pfRows }: { pfRows: PayrollPfConfigView[] }) {
         <TextInput
           id="pf-effective"
           name="effectiveFrom"
-          label="Covered from"
+          label="PF Should Apply From"
           type="date"
           value={effectiveFrom}
           onChange={setEffectiveFrom}
         />
         <label className={styles.fieldLabel}>
-          Coverage
+          PF Setting
           <select
             name="covered"
             className={styles.select}
             value={covered}
             onChange={(event) => setCovered(event.target.value)}
           >
-            <option value="true">Cover employees</option>
-            <option value="false">Do not cover employees</option>
+            <option value="true">Apply PF to Employees</option>
+            <option value="false">Do Not Apply PF to Employees</option>
           </select>
         </label>
         {result?.state === "error" ? (
@@ -129,7 +132,7 @@ function PfSwitchCard({ pfRows }: { pfRows: PayrollPfConfigView[] }) {
         ) : null}
         {result?.state === "done" ? (
           <p className={styles.savedLine} role="status">
-            PF switch saved.
+            PF settings saved successfully.
           </p>
         ) : null}
         <div className={styles.saveRow}>
@@ -139,7 +142,7 @@ function PfSwitchCard({ pfRows }: { pfRows: PayrollPfConfigView[] }) {
             disabled={busy || effectiveFrom === ""}
           >
             {busy ? <Spinner size={13} /> : null}
-            {busy ? "Saving…" : "Save PF switch"}
+            {busy ? "Saving…" : "Save PF Settings"}
           </button>
         </div>
       </Form>
@@ -183,17 +186,18 @@ function PfExclusionCard({
       : false;
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>PF exclusions</h2>
+      <h2 className={styles.panelTitle}>Employees Not Covered by PF</h2>
       <p className={styles.panelLede}>
-        Take one employee out of PF — for someone the EPFO does not cover even without a UAN. An
-        employee carrying a UAN or PF account number cannot be excluded.
+        {
+          "Some employees may not be covered under PF rules.\nYou can select an employee here and mark them as not covered by PF.\nEmployees who have a UAN or PF account number cannot be excluded."
+        }
       </p>
       <div className={styles.pickerRow}>
         <Dropdown
           label="Employee"
           options={roster.map((m) => ({
             value: m.userId,
-            label: m.name ?? "(no name)",
+            label: m.name ?? "No Name",
             meta: m.employeeCode,
           }))}
           value={pfEmployee?.userId ?? ""}
@@ -201,10 +205,10 @@ function PfExclusionCard({
         />
       </div>
       {pfEmployee === null ? (
-        <p className={styles.empty}>Pick an employee to see their PF exclusion.</p>
+        <p className={styles.empty}>Please select an employee to check their PF details.</p>
       ) : !pfExclusion.ok ? (
         <p className={styles.failed} role="alert">
-          {pfEmployee.name ?? "This employee"}'s exclusion could not load. Try again.
+          {`We could not load the PF details for ${pfEmployee.name ?? "This employee"}.\nPlease try again.`}
         </p>
       ) : (
         <fetcher.Form method="post" className={styles.saveForm}>
@@ -212,9 +216,14 @@ function PfExclusionCard({
           <input type="hidden" name="userId" value={pfEmployee.userId} />
           <input type="hidden" name="excluded" value={String(current)} />
           <p className={styles.currentState} role="status">
-            {pfEmployee.name ?? "This employee"} is{" "}
-            <strong>{current ? "excluded from PF" : "covered by PF"}</strong>
-            {epoch ? " (never set)" : ""}
+            {epoch ? (
+              "Not updated yet."
+            ) : (
+              <>
+                {pfEmployee.name ?? "This employee"} is{" "}
+                <strong>{current ? "not covered by PF" : "covered by PF"}</strong>.
+              </>
+            )}
           </p>
           <label className={styles.switchRow}>
             <input
@@ -223,11 +232,11 @@ function PfExclusionCard({
               onChange={(event) => setExcluded(event.target.checked)}
             />
             <span>
-              Exclude from PF
+              Do Not Apply PF to This Employee
               <small>
                 {current
-                  ? "PF stops on the next run; nothing is deducted."
-                  : "12% of earned Basic is deducted each covered month."}
+                  ? "PF will not be deducted from this employee's salary from the next salary run."
+                  : "12% of the employee's Basic Salary will be deducted as PF for every month they are covered."}
               </small>
             </span>
           </label>
@@ -238,13 +247,13 @@ function PfExclusionCard({
           ) : null}
           {result?.state === "done" ? (
             <p className={styles.savedLine} role="status">
-              Saved.
+              Saved successfully.
             </p>
           ) : null}
           <div className={styles.saveRow}>
             <button type="submit" className={styles.saveButton} disabled={busy}>
               {busy ? <Spinner size={13} /> : null}
-              {busy ? "Saving…" : "Save exclusion"}
+              {busy ? "Saving…" : "Save PF Setting"}
             </button>
           </div>
         </fetcher.Form>
@@ -256,22 +265,25 @@ function PfExclusionCard({
 function TdsCard({ tds }: { tds: TdsConfigView }) {
   return (
     <div className={styles.card}>
-      <h2 className={styles.panelTitle}>Tax deducted at source — {tds.taxYear}</h2>
+      <h2 className={styles.panelTitle}>Income Tax Deduction (TDS) – {tds.taxYear}</h2>
       <p className={styles.panelLede}>
-        Read-only: these are the statute's numbers ({tds.regime}), not company settings. TDS spreads
-        the year's estimate evenly over the remaining months of the tax year.
+        {`These are government tax rates for the selected financial year (${tds.regime}).\nYou cannot change these rates here.\nThe system estimates the employee's yearly tax and divides the remaining tax amount across the remaining salary months.`}
       </p>
       <table className={styles.slabTable}>
         <thead>
           <tr>
-            <th scope="col">Annual income up to</th>
-            <th scope="col">Rate</th>
+            <th scope="col">Yearly Income</th>
+            <th scope="col">Tax Rate</th>
           </tr>
         </thead>
         <tbody>
           {tds.slabs.map((slab) => (
             <tr key={slab.ratePercent}>
-              <td>{slab.upto === null ? "Above the last slab" : fmtMoney(String(slab.upto))}</td>
+              <td>
+                {slab.upto === null
+                  ? "Above the highest income limit"
+                  : fmtMoney(String(slab.upto))}
+              </td>
               <td>{slab.ratePercent}%</td>
             </tr>
           ))}
@@ -279,17 +291,18 @@ function TdsCard({ tds }: { tds: TdsConfigView }) {
       </table>
       <dl className={styles.tdsFacts}>
         <div>
-          <dt>Standard deduction</dt>
+          <dt>Standard Deduction</dt>
           <dd>{fmtMoney(tds.standardDeduction)}</dd>
         </div>
         <div>
-          <dt>Rebate — section {tds.rebate.section}</dt>
+          <dt>Tax Rebate</dt>
           <dd>
-            {fmtMoney(String(tds.rebate.threshold))} ({tds.rebate.description})
+            Section {tds.rebate.section} – {fmtMoney(String(tds.rebate.threshold))} (
+            {tds.rebate.description})
           </dd>
         </div>
         <div>
-          <dt>Cess</dt>
+          <dt>Additional Tax (Cess)</dt>
           <dd>{tds.cessRatePercent}%</dd>
         </div>
       </dl>

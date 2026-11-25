@@ -15,6 +15,14 @@
   gap: var(--space-4);
 }
 
+/* Copy with real \n breaks (failure lines, ledes) keeps them via pre-line —
+   found in review 2026-11-25. */
+.failed,
+.panelLede,
+.empty {
+  white-space: pre-line;
+}
+
 .failed {
   margin: 0;
   color: var(--color-text-body);

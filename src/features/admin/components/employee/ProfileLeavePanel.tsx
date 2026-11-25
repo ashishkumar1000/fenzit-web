@@ -27,21 +27,21 @@ export function ProfileLeavePanel({
       <div className={styles.balanceRow}>
         {!balances.ok ? (
           <p className={styles.failed} role="alert">
-            The leave balances could not load — retry the page from the menu.
+            We could not load the employee's leave balance. Please try again.
           </p>
         ) : balances.data.length === 0 ? (
-          <p className={styles.empty}>No accrual leave types are set up for this company yet.</p>
+          <p className={styles.empty}>No leave types have been set up for your company yet.</p>
         ) : (
           balances.data.map((balance) => (
             <div key={balance.typeId} className={styles.balanceCard}>
               <p className={styles.balanceName}>{balance.name}</p>
               <p className={styles.balanceValue}>
                 {balance.remaining}
-                <span className={styles.balanceUnit}> days left</span>
+                <span className={styles.balanceUnit}> Days Available</span>
               </p>
               <p className={styles.balanceCaption}>
                 {accrualCaption(balance.accrualMode, balance.accrualDays)}
-                {balance.enabled ? "" : " · Type disabled"}
+                {balance.enabled ? "" : " · This leave type is currently turned off."}
               </p>
             </div>
           ))
@@ -49,28 +49,29 @@ export function ProfileLeavePanel({
       </div>
       <SectionCard
         title="Leave requests"
-        meta="Newest first"
+        meta="Newest requests first."
         footer={
           requests.ok && requests.data.hasMore ? (
             // The read is one page and the console has no older-pages view
             // yet — say so rather than let the first page read as the whole
             // history.
             <p className={styles.empty}>
-              Only the newest {requests.data.data.length} show here — older requests are not listed
-              in the console yet.
+              {`Showing only the latest ${requests.data.data.length} ${
+                requests.data.data.length === 1 ? "leave request" : "leave requests"
+              }. Older requests are not available here yet.`}
             </p>
           ) : undefined
         }
       >
         {!requests.ok ? (
           <p className={styles.failed} role="alert">
-            The leave requests could not load — retry the page from the menu.
+            We could not load the employee's leave requests. Please try again.
           </p>
         ) : (
           <DataTable
-            columns={["Dates", "Part", "Working days", "Reason", "Status"]}
+            columns={["Leave Dates", "Leave Duration", "Working Days", "Reason", "Status"]}
             rows={requestRows(requests.data.data)}
-            empty="No leave requests yet — requests appear here with type, dates and approval status."
+            empty="No leave requests yet. Employee leave requests will appear here with their dates, leave type and approval status."
           />
         )}
       </SectionCard>
@@ -80,8 +81,8 @@ export function ProfileLeavePanel({
 
 function requestRows(rows: LeaveRow[]): TableCell[][] {
   return rows.map((row) => [
-    { text: `${fmtDay(row.startDate)} – ${fmtDay(row.endDate)}` },
-    { text: row.part === "" ? "Full day" : humanizePart(row.part) },
+    { text: `${fmtDay(row.startDate)} to ${fmtDay(row.endDate)}` },
+    { text: row.part === "" ? "Full Day" : humanizePart(row.part) },
     { text: String(row.workingDays) },
     { text: row.reason === "" ? "—" : row.reason },
     { text: row.status, status: true },

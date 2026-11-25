@@ -167,8 +167,10 @@ describe("AdminAttendancePage: the report tab", () => {
   it("shows the report card with its window pickers and download, no month table", async () => {
     renderAttendance("/admin/company/attendance?tab=report");
     const report = await card("Attendance report");
-    expect(within(report).getByRole("button", { name: "Download report" })).toBeInTheDocument();
-    expect(within(report).getByText(/A PDF of attendance for all offices/)).toBeInTheDocument();
+    expect(within(report).getByRole("button", { name: "Download Report" })).toBeInTheDocument();
+    expect(
+      within(report).getByText(/A PDF showing attendance for all offices/),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Priya Nair")).toBeNull();
     // A tab the user never opened costs nothing.
     expect(sentRequests().some((r) => r.url.includes("/attendance/monthly"))).toBe(false);
@@ -178,19 +180,21 @@ describe("AdminAttendancePage: the report tab", () => {
     historyFails = true;
     renderAttendance("/admin/company/attendance?tab=report");
     const report = await card("Attendance report");
-    expect(within(report).getByText(/The report history could not load/)).toBeInTheDocument();
+    expect(within(report).getByText(/We could not load your report history/)).toBeInTheDocument();
     // The pickers still work — the history is not the whole tab.
-    expect(within(report).getByRole("button", { name: "Download report" })).toBeInTheDocument();
+    expect(within(report).getByRole("button", { name: "Download Report" })).toBeInTheDocument();
   });
 
   it("holds the download and says why when a date was cleared", async () => {
     renderAttendance("/admin/company/attendance?tab=report");
     const report = await card("Attendance report");
-    const from = within(report).getByLabelText("From") as HTMLInputElement;
+    const from = within(report).getByLabelText("From Date") as HTMLInputElement;
     fireEvent.change(from, { target: { value: "" } });
-    const button = within(report).getByRole("button", { name: "Download report" });
+    const button = within(report).getByRole("button", { name: "Download Report" });
     expect((button as HTMLButtonElement).disabled).toBe(true);
-    expect(within(report).getByText("Pick both dates to generate the report.")).toBeInTheDocument();
+    expect(
+      within(report).getByText("Please select both start and end dates to download the report."),
+    ).toBeInTheDocument();
   });
 });
 

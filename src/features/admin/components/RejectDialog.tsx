@@ -46,11 +46,11 @@ export function RejectDialog({ jobId }: { jobId: string }) {
           <input type="hidden" name="jobId" value={jobId} />
           <input type="hidden" name="decision" value="reject" />
           <h3 id={titleId} className={styles.title}>
-            Reject this job?
+            Are You Sure You Want to Reject This Job?
           </h3>
           <p className={styles.hint}>
-            The employee is told the job was rejected, with your reason if you give one. This cannot
-            be undone.
+            The employee will be informed that this job has been rejected. You can also add a reason
+            for rejecting it. This action cannot be undone.
           </p>
           {error !== null ? (
             <p className={styles.error} role="alert">
@@ -58,7 +58,7 @@ export function RejectDialog({ jobId }: { jobId: string }) {
             </p>
           ) : null}
           <label className={styles.field}>
-            <span className={styles.label}>Reason (optional)</span>
+            <span className={styles.label}>Reason for Rejection (Optional)</span>
             <input type="text" name="reason" maxLength={500} autoFocus />
           </label>
           <div className={styles.actions}>
@@ -70,7 +70,7 @@ export function RejectDialog({ jobId }: { jobId: string }) {
               Cancel
             </button>
             <button type="submit" className={styles.rejectButton} disabled={busy === true}>
-              {busy === true ? "Working…" : "Reject job"}
+              {busy === true ? "Working…" : "Reject Job"}
             </button>
           </div>
         </Form>

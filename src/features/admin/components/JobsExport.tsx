@@ -43,15 +43,15 @@ async function downloadJobsCsv(onProgress: (done: number) => void): Promise<void
   const quote = (cell: string): string => `"${cell.replace(/"/g, '""')}"`;
   const header = [
     "Job number",
-    "Description",
+    "Job Description",
     "Customer",
     "Employee",
-    "Skill",
+    "Work Type",
     "Status",
     "Priority",
-    "Place",
-    "Scheduled",
-    "Completed",
+    "Location",
+    "Scheduled Date",
+    "Completed Date",
   ].join(",");
   const lines: string[] = [header];
   const PAGE = 100;
@@ -111,13 +111,13 @@ export function ExportJobsButton() {
           setError(null);
           setProgress(null);
           setBuilding(true);
-          downloadJobsCsv((done) => setProgress(`${done} fetched…`))
-            .catch(() => setError("The file could not be created. Try again."))
+          downloadJobsCsv((done) => setProgress(`${done} jobs downloaded…`))
+            .catch(() => setError("We could not create the file. Please try again."))
             .finally(() => setBuilding(false));
         }}
       >
         {building ? <Spinner size={14} /> : <DownloadIcon size={15} strokeWidth={2} />}
-        {building ? (progress ?? "Preparing…") : "Download list"}
+        {building ? (progress ?? "Preparing…") : "Download Jobs List"}
       </button>
       {error ? (
         <p className={styles.exportError} role="alert">

@@ -27,7 +27,9 @@ describe("Employees: the job settings dialog", () => {
     const approval = dialog.querySelector('input[name="jobApprovalRequired"]') as HTMLInputElement;
     expect(create.checked).toBe(false);
     expect(approval.disabled).toBe(true);
-    expect(within(dialog).getByText("Turn on Can create jobs first.")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Turn on "Allow Employee to Create Jobs" first.'),
+    ).toBeInTheDocument();
     fireEvent.click(create);
     expect(approval.disabled).toBe(false);
   });
@@ -61,9 +63,13 @@ describe("Employees: the Resend link", () => {
     });
     renderAt("/admin/company/employees");
     const meera = (await screen.findByText("Meera Joshi")).closest("tr") as HTMLElement;
-    fireEvent.click(within(meera).getByRole("button", { name: "Resend invite" }));
-    expect(await within(meera).findByText("Invite resent.")).toBeInTheDocument();
-    expect(within(meera).getByRole("button", { name: "Resend invite" })).toBeInTheDocument();
+    fireEvent.click(within(meera).getByRole("button", { name: "Send Invitation Again" }));
+    expect(
+      await within(meera).findByText("Invitation sent again successfully."),
+    ).toBeInTheDocument();
+    expect(
+      within(meera).getByRole("button", { name: "Send Invitation Again" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -71,13 +77,13 @@ describe("Employees: sortable headers", () => {
   it("shows the default sort as descending, and a click moves to the other direction", async () => {
     renderAt("/admin/company/employees");
     await screen.findByText("Asha V");
-    const joined = screen.getByRole("columnheader", { name: /Joined on/ });
+    const joined = screen.getByRole("columnheader", { name: /Joined On/ });
     expect(joined.getAttribute("aria-sort")).toBe("descending");
     fireEvent.click(within(joined).getByRole("link"));
     await waitFor(() => expect(lastPageRequest().searchParams.get("sort")).toBe("joined_old"));
     await waitFor(() =>
       expect(
-        screen.getByRole("columnheader", { name: /Joined on/ }).getAttribute("aria-sort"),
+        screen.getByRole("columnheader", { name: /Joined On/ }).getAttribute("aria-sort"),
       ).toBe("ascending"),
     );
   });
@@ -92,9 +98,9 @@ describe("Employees: sortable headers", () => {
         "ascending",
       ),
     );
-    expect(screen.getByRole("columnheader", { name: /Code/ }).getAttribute("aria-sort")).toBe(
-      "none",
-    );
+    expect(
+      screen.getByRole("columnheader", { name: /Employee Code/ }).getAttribute("aria-sort"),
+    ).toBe("none");
   });
 });
 

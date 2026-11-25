@@ -133,21 +133,17 @@ export function CustomersTable({
             aria-sort={sortStateFor("name", sort)}
             className={sort === "name_az" || sort === "name_za" ? styles.sortActive : undefined}
           >
-            <SortHeader label="Customer name" next={NEXT_SORT.name(sort)} filters={filters} />
+            <SortHeader label="Customer Name" next={NEXT_SORT.name(sort)} filters={filters} />
           </th>
-          <th scope="col">Phone</th>
+          <th scope="col">Phone Number</th>
           <th scope="col">Address</th>
-          <th scope="col">Jobs</th>
+          <th scope="col">Total Jobs</th>
           <th
             scope="col"
             aria-sort={sortStateFor("activity", sort)}
             className={sort === "recent_activity" ? styles.sortActive : undefined}
           >
-            <SortHeader
-              label="Last job activity"
-              next={NEXT_SORT.activity(sort)}
-              filters={filters}
-            />
+            <SortHeader label="Last Job Date" next={NEXT_SORT.activity(sort)} filters={filters} />
           </th>
         </tr>
       </thead>
@@ -172,7 +168,7 @@ export function CustomersTable({
             <td className={styles.quiet}>{c.address ?? "—"}</td>
             <td>
               <span className={styles.jobsChip} data-hot={c.jobCount >= VIP_JOBS || undefined}>
-                {c.jobCount} {c.jobCount === 1 ? "job" : "jobs"}
+                {c.jobCount} {c.jobCount === 1 ? "Job" : "Jobs"}
               </span>
             </td>
             <td>

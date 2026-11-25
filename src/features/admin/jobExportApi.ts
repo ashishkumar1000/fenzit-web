@@ -32,7 +32,7 @@ const BAD_ACK = "The report service did not acknowledge the request.";
 export type ReportTypeChoice = "technician_job_activity" | "attendance_report";
 
 export const REPORT_TYPES: Array<{ value: ReportTypeChoice; label: string }> = [
-  { value: "technician_job_activity", label: "Job activity" },
+  { value: "technician_job_activity", label: "Job Activity" },
   { value: "attendance_report", label: "Attendance" },
 ];
 

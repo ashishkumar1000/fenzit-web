@@ -79,9 +79,9 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
 };
 
 const ROLE_CAPTION: Record<ConsoleRole, string> = {
-  staff: "Fenzit staff",
-  owner: "Company owner",
-  member: "Team member",
+  staff: "Fenzit Staff",
+  owner: "Company Owner",
+  member: "Team Member",
 };
 
 function BrandMark() {
@@ -109,7 +109,7 @@ function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
   // "(no name)" placeholder.
   // A blank or whitespace-only name counts as missing.
   const label = name !== null && name.trim() !== "" ? name : null;
-  const primary = label ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed in");
+  const primary = label ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed In");
   return (
     <span className={styles.chip}>
       <span className={styles.chipGlyph} aria-hidden="true">
@@ -135,7 +135,7 @@ function NavLinks({
   pendingLeaves: number | null;
 }) {
   return (
-    <nav className={styles.nav} aria-label="Console sections">
+    <nav className={styles.nav} aria-label="Console Menu">
       {sectionGroupsFor(role).map((group, groupIndex) => (
         <div key={group.caption ?? `group-${groupIndex}`} className={styles.navGroup}>
           {group.caption !== null ? <p className={styles.navCaption}>{group.caption}</p> : null}
@@ -159,7 +159,11 @@ function NavLinks({
                 key={section.to}
                 to={section.to}
                 end={exact}
-                aria-label={pendingBadge !== null ? `Leave, ${pendingBadge} pending` : undefined}
+                aria-label={
+                  pendingBadge !== null
+                    ? `Leave – ${pendingBadge} ${pendingBadge === 1 ? "request" : "requests"} waiting`
+                    : undefined
+                }
                 className={({ isActive }) =>
                   isActive || leadsLanding
                     ? `${styles.navLink} ${styles.navLinkActive}`
@@ -212,10 +216,10 @@ export function AdminLayout() {
           <main className={styles.main}>
             <h1 className={styles.heading}>Console</h1>
             <p className={styles.error} role="alert">
-              We could not check your access. Check your connection and try again.
+              We could not check your access. Please check your internet connection and try again.
             </p>
             <Button onClick={() => revalidator.revalidate()} disabled={busy}>
-              {busy ? "Checking…" : "Try again"}
+              {busy ? "Checking…" : "Try Again"}
             </Button>
           </main>
         </Container>
@@ -236,7 +240,7 @@ export function AdminLayout() {
         <div className={styles.sidebarFoot}>
           <UserChip name={data.name} role={data.role} />
           <Button variant="secondary" onClick={logOut}>
-            Log out
+            Log Out
           </Button>
         </div>
       </aside>
@@ -283,27 +287,28 @@ const PAGES_WITH_OWN_HEADER = new Set([
 /** One plain-English line per section, shown under its name on the landing
  *  index. Keyed by the section's route, the same key the glyphs use. */
 const SECTION_BLURBS: Record<string, string> = {
-  "/admin/inspect": "Everything the system knows about one person, on one page.",
-  "/admin/account": "Flip someone's staff and sign-in flags.",
-  "/admin/reports": "Job photos people flagged, ready to hide or dismiss.",
-  "/admin/deletion-requests": "People asking us to erase their data, and what we did.",
-  "/admin/config": "App-wide settings — the force-update rule and the support contact.",
-  "/admin/company": "Today's pulse, the job report and every list in your company.",
-  "/admin/company/customers": "The people you serve, and the jobs booked for them.",
-  "/admin/company/employees": "Your team, their details and their offices.",
-  "/admin/company/payroll": "Salary structures, deductions and the statutory switches.",
-  "/admin/company/jobs": "Create jobs, assign them and follow them to the finish.",
-  "/admin/company/holidays": "The days your team is off.",
-  "/admin/company/leave": "Leave types and time off requests.",
-  "/admin/company/attendance": "Who checked in, where and when.",
+  "/admin/inspect": "View all details about a person in one place.",
+  "/admin/account": "Manage staff access and sign-in settings.",
+  "/admin/reports": "Review job photos reported by users. You can hide or dismiss them.",
+  "/admin/deletion-requests":
+    "View requests from people who want their data deleted and check what action was taken.",
+  "/admin/config": "Manage app updates and support contact details.",
+  "/admin/company": "See today's business summary, job reports and company details.",
+  "/admin/company/customers": "View your customers and the jobs booked for them.",
+  "/admin/company/employees": "Manage your team, their details and office assignments.",
+  "/admin/company/payroll": "Manage salary details, deductions and government rules.",
+  "/admin/company/jobs": "Create jobs, assign them to employees and track their progress.",
+  "/admin/company/holidays": "Manage holidays for your team.",
+  "/admin/company/leave": "Manage leave types and employee leave requests.",
+  "/admin/company/attendance": "See who checked in, where they checked in and at what time.",
 };
 
 /** Members never reach the index: AdminHome sends them to Me first. */
 type IndexRole = Exclude<ConsoleRole, "member">;
 
 const LEDE: Record<IndexRole, string> = {
-  staff: "The whole system, one console.",
-  owner: "Your whole business, one console.",
+  staff: "Manage the entire system from one place.",
+  owner: "Manage your entire business from one place.",
 };
 
 /** The landing index: one row per section this role can open, the whole row
@@ -351,14 +356,14 @@ export function AdminHome() {
   if (data === undefined) {
     return (
       <p className={styles.lede} role="status">
-        Loading your console…
+        Loading your dashboard…
       </p>
     );
   }
   if (data.status === "failed") {
     return (
       <p className={styles.error} role="alert">
-        We could not load your console. Check your connection and try again.
+        We could not load your dashboard. Please check your internet connection and try again.
       </p>
     );
   }
@@ -383,7 +388,7 @@ export function AdminHome() {
       {data.role === "staff" ? (
         <p className={styles.footnote}>
           <GlyphShield size={14} />
-          This console cannot delete anything.
+          You cannot delete anything from this page.
         </p>
       ) : null}
     </div>

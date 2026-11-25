@@ -21,13 +21,13 @@ describe("Payroll: the component library", () => {
   it("saves a new component with only the fields the form filled", async () => {
     renderPayrollAt("/admin/company/payroll");
     await screen.findByText("Basic salary");
-    fireEvent.click(screen.getByRole("button", { name: "Add component" }));
-    const dialog = screen.getByRole("dialog", { name: "Add component" });
-    fireEvent.change(within(dialog).getByLabelText("Name"), {
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Component" }));
+    const dialog = screen.getByRole("dialog", { name: "Add Salary Component" });
+    fireEvent.change(within(dialog).getByLabelText("Component Name"), {
       target: { value: "Travel allowance" },
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
-    await screen.findByText(/is in the library/);
+    await screen.findByText(/has been added successfully/);
     const sent = lastSent("/payroll/components", "POST");
     expect(sent.body).toEqual({ name: "Travel allowance" });
   });
@@ -35,10 +35,12 @@ describe("Payroll: the component library", () => {
   it("sends isBasic when the box is ticked", async () => {
     renderPayrollAt("/admin/company/payroll");
     await screen.findByText("Basic salary");
-    fireEvent.click(screen.getByRole("button", { name: "Add component" }));
-    const dialog = screen.getByRole("dialog", { name: "Add component" });
-    fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Basic two" } });
-    fireEvent.click(within(dialog).getByLabelText(/This is the Basic salary component/));
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Component" }));
+    const dialog = screen.getByRole("dialog", { name: "Add Salary Component" });
+    fireEvent.change(within(dialog).getByLabelText("Component Name"), {
+      target: { value: "Basic two" },
+    });
+    fireEvent.click(within(dialog).getByLabelText(/This is Basic Salary/));
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => {
       const sent = lastSent("/payroll/components", "POST");
@@ -58,9 +60,11 @@ describe("Payroll: the component library", () => {
     };
     renderPayrollAt("/admin/company/payroll");
     await screen.findByText("Basic salary");
-    fireEvent.click(screen.getByRole("button", { name: "Add component" }));
-    const dialog = screen.getByRole("dialog", { name: "Add component" });
-    fireEvent.change(within(dialog).getByLabelText("Name"), { target: { value: "Basic salary" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add Salary Component" }));
+    const dialog = screen.getByRole("dialog", { name: "Add Salary Component" });
+    fireEvent.change(within(dialog).getByLabelText("Component Name"), {
+      target: { value: "Basic salary" },
+    });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     await screen.findByText('A salary component called "Basic salary" already exists.');
     expect(screen.getByRole("alert")).toBeTruthy();
@@ -72,7 +76,7 @@ describe("Payroll: the component library", () => {
  *  open dialog by its heading text instead. */
 function editDialogFor(componentName: string): HTMLElement {
   const dialogs = screen.getAllByRole("dialog");
-  const match = dialogs.find((d) => d.textContent?.includes(`Edit “${componentName}”`));
+  const match = dialogs.find((d) => d.textContent?.includes(`Edit "${componentName}"`));
   if (match === undefined) throw new Error(`no edit dialog for ${componentName}`);
   return match;
 }
@@ -83,7 +87,7 @@ describe("Payroll: editing a component sends a computed-diff PATCH", () => {
     const row = screen.getByText("House rent allowance").closest("tr")!;
     fireEvent.click(within(row).getByRole("button", { name: "Edit" }));
     const dialog = editDialogFor("House rent allowance");
-    fireEvent.change(within(dialog).getByLabelText("Name"), {
+    fireEvent.change(within(dialog).getByLabelText("Component Name"), {
       target: { value: "House rent" },
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));

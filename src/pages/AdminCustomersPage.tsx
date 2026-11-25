@@ -39,7 +39,7 @@ export function AdminCustomersPage() {
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The customer list could not load. Try opening this page again from the menu.
+          We could not load the customer list. Please go back to the menu and open this page again.
         </p>
       </div>
     );
@@ -59,14 +59,14 @@ export function AdminCustomersPage() {
 
   const tiles: ConsoleTile[] = [
     {
-      label: "Total customers",
+      label: "Total Customers",
       value: result.stats.total,
       icon: UsersIcon,
       tone: "primary",
-      sub: "Everyone in your company's book",
+      sub: "All customers in your company.",
     },
     {
-      label: "New leads",
+      label: "New Customers",
       value: result.stats.new,
       icon: ZapIcon,
       tone: "scheduled",
@@ -74,19 +74,19 @@ export function AdminCustomersPage() {
       sub: "Waiting for their first job",
     },
     {
-      label: "Single job",
+      label: "One Job",
       value: result.stats.single,
       icon: UserIcon,
       tone: "done",
-      sub: "Exactly one job so far",
+      sub: "Customers who have booked only one job.",
     },
     {
-      label: "Repeat customers",
+      label: "Repeat Customers",
       value: result.stats.repeat,
       icon: UserCheckIcon,
       tone: "violet",
       pill: { label: "2+ jobs", tone: "violet" },
-      sub: "They come back — 10+ jobs wear a VIP badge",
+      sub: "Customers who have booked more than one job. Customers with 10 or more jobs get a VIP tag.",
     },
   ];
 
@@ -103,7 +103,7 @@ export function AdminCustomersPage() {
             </span>
           </h1>
           <p className={styles.lede}>
-            Your customer book — contacts, addresses and the jobs booked for them, all in one place.
+            Manage all your customers, their phone numbers, addresses and booked jobs in one place.
           </p>
         </div>
         <div className={styles.pageActions}>
@@ -119,18 +119,18 @@ export function AdminCustomersPage() {
             <ClearAllButton filters={filters} />
             <SearchBox filters={filters} />
             <FilterDropdown
-              label="Sort"
+              label="Sort By"
               field="sort"
               value={filters.sort}
               valueLabel={CUSTOMER_SORT_WORDS[filters.sort]}
               defaultValue="created_new"
               showSearch={false}
               options={[
-                { value: "created_new", text: "Added (newest)" },
-                { value: "created_old", text: "Added (oldest)" },
-                { value: "name_az", text: "Name (A–Z)" },
-                { value: "name_za", text: "Name (Z–A)" },
-                { value: "recent_activity", text: "Recent activity" },
+                { value: "created_new", text: "Newest Added" },
+                { value: "created_old", text: "Oldest Added" },
+                { value: "name_az", text: "Name (A to Z)" },
+                { value: "name_za", text: "Name (Z to A)" },
+                { value: "recent_activity", text: "Recently Active" },
               ]}
               filters={filters}
             />
@@ -139,9 +139,13 @@ export function AdminCustomersPage() {
         {result.data.length === 0 ? (
           <>
             <p className={styles.empty}>
-              {result.total === 0
-                ? "No customers yet. Add the first one, or book a job and we'll save them."
-                : "No customers match these filters, or this page is past the last one."}
+              {/* `total` is the filtered count — a no-match search must not
+                  read "add your first customer" to a company that has
+                  customers; the tiles' whole-company count is the honest key
+                  (found in review 2026-11-25). */}
+              {result.stats.total === 0
+                ? "No customers added yet. Add your first customer, or create a job for someone. Their details will be saved automatically."
+                : "No customers found. Try changing your search or filters."}
             </p>
             {result.total > 0 ? (
               <footer className={styles.tableFooter}>
@@ -159,9 +163,9 @@ export function AdminCustomersPage() {
             </div>
             <footer className={styles.tableFooter}>
               <p className={styles.showing}>
-                Showing {from}–{to} of {result.total}{" "}
+                Showing {from} to {to} of {result.total}{" "}
                 {result.total === 1 ? "customer" : "customers"}
-                {busy ? " — updating…" : ""}
+                {busy ? " — Updating…" : ""}
               </p>
               <RowsPerPage filters={filters} />
               <Pager filters={filters} page={result.page} pages={result.pages} />

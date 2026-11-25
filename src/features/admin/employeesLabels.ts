@@ -9,15 +9,15 @@ export const ROLE_WORDS: Record<string, string> = {
 export const JOB_WORDS: Record<string, string> = {
   all: "All",
   off: "Off",
-  create_only: "Creates jobs",
-  approval: "Create + approval",
+  create_only: "Can Create Jobs",
+  approval: "Can Create Jobs with Approval",
 };
 
 export const SORT_WORDS: Record<string, string> = {
-  joined_new: "Joined (newest)",
-  joined_old: "Joined (oldest)",
-  name_az: "Name (A–Z)",
-  name_za: "Name (Z–A)",
-  code_az: "Code (A–Z)",
-  code_za: "Code (Z–A)",
+  joined_new: "Recently Joined",
+  joined_old: "First Joined",
+  name_az: "Name (A to Z)",
+  name_za: "Name (Z to A)",
+  code_az: "Code (A to Z)",
+  code_za: "Code (Z to A)",
 };

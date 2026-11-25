@@ -272,6 +272,22 @@ function employeeReport(overrides: Record<string, unknown> = {}): Record<string,
   };
 }
 
+/** One Activity-tab alert, reusing the fixture's job and customer names. */
+function activityRow(
+  id: string,
+  eventType: string,
+  payload: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    id,
+    jobId: "j-9",
+    eventType,
+    payload: { job_number: "JOB-21", customer_name: "Sharma Traders", ...payload },
+    readAt: null,
+    createdAt: "2026-11-19T10:00:00+05:30",
+  };
+}
+
 function renderJobs(entry = "/admin/company/jobs"): void {
   const router = createMemoryRouter(routes, { initialEntries: [entry] });
   render(<RouterProvider router={router} />);
@@ -313,12 +329,12 @@ describe("AdminJobsPage: the New job card follows the create switch (CAP-2)", ()
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
     const newJob = await card("New job");
-    expect(within(newJob).getByRole("link", { name: "Create a job" })).toHaveAttribute(
+    expect(within(newJob).getByRole("link", { name: "Create Job" })).toHaveAttribute(
       "href",
       "/admin/me/new-job",
     );
     expect(
-      within(newJob).getByText(/it waits for your owner's approval first/),
+      within(newJob).getByText(/Your company owner must approve it before it is assigned/),
     ).toBeInTheDocument();
   });
 
@@ -328,7 +344,7 @@ describe("AdminJobsPage: the New job card follows the create switch (CAP-2)", ()
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
     await card("New job");
-    expect(screen.getByText(/it is assigned to you at once/)).toBeInTheDocument();
+    expect(screen.getByText(/It will be assigned to you immediately/)).toBeInTheDocument();
   });
 
   it("shows no New job card at all when the switch is off", async () => {
@@ -337,7 +353,7 @@ describe("AdminJobsPage: the New job card follows the create switch (CAP-2)", ()
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
     // The Jobs tab's own heading — the report tab is a separate address now.
-    await card("Jobs");
+    await card("My Jobs");
     expect(screen.queryByText("New job")).toBeNull();
   });
 });
@@ -352,17 +368,17 @@ describe("AdminJobsPage: my pending submissions (CAP-4)", () => {
     state.pendingMore = true;
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const pending = await card("Waiting for approval");
+    const pending = await card("Waiting for Approval");
     // The work leads the row now (critique 2026-11-14); the job number rides
     // beside it and the wait reads as days.
     expect(within(pending).getByText(/AC not cooling/)).toBeInTheDocument();
     expect(within(pending).getByText(/JOB-21/)).toBeInTheDocument();
     expect(within(pending).getByText(/Sharma Traders/)).toBeInTheDocument();
-    expect(within(pending).getByText(/no customer/)).toBeInTheDocument();
-    expect(within(pending).getAllByText(/waiting 1 d/).length).toBe(2);
-    expect(within(pending).getByText("2+ waiting")).toBeInTheDocument();
+    expect(within(pending).getByText(/No Customer/)).toBeInTheDocument();
+    expect(within(pending).getAllByText(/Waiting for 1 d/).length).toBe(2);
+    expect(within(pending).getByText("2+ Jobs Waiting")).toBeInTheDocument();
     expect(
-      within(pending).getByText("Older submissions follow on the next pages."),
+      within(pending).getByText("Older jobs are available on the next pages."),
     ).toBeInTheDocument();
   });
 
@@ -374,7 +390,7 @@ describe("AdminJobsPage: my pending submissions (CAP-4)", () => {
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
     expect(
-      await screen.findByText(/Your waiting-for-approval list could not load/),
+      await screen.findByText(/We could not load the jobs waiting for approval/),
     ).toBeInTheDocument();
   });
 
@@ -385,9 +401,12 @@ describe("AdminJobsPage: my pending submissions (CAP-4)", () => {
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
     // The Jobs tab's own heading — the report tab is a separate address now.
-    await card("Jobs");
-    expect(screen.queryByText("Waiting for approval")).toBeNull();
-    expect(screen.queryByText("Older submissions follow on the next pages.")).toBeNull();
+    await card("My Jobs");
+    // The status-chips strip says "Waiting for Approval" as a filter link, so
+    // the absence check rides the card heading: the pending card would be a
+    // sibling section's <h3>.
+    expect(screen.queryByRole("heading", { name: "Waiting for Approval" })).toBeNull();
+    expect(screen.queryByText("Older jobs are available on the next pages.")).toBeNull();
   });
 });
 
@@ -396,7 +415,7 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    const rejected = await card("My rejected jobs");
+    const rejected = await card("My Rejected Jobs");
     expect(within(rejected).getByText("JOB-11")).toBeInTheDocument();
     expect(within(rejected).getByText("Customer rescheduled")).toBeInTheDocument();
   });
@@ -406,8 +425,8 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     state.rejected = [rejectedRow({ rejectionReason: null })];
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    await card("My rejected jobs");
-    expect(screen.getAllByText("No reason given").length).toBeGreaterThanOrEqual(1);
+    await card("My Rejected Jobs");
+    expect(screen.getAllByText("No reason given.").length).toBeGreaterThanOrEqual(1);
   });
 
   it("links the older page when more exist beyond the first fifty", async () => {
@@ -415,11 +434,11 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     state.rejectedMore = true;
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    await card("My rejected jobs");
-    expect(screen.getByText("1+")).toBeInTheDocument();
+    await card("My Rejected Jobs");
+    expect(screen.getByText("1+ jobs")).toBeInTheDocument();
     // The link keeps its tab and the activity period: walking the rejected
     // history must not reset either.
-    expect(screen.getByRole("link", { name: "Load older rejections" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Load Older Rejected Jobs" })).toHaveAttribute(
       "href",
       "/admin/company/jobs?tab=rejected&range=30&rejectedCursor=c-next",
     );
@@ -435,9 +454,9 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     );
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    await card("My rejected jobs");
-    expect(screen.getByText("1+")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Load older rejections" })).toBeNull();
+    await card("My Rejected Jobs");
+    expect(screen.getByText("1+ jobs")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Load Older Rejected Jobs" })).toBeNull();
   });
 
   it("shows the empty line when nothing of mine was rejected", async () => {
@@ -445,11 +464,11 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     state.rejected = [];
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    await card("My rejected jobs");
+    await card("My Rejected Jobs");
     expect(
       within(
-        screen.getByRole("heading", { name: "My rejected jobs" }).closest("section") as HTMLElement,
-      ).getByText(/Nothing of yours was rejected/),
+        screen.getByRole("heading", { name: "My Rejected Jobs" }).closest("section") as HTMLElement,
+      ).getByText(/None of your jobs have been rejected/),
     ).toBeInTheDocument();
   });
 
@@ -460,7 +479,7 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     );
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    expect(await screen.findByText(/Your rejected jobs could not load/)).toBeInTheDocument();
+    expect(await screen.findByText(/We could not load your rejected jobs/)).toBeInTheDocument();
   });
 
   it("renders em dashes for a rejection without instants", async () => {
@@ -468,7 +487,7 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     state.rejected = [rejectedRow({ decidedAt: null, scheduledStart: null })];
     writeSession({ token: "tok-1", name: "Priya" });
     renderRejected();
-    const rejected = await card("My rejected jobs");
+    const rejected = await card("My Rejected Jobs");
     expect(within(rejected).getAllByText("—").length).toBe(2);
   });
 
@@ -476,7 +495,7 @@ describe("AdminJobsPage: my rejected jobs, all time (CAP-7)", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs("/admin/company/jobs?rejectedCursor=c-next");
-    await card("My rejected jobs");
+    await card("My Rejected Jobs");
     const rejectedCall = sentRequests().find((r) => r.url.includes("scope=all&status=rejected"));
     expect(new URL(rejectedCall?.url ?? "").searchParams.get("cursor")).toBe("c-next");
   });
@@ -487,20 +506,22 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderReport();
-    const activity = await card("My job activity");
-    expect(within(activity).getByText("I created")).toBeInTheDocument();
+    const activity = await card("My Job Activity");
+    expect(within(activity).getByText("Jobs I Created")).toBeInTheDocument();
     expect(within(activity).getByText("50%")).toBeInTheDocument();
     expect(
-      within(activity).getByText(/Showing the 2 newest of 5 rejections in this period/),
+      within(activity).getByText(
+        /Showing the 2 latest rejected jobs out of 5\. See the Rejected Jobs tab/,
+      ),
     ).toBeInTheDocument();
-    expect(within(activity).getByText("No reason given")).toBeInTheDocument();
+    expect(within(activity).getByText("No reason given.")).toBeInTheDocument();
   });
 
   it("loads the period the toggle names — the URL rides into the request", async () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs("/admin/company/jobs?range=today");
-    await card("My job activity");
+    await card("My Job Activity");
     const reportCall = sentRequests().find((r) => r.url.includes("/job-reports/employee"));
     const query = new URL(reportCall?.url ?? "").searchParams;
     expect(query.get("from")).toBe(query.get("to"));
@@ -516,7 +537,7 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
       defaultState();
       writeSession({ token: "tok-1", name: "Priya" });
       renderJobs(`/admin/company/jobs?range=${preset}`);
-      await card("My job activity");
+      await card("My Job Activity");
       const reportCall = sentRequests().find((r) => r.url.includes("/job-reports/employee"));
       const query = new URL(reportCall?.url ?? "").searchParams;
       expect(query.get("from")).toBe(from);
@@ -532,7 +553,7 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
     writeSession({ token: "tok-1", name: "Priya" });
     renderReport();
     expect(
-      await screen.findByText("Your job activity could not load for this period."),
+      await screen.findByText("We could not load your job activity for this period."),
     ).toBeInTheDocument();
   });
 
@@ -544,9 +565,9 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
       );
     writeSession({ token: "tok-1", name: "Priya" });
     renderReport();
-    const activity = await card("My job activity");
-    expect(within(activity).queryByText(/Rejection reasons I received/)).toBeNull();
-    expect(within(activity).queryByText(/Showing the .* newest of/)).toBeNull();
+    const activity = await card("My Job Activity");
+    expect(within(activity).queryByText(/Why My Jobs Were Rejected/)).toBeNull();
+    expect(within(activity).queryByText(/Showing the .* latest rejected jobs out of/)).toBeNull();
     expect(within(activity).getAllByText("—").length).toBeGreaterThanOrEqual(1);
   });
 
@@ -554,7 +575,7 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs("/admin/company/jobs?range=7");
-    await card("My job activity");
+    await card("My Job Activity");
     expect(screen.getByRole("link", { name: "Last 7 days" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -569,7 +590,7 @@ describe("AdminJobsPage: my job activity (CAP-8)", () => {
     writeSession({ token: "tok-1", name: "Priya" });
     renderReport();
     expect(
-      await screen.findByText("Your job activity could not load for this period."),
+      await screen.findByText("We could not load your job activity for this period."),
     ).toBeInTheDocument();
   });
 });
@@ -579,7 +600,7 @@ describe("AdminJobsPage: the shared table for a member", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     expect(within(jobs).getByText("JB-2026-0008")).toBeInTheDocument();
     expect(within(jobs).getByText("Pipe Leak Repair")).toBeInTheDocument();
     // The server self-scopes: the browser sends no technician filter. Four
@@ -598,8 +619,8 @@ describe("AdminJobsPage: the shared table for a member", () => {
     state.jobs = [];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const jobs = await card("Jobs");
-    expect(within(jobs).getByText("No jobs yet.")).toBeInTheDocument();
+    const jobs = await card("My Jobs");
+    expect(within(jobs).getByText("No jobs assigned yet.")).toBeInTheDocument();
   });
 });
 
@@ -608,7 +629,7 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     defaultState();
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs("/admin/company/jobs?tab=jobs&status=scheduled");
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     const call = sentRequests().find((r) => r.url.includes("/jobs?scope="));
     const query = new URL(call?.url ?? "").searchParams;
     expect(query.get("status")).toBe("scheduled");
@@ -625,7 +646,7 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     ];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs("/admin/company/jobs?tab=jobs&sort=soonest");
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     // A job without a start is "no date yet", not "the earliest possible".
     expect(
       within(jobs)
@@ -639,13 +660,13 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     state.jobs = [jobRow(), jobRow({ id: "j-2", jobNumber: "JB-9", serviceLocation: "MG Road" })];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    await card("Jobs");
+    await card("My Jobs");
     fireEvent.change(screen.getByLabelText("Search jobs"), { target: { value: "Nehru" } });
-    expect(screen.getByText("1 of 2 jobs")).toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 Jobs")).toBeInTheDocument();
     expect(screen.getByText("JB-2026-0008")).toBeInTheDocument();
     expect(screen.queryByText("JB-9")).toBeNull();
     fireEvent.change(screen.getByLabelText("Search jobs"), { target: { value: "nowhere" } });
-    expect(screen.getByText("No job matches that search.")).toBeInTheDocument();
+    expect(screen.getByText("No jobs match your search.")).toBeInTheDocument();
   });
 
   it("reads a rejected job's work as its title and keeps its number beside the reason", async () => {
@@ -655,11 +676,11 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     ];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     expect(within(jobs).getByText("AC service")).toBeInTheDocument();
     // The description leads, so the number rides the reason — the row must
     // never lose the only thing that names which job it is.
-    expect(within(jobs).getByText("Bad work · JB-2026-0008")).toBeInTheDocument();
+    expect(within(jobs).getByText("Bad work – Job Number: JB-2026-0008")).toBeInTheDocument();
   });
 
   it("names the step of the template while the job is on it", async () => {
@@ -669,7 +690,7 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     ];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     expect(within(jobs).getByText("Step 2 of 5")).toBeInTheDocument();
   });
 
@@ -684,7 +705,7 @@ describe("AdminJobsPage: the shared table's chips, sort and search", () => {
     ];
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    const jobs = await card("Jobs");
+    const jobs = await card("My Jobs");
     // Both the status cell and the step cell read "Completed" — the step
     // cell must never read "Step 6 of 5".
     expect(within(jobs).getAllByText("Completed").length).toBeGreaterThanOrEqual(1);
@@ -711,14 +732,19 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
 
   it("shows the four tiles and the whole-company counts on the status chips", async () => {
     await renderOwnerJobs();
-    for (const tile of ["Total jobs", "In progress", "Job approvals", "Completed (30 days)"]) {
-      // "In progress" is both a tile label and a status chip — any hit counts.
+    for (const tile of [
+      "Total Jobs",
+      "In Progress",
+      "Waiting for Approval",
+      "Completed (Last 30 Days)",
+    ]) {
+      // "In Progress" is both a tile label and a status chip — any hit counts.
       expect(screen.getAllByText(tile).length).toBeGreaterThanOrEqual(1);
     }
     const group = screen.getByRole("group", { name: "Filter jobs by status" });
     expect(group.textContent).toContain("All30");
     expect(group.textContent).toContain("Scheduled18");
-    expect(group.textContent).toContain("Pending approval0");
+    expect(group.textContent).toContain("Waiting for Approval0");
     expect(group.textContent).toContain("Rejected5");
   });
 
@@ -741,7 +767,7 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
 
   it("says what is showing and offers the pager", async () => {
     await renderOwnerJobs();
-    expect(screen.getByText(/Showing 1–10 of 30 jobs/)).toBeTruthy();
+    expect(screen.getByText(/Showing 1 to 10 of 30 jobs/)).toBeTruthy();
     expect(screen.getByLabelText("Pages")).toBeTruthy();
   });
 
@@ -773,10 +799,15 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
 
   it("both the banner and the greeting offer the one create path", async () => {
     await renderOwnerJobs();
-    const links = screen.getAllByRole("link", { name: "Create a job" });
-    expect(links.length).toBe(2);
-    for (const link of links) expect(link.getAttribute("href")).toBe("/admin/company/jobs/new");
-    expect(screen.getByRole("button", { name: /Download list/ })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Create New Job" })).toHaveAttribute(
+      "href",
+      "/admin/company/jobs/new",
+    );
+    expect(screen.getByRole("link", { name: "Create Job" })).toHaveAttribute(
+      "href",
+      "/admin/company/jobs/new",
+    );
+    expect(screen.getByRole("button", { name: /Download Jobs List/ })).toBeTruthy();
   });
 
   it("an empty filtered view says so and keeps the pager; an empty company says create one", async () => {
@@ -804,7 +835,7 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
         : respondDefault(url),
     );
     renderJobs();
-    expect(await screen.findByText(/No jobs yet. Create the first one/)).toBeTruthy();
+    expect(await screen.findByText(/No jobs created yet. Create your first job/)).toBeTruthy();
 
     // A filtered view whose total is non-zero keeps the pager: the empty
     // page may simply be past the last one.
@@ -830,13 +861,15 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
         : respondDefault(url),
     );
     renderAt2("/admin/company/jobs?page=99");
-    expect(await screen.findByText(/No jobs match these filters/)).toBeTruthy();
+    expect(
+      await screen.findByText(/No jobs found. Try changing your filters or search/),
+    ).toBeTruthy();
     expect(screen.getByLabelText("Pages")).toBeTruthy();
   });
 
   it("the Jobs tab wears the whole-company total as its badge", async () => {
     await renderOwnerJobs();
-    expect(screen.getByRole("link", { name: "Jobs 30" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "All Jobs 30" })).toBeTruthy();
   });
 
   it("the pager's next page and go-to keep the active filters on the address", async () => {
@@ -844,7 +877,7 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
     writeSession({ token: "tok-1", name: "Beta" });
     renderJobs("/admin/company/jobs?status=scheduled");
     await screen.findByText("Split AC not cooling");
-    fireEvent.click(screen.getByLabelText("Next page"));
+    fireEvent.click(screen.getByLabelText("Next Page"));
     await waitFor(() => {
       const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
       const target = paged.find((r) => new URL(r.url).searchParams.get("page") === "2");
@@ -852,10 +885,10 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
       expect(new URL(target!.url).searchParams.get("status")).toBe("scheduled");
     });
     // The go-to form rejects a page outside the real range, then jumps.
-    const input = screen.getByLabelText("Go to page");
+    const input = screen.getByLabelText("Go to Page");
     fireEvent.change(input, { target: { value: "9" } });
     fireEvent.submit(input.closest("form")!);
-    expect(await screen.findByText("Enter a page from 1 to 3.")).toBeTruthy();
+    expect(await screen.findByText("Please enter a page number between 1 and 3.")).toBeTruthy();
     fireEvent.change(input, { target: { value: "3" } });
     fireEvent.submit(input.closest("form")!);
     await waitFor(() => {
@@ -869,7 +902,7 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
     writeSession({ token: "tok-1", name: "Beta" });
     renderJobs("/admin/company/jobs?skill=s-9");
     await screen.findByText("Split AC not cooling");
-    expect(screen.getByRole("button", { name: "Skill: Chosen skill" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Work Type: Selected Work Type" })).toBeTruthy();
     // And the filter still rides the paged call.
     const paged = sentRequests().filter((r) => r.url.includes("/jobs/page"));
     expect(new URL(paged[0].url).searchParams.get("skillId")).toBe("s-9");
@@ -879,20 +912,75 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
     ownerConsole = true;
     writeSession({ token: "tok-1", name: "Beta" });
     renderJobs("/admin/company/jobs?tab=activity");
-    expect(await screen.findByText("Latest job activity")).toBeTruthy();
-    expect(screen.getByText("Priya Nair submitted JOB-21 for Sharma Traders")).toBeTruthy();
+    expect(await screen.findByText("Latest Job Updates")).toBeTruthy();
+    expect(screen.getByText("Priya Nair submitted JOB-21 for Sharma Traders.")).toBeTruthy();
     // The rewritten non-jobs branch keeps the greeting and the tab strip.
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Beta Yela");
-    expect(screen.getByLabelText("Page sections").textContent).toContain("Approval");
+    expect(screen.getByLabelText("Page sections").textContent).toContain("Approvals");
+  });
+
+  it("the Activity tab speaks each event type in its own one line", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    setRespond((url) =>
+      url.includes("/notifications")
+        ? jsonResponse({
+            data: [
+              activityRow("n-approved", "job.approved"),
+              activityRow("n-rejected", "job.rejected", { reason: "Customer rescheduled" }),
+              activityRow("n-edited", "job.edited", { changed_fields: ["description"] }),
+              activityRow("n-cancelled", "job.cancelled"),
+              activityRow("n-assigned", "job.assigned"),
+              // A new backend event still shows, its type humanised.
+              activityRow("n-new", "job.snoozed"),
+            ],
+          })
+        : respondDefault(url),
+    );
+    renderJobs("/admin/company/jobs?tab=activity");
+    expect(await screen.findByText("Latest Job Updates")).toBeTruthy();
+    expect(screen.getByText("JOB-21 for Sharma Traders was approved.")).toBeTruthy();
+    expect(
+      screen.getByText("JOB-21 for Sharma Traders was rejected. Reason: Customer rescheduled."),
+    ).toBeTruthy();
+    expect(screen.getByText("JOB-21 for Sharma Traders was updated (description).")).toBeTruthy();
+    expect(screen.getByText("JOB-21 for Sharma Traders was cancelled.")).toBeTruthy();
+    expect(screen.getByText("JOB-21 for Sharma Traders was assigned to an employee.")).toBeTruthy();
+    expect(screen.getByText("JOB-21 — Snoozed.")).toBeTruthy();
   });
 
   it("the owner's Report tab renders the report card under the same shell", async () => {
     ownerConsole = true;
     writeSession({ token: "tok-1", name: "Beta" });
     renderJobs("/admin/company/jobs?tab=report");
-    expect(await screen.findByText("Job activity report")).toBeTruthy();
+    expect(await screen.findByText("Job Activity Report")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Hello, Beta Yela");
-    expect(screen.getByLabelText("Page sections").textContent).toContain("Activity");
+    expect(screen.getByLabelText("Page sections").textContent).toContain("Job Activity");
+  });
+
+  it("the history's scope line never reads '1 Employees' — the count agrees with itself", async () => {
+    ownerConsole = true;
+    writeSession({ token: "tok-1", name: "Beta" });
+    const historyRow = (technicianCount: number) => ({
+      id: `rep-${technicianCount}`,
+      reportType: "technician_job_activity",
+      range: { startDate: "2026-10-16", endDate: "2026-11-14" },
+      technicianCount,
+      status: "ready",
+      errorCode: null,
+      createdAt: "2026-11-19T10:00:00+05:30",
+      completedAt: "2026-11-19T10:01:00+05:30",
+    });
+    setRespond((url) =>
+      url.includes("/reports")
+        ? jsonResponse({ data: [historyRow(1), historyRow(3)] })
+        : respondDefault(url),
+    );
+    renderJobs("/admin/company/jobs?tab=report");
+    await screen.findByText("Previous Job Activity Reports");
+    // The scope rides the row's meta line, so match its leading count.
+    expect(screen.getByText(/^1 Employee · Created:/)).toBeTruthy();
+    expect(screen.getByText(/^3 Employees · Created:/)).toBeTruthy();
   });
 });
 
@@ -904,9 +992,9 @@ describe("AdminJobsPage: a failed load keeps the role's tab strip", () => {
     );
     writeSession({ token: "tok-1", name: "Priya" });
     renderJobs();
-    expect(await screen.findByText("The job list could not load.")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "My report" })).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "Approval" })).toBeNull();
+    expect(await screen.findByText("We could not load the job list.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "My Report" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Approvals" })).toBeNull();
   });
 });
 

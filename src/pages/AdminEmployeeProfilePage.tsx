@@ -46,10 +46,10 @@ export function AdminEmployeeProfilePage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>Employee</h1>
         <p className={styles.error} role="alert">
-          This person is not on the team — they may have been removed, or the link is stale.
+          This person is no longer in your team, or the link may be incorrect.
         </p>
         <LinkButton to="/admin/company/employees" variant="secondary">
-          Back to all employees
+          Back to All Employees
         </LinkButton>
       </main>
     );
@@ -59,10 +59,10 @@ export function AdminEmployeeProfilePage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>Employee</h1>
         <p className={styles.error} role="alert">
-          This page could not load. Check your connection and try again.
+          We could not load this page. Please check your internet connection and try again.
         </p>
         <Button onClick={() => revalidator.revalidate()} disabled={revalidator.state !== "idle"}>
-          {revalidator.state !== "idle" ? "Loading…" : "Try again"}
+          {revalidator.state !== "idle" ? "Loading…" : "Try Again"}
         </Button>
       </main>
     );
@@ -86,7 +86,7 @@ export function AdminEmployeeProfilePage() {
           <Avatar name={member.name} imageUrl={member.avatarUrl} />
           <div className={styles.identityText}>
             <h1 className={styles.heading}>
-              <span className={styles.nameText}>{member.name ?? "(no name)"}</span>
+              <span className={styles.nameText}>{member.name ?? "No Name."}</span>
               <span className={styles.codeChip}>{member.employeeCode}</span>
               <StatusBadge status={member.status} />
             </h1>
@@ -94,13 +94,13 @@ export function AdminEmployeeProfilePage() {
               Joined {fmtIstDay(member.createdAt)} ·{" "}
               {fmtPhone(member.countryCode, member.phoneNumber)}
               <button type="button" className={styles.quietAction} onClick={openEmployment}>
-                + Add designation
+                + Add Job Title
               </button>
             </p>
             <div className={styles.badges}>
-              {member.canCreateJobs ? <Badge label="Can create jobs" tone="primary" /> : null}
+              {member.canCreateJobs ? <Badge label="Can Create Jobs" tone="primary" /> : null}
               {member.jobApprovalRequired ? (
-                <Badge label="Job approval required" tone="scheduled" />
+                <Badge label="Needs Approval for Jobs" tone="scheduled" />
               ) : null}
               {member.role === "company_admin" ? <Badge label="Owner" tone="primary" /> : null}
               {member.role === "viewer" ? <Badge label="Viewer" tone="neutral" /> : null}
@@ -127,7 +127,7 @@ export function AdminEmployeeProfilePage() {
                   <input type="hidden" name="intent" value="activate" />
                   <input type="hidden" name="active" value="false" />
                   <button type="submit" className={styles.confirmDanger} disabled={activateBusy}>
-                    {activateBusy ? "Working…" : "Confirm deactivate"}
+                    {activateBusy ? "Working…" : "Confirm Deactivation"}
                   </button>
                 </activate.Form>
                 <Button
@@ -151,7 +151,7 @@ export function AdminEmployeeProfilePage() {
                 <input type="hidden" name="intent" value="activate" />
                 <input type="hidden" name="active" value="true" />
                 <button type="submit" className={styles.reinstateButton} disabled={activateBusy}>
-                  {activateBusy ? "Working…" : "Reinstate"}
+                  {activateBusy ? "Working…" : "Activate Again"}
                 </button>
               </activate.Form>
             )

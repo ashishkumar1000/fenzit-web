@@ -217,7 +217,7 @@ function EmploymentForm({ employment, close }: { employment: EmploymentView; clo
             type="date"
             value={values.joinDate}
             onChange={(value) => set("joinDate", value)}
-            hint="Clear it to leave this employee out of payroll runs."
+            hint="Clear it to leave this employee out of salary runs."
           />
           <TextInput
             id={`${titleId}-exit`}

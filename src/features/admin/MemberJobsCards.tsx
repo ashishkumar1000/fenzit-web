@@ -28,19 +28,23 @@ export function MemberJobsCards({
         <SectionCard title="New job">
           <p className={styles.newJobLine}>
             {jobApprovalRequired
-              ? "Create a job for a customer — it waits for your owner's approval first."
-              : "Create a job for a customer — it is assigned to you at once."}
+              ? "Create a job for a customer. Your company owner must approve it before it is assigned."
+              : "Create a job for a customer. It will be assigned to you immediately."}
           </p>
           <Link to="/admin/me/new-job" className={styles.newJobLink}>
-            Create a job
+            Create Job
           </Link>
         </SectionCard>
       ) : null}
 
       {pending.ok && pending.data.length > 0 ? (
         <SectionCard
-          title="Waiting for approval"
-          meta={pendingMore ? `${pending.data.length}+ waiting` : `${pending.data.length} waiting`}
+          title="Waiting for Approval"
+          meta={
+            pendingMore
+              ? `${pending.data.length}+ Jobs Waiting`
+              : `${pending.data.length} ${pending.data.length === 1 ? "Job" : "Jobs"} Waiting`
+          }
         >
           <ul className={styles.pendingList}>
             {pending.data.map((p) => (
@@ -48,25 +52,26 @@ export function MemberJobsCards({
                 <span className={styles.pendingJob}>{p.description ?? p.jobNumber}</span>
                 <span className={styles.pendingMeta}>
                   · {p.jobNumber}
-                  {p.customerName !== null ? ` · ${p.customerName}` : " · (no customer)"} · waiting{" "}
-                  {waitLabel(p.ageHours)}
+                  {p.customerName !== null ? ` · ${p.customerName}` : " · No Customer"} · Waiting
+                  for {waitLabel(p.ageHours)}
                 </span>
               </li>
             ))}
           </ul>
           {pendingMore ? (
-            <p className={styles.pendingMeta}>Older submissions follow on the next pages.</p>
+            <p className={styles.pendingMeta}>Older jobs are available on the next pages.</p>
           ) : null}
           <p className={styles.pendingMeta}>
-            Your owner decides these — you get a notification on your phone, and the outcome shows
-            in <Link to="/admin/company/jobs?tab=report">My report</Link>.
+            Your company owner will approve or reject these jobs. You will receive a notification on
+            your phone. You can also check the result under{" "}
+            <Link to="/admin/company/jobs?tab=report">My Report</Link>.
           </p>
         </SectionCard>
       ) : null}
       {!pending.ok ? (
-        <SectionCard title="Waiting for approval">
+        <SectionCard title="Waiting for Approval">
           <p className={styles.failed} role="alert">
-            Your waiting-for-approval list could not load. Retry from the sidebar.
+            We could not load the jobs waiting for approval. Please try again from the sidebar.
           </p>
         </SectionCard>
       ) : null}

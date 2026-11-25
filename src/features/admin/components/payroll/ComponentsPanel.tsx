@@ -26,7 +26,9 @@ export function ComponentsPanel({
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The component library could not load. Try opening this page again from the menu.
+          {
+            "We could not load the salary components.\nPlease go back to the menu and open this page again."
+          }
         </p>
       </div>
     );
@@ -42,14 +44,16 @@ export function ComponentsPanel({
     <div className={styles.card}>
       <div className={styles.panelHead}>
         <p className={styles.panelLede}>
-          Salary components are the lines a pay structure is built from — Basic salary first.
+          Salary components are the different parts that make up an employee's salary. For example:
+          Basic Salary, House Rent Allowance, Travel Allowance and Bonus. Every salary structure
+          must have Basic Salary.
         </p>
         <AddComponentControl />
       </div>
       <DataTable
-        columns={["Name", "Basic", "Status", ""]}
+        columns={["Component Name", "Basic Salary", "Status", "Actions"]}
         rows={tableRows}
-        empty="No components yet. Add Basic salary first — every structure starts with it."
+        empty="No salary components have been added yet. Please add Basic Salary first. Every employee's salary structure needs it."
       />
     </div>
   );
@@ -86,12 +90,12 @@ function AddComponentControl() {
         }}
         aria-haspopup="dialog"
       >
-        Add component
+        Add Salary Component
       </button>
       <dialog
         ref={dialogRef}
         className={dialogStyles.dialog}
-        aria-label="Add component"
+        aria-label="Add Salary Component"
         onClick={(event) => {
           if (event.target === dialogRef.current) dialogRef.current?.close();
         }}
@@ -116,10 +120,10 @@ function AddComponentForm({ close }: { close: () => void }) {
     return (
       <div className={dialogStyles.dialogForm}>
         <h3 id={titleId} className={dialogStyles.dialogTitle}>
-          Component saved
+          Salary Component Added
         </h3>
         <p className={dialogStyles.savedMark} role="status">
-          “{name.trim()}” is in the library.
+          "{name.trim()}" has been added successfully.
         </p>
         <div className={dialogStyles.dialogActions}>
           <button type="button" className={dialogStyles.saveButton} onClick={close}>
@@ -133,20 +137,21 @@ function AddComponentForm({ close }: { close: () => void }) {
     <fetcher.Form method="post" className={dialogStyles.dialogForm}>
       <input type="hidden" name="intent" value="component-create" />
       <h3 id={titleId} className={dialogStyles.dialogTitle}>
-        Add component
+        Add Salary Component
       </h3>
       <p className={dialogStyles.dialogHint}>
-        House rent, travel allowance, performance pay — each one becomes a line a structure can set.
+        Add different parts of an employee's salary here. For example: Basic Salary, House Rent
+        Allowance, Travel Allowance or Bonus.
       </p>
       <TextInput
         id={`${titleId}-name`}
         name="name"
-        label="Name"
+        label="Component Name"
         value={name}
         onChange={setName}
         autoComplete="off"
         maxLength={60}
-        hint="The name every structure line uses."
+        hint="Enter the name of this salary component."
       />
       <label className={dialogStyles.switchRow}>
         <input
@@ -157,8 +162,11 @@ function AddComponentForm({ close }: { close: () => void }) {
           onChange={(event) => setIsBasic(event.target.checked)}
         />
         <span>
-          This is the Basic salary component
-          <small>Only one per company — it anchors PF and every structure.</small>
+          This is Basic Salary.
+          <small>
+            Only one component can be marked as Basic Salary for your company. Other salary
+            calculations will use this amount.
+          </small>
         </span>
       </label>
       {result !== null && result.state === "error" ? (
@@ -241,23 +249,23 @@ function ComponentEditControl({ component }: { component: SalaryComponentView })
             <input key={key} type="hidden" name={key} value={value} />
           ))}
           <h3 id={titleId} className={dialogStyles.dialogTitle}>
-            Edit “{component.name}”
+            Edit "{component.name}"
           </h3>
           {saved ? (
             <p className={dialogStyles.savedMark} role="status">
-              Saved.
+              Changes saved successfully.
             </p>
           ) : null}
           <TextInput
             id={`${titleId}-name`}
             name="display-name"
-            label="Name"
+            label="Component Name"
             value={name}
             onChange={setName}
             autoComplete="off"
             maxLength={60}
-            hint="The name every structure line uses."
-            error={nameCleared ? "A component must have a name." : undefined}
+            hint="Enter the name of this salary component."
+            error={nameCleared ? "Please enter a component name." : undefined}
           />
           <label className={dialogStyles.switchRow}>
             <input
@@ -266,8 +274,11 @@ function ComponentEditControl({ component }: { component: SalaryComponentView })
               onChange={(event) => setIsBasic(event.target.checked)}
             />
             <span>
-              Basic salary component
-              <small>Another component holding the mark must be unmarked first.</small>
+              This is Basic Salary.
+              <small>
+                Another component is already marked as Basic Salary. Remove that mark first if you
+                want to select this component.
+              </small>
             </span>
           </label>
           <label className={dialogStyles.switchRow}>
@@ -279,7 +290,9 @@ function ComponentEditControl({ component }: { component: SalaryComponentView })
             <span>
               Active
               <small>
-                Old revisions keep an inactive component's name; new structure lines cannot use it.
+                {
+                  "Turn this off if you no longer want to use this component.\nOld salary records will keep this component's name, but you cannot use it in new salary structures."
+                }
               </small>
             </span>
           </label>

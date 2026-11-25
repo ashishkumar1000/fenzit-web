@@ -44,7 +44,7 @@ function ResendCell({ row }: { row: MemberRow }) {
         <input type="hidden" name="userId" value={row.userId} />
         <button type="submit" className={styles.resendButton} disabled={busy}>
           {busy ? <Spinner size={12} /> : null}
-          {busy ? "Sending…" : "Resend invite"}
+          {busy ? "Sending…" : "Send Invitation Again"}
         </button>
       </fetcher.Form>
       {mine !== null && mine.state === "done" ? (
@@ -152,18 +152,18 @@ export function MembersTable({
           >
             <SortHeader label="Name" column="name" sort={sort} filters={filters} />
           </th>
-          <th scope="col">Phone</th>
+          <th scope="col">Phone Number</th>
           <th
             scope="col"
             aria-sort={sortStateFor("code", sort)}
             className={sort === "code_az" || sort === "code_za" ? styles.sortActive : undefined}
           >
-            <SortHeader label="Code" column="code" sort={sort} filters={filters} />
+            <SortHeader label="Employee Code" column="code" sort={sort} filters={filters} />
           </th>
           <th scope="col">Role</th>
           <th scope="col">Status</th>
-          <th scope="col">Job settings</th>
-          <th scope="col">Employment</th>
+          <th scope="col">Job Settings</th>
+          <th scope="col">Employment Details</th>
           <th
             scope="col"
             aria-sort={sortStateFor("joined", sort)}
@@ -171,7 +171,7 @@ export function MembersTable({
               sort === "joined_new" || sort === "joined_old" ? styles.sortActive : undefined
             }
           >
-            <SortHeader label="Joined on" column="joined" sort={sort} filters={filters} />
+            <SortHeader label="Joined On" column="joined" sort={sort} filters={filters} />
           </th>
         </tr>
       </thead>
@@ -192,7 +192,7 @@ export function MembersTable({
                       {/* The name opens the person's profile — the row's
                           quick-edit cells stay for the fast path. */}
                       <Link className={styles.name} to={`/admin/company/employees/${m.userId}`}>
-                        {m.name ?? "(no name)"}
+                        {m.name ?? "No Name"}
                       </Link>
                       {m.userId === selfUserId ? <span className={styles.youPill}>You</span> : null}
                     </span>

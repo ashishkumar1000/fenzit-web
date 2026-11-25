@@ -36,7 +36,7 @@ export function ClearAllButton({ filters }: { filters: JobsFilters }) {
         )
       }
     >
-      Clear all
+      Clear All Filters
     </button>
   );
 }
@@ -71,7 +71,7 @@ export function SearchBox({ filters }: { filters: JobsFilters }) {
         name="q"
         type="search"
         className={styles.searchInput}
-        placeholder="Search job, customer, employee, skill, place…"
+        placeholder="Search by job, customer, employee, work type or location…"
         aria-label="Search jobs"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -177,14 +177,14 @@ export function SkillDropdown({
   // "All" while the rows are filtered by a skill it can't name.
   return (
     <FilterDropdown
-      label="Skill"
+      label="Work Type"
       field="skill"
       value={filters.skill}
       valueLabel={
-        active !== undefined ? active.name : filters.skill !== "" ? "Chosen skill" : "All"
+        active !== undefined ? active.name : filters.skill !== "" ? "Selected Work Type" : "All"
       }
       defaultValue=""
-      searchPlaceholder="Search skills…"
+      searchPlaceholder="Search work types…"
       options={skills.map((s) => ({ value: s.id, text: s.name }))}
       filters={filters}
     />

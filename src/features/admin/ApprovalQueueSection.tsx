@@ -29,10 +29,10 @@ import styles from "./ApprovalQueueSection.module.css";
  */
 
 const AGE_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: "", label: "Any age" },
-  { value: "24", label: "Older than 24 hours" },
-  { value: "72", label: "Older than 3 days" },
-  { value: "168", label: "Older than 7 days" },
+  { value: "", label: "Any Time" },
+  { value: "24", label: "More Than 24 Hours Ago" },
+  { value: "72", label: "More Than 3 Days Ago" },
+  { value: "168", label: "More Than 7 Days Ago" },
 ];
 
 export function ApprovalQueueSection({
@@ -46,9 +46,9 @@ export function ApprovalQueueSection({
 }) {
   if (!data.ok) {
     return (
-      <SectionCard title="Approval queue">
+      <SectionCard title="Jobs Waiting for Approval">
         <p className={styles.failed} role="alert">
-          The approval queue could not load.
+          We could not load the jobs waiting for approval.
           <RetryHere />
         </p>
       </SectionCard>
@@ -82,12 +82,12 @@ function FilterBar({ data }: { data: QueueState }) {
                 setSearchParams(next, { preventScrollReset: true });
               }}
             >
-              <option value="">All employees</option>
+              <option value="">All Employees</option>
               {data.members.data
                 .filter((m) => m.role === "employee")
                 .map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.name ?? "(no name)"}
+                    {m.name ?? "No Name"}
                   </option>
                 ))}
               {/* A hand-set or stale employeeId (a removed employee) must stay
@@ -98,12 +98,12 @@ function FilterBar({ data }: { data: QueueState }) {
               !data.members.data.some(
                 (m) => m.id === data.filters.employeeId && m.role === "employee",
               ) ? (
-                <option value={data.filters.employeeId}>(this employee)</option>
+                <option value={data.filters.employeeId}>This Employee</option>
               ) : null}
             </select>
           </label>
           <label className={styles.filterField}>
-            <span className={styles.filterLabel}>Age of submission</span>
+            <span className={styles.filterLabel}>How Long Ago Was the Job Submitted?</span>
             <select
               value={
                 data.filters.olderThanHours === null ? "" : String(data.filters.olderThanHours)
@@ -125,10 +125,7 @@ function FilterBar({ data }: { data: QueueState }) {
         </div>
       ) : (
         <p className={styles.quiet}>
-          The employee filter could not load.
-          {data.filters.employeeId !== ""
-            ? " The employee filter already in the address still applies."
-            : ""}
+          We could not load the employee list. The selected filter will still be used.
         </p>
       )}
     </SectionCard>
@@ -151,11 +148,11 @@ function EditBlock({ data, basePath }: { data: QueueState; basePath: string }) {
 
   if (!edit.ok) {
     return (
-      <SectionCard title="Edit pending job">
+      <SectionCard title="Edit Job">
         <p className={styles.failed} role="alert">
-          That job could not load for editing.{" "}
+          We could not load this job for editing.{" "}
           <Link to={basePath + "?tab=approval"} className={styles.retry}>
-            Back to the queue
+            Back to Approval List
           </Link>
         </p>
       </SectionCard>
@@ -166,11 +163,11 @@ function EditBlock({ data, basePath }: { data: QueueState; basePath: string }) {
   // form whose every save the backend would refuse.
   if (edit.data.job.status !== "pending_approval") {
     return (
-      <SectionCard title="Edit pending job">
+      <SectionCard title="Edit Job">
         <p className={styles.failed} role="alert">
-          That job is no longer waiting for approval.{" "}
+          This job is no longer waiting for approval.{" "}
           <Link to={basePath + "?tab=approval"} className={styles.retry}>
-            Back to the queue
+            Back to Approval List
           </Link>
         </p>
       </SectionCard>
@@ -178,7 +175,7 @@ function EditBlock({ data, basePath }: { data: QueueState; basePath: string }) {
   }
 
   return (
-    <SectionCard title="Edit pending job">
+    <SectionCard title="Edit Job">
       <PendingJobEditForm bundle={edit.data} busy={busy === true} saved={saved} error={error} />
     </SectionCard>
   );
@@ -192,9 +189,9 @@ function QueueBlock({ data, basePath }: { data: QueueState; basePath: string }) 
 
   if (!data.queue.ok) {
     return (
-      <SectionCard title="Approval queue">
+      <SectionCard title="Jobs Waiting for Approval">
         <p className={styles.failed} role="alert">
-          The queue could not load.
+          We could not load the jobs waiting for approval.
           <RetryHere />
         </p>
       </SectionCard>
@@ -222,8 +219,12 @@ function QueueBlock({ data, basePath }: { data: QueueState; basePath: string }) 
   }
   return (
     <SectionCard
-      title="Approval queue"
-      meta={data.queue.data.hasMore ? `${rows.length}+ waiting` : `${rows.length} waiting`}
+      title="Jobs Waiting for Approval"
+      meta={
+        data.queue.data.hasMore
+          ? `${rows.length}+ Jobs Waiting`
+          : `${rows.length} ${rows.length === 1 ? "Job" : "Jobs"} Waiting`
+      }
     >
       {updating ? (
         <p className={styles.moreLine} role="status">
@@ -237,11 +238,9 @@ function QueueBlock({ data, basePath }: { data: QueueState; basePath: string }) 
       ) : null}
       {rows.length === 0 ? (
         <p className={styles.quiet}>
-          Nothing is waiting for approval
           {data.filters.employeeId !== "" || data.filters.olderThanHours !== null
-            ? " for these filters"
-            : ""}
-          .
+            ? "No jobs are waiting for approval with these filters."
+            : "No jobs are waiting for approval."}
         </p>
       ) : (
         <ul className={styles.queueList}>
@@ -260,13 +259,13 @@ function QueueBlock({ data, basePath }: { data: QueueState; basePath: string }) 
                 <div className={styles.rowMain}>
                   <p className={styles.rowTitle}>
                     {row.description ? row.description : row.jobNumber}
-                    {editing ? <span className={styles.editingMark}> · being edited</span> : null}
+                    {editing ? <span className={styles.editingMark}> · Being Edited</span> : null}
                     {row.description ? ` · ${row.jobNumber}` : ""}
                     {row.customerName !== null ? ` · ${row.customerName}` : ""}
                   </p>
                   <p className={styles.rowMeta}>
-                    {row.employee?.name ?? "(no name)"} · submitted {dayOf(row.submittedAt)} ·
-                    waiting {waitLabel(row.ageHours)}
+                    {row.employee?.name ?? "No Name"} · submitted {dayOf(row.submittedAt)} · waiting{" "}
+                    {waitLabel(row.ageHours)}
                     {row.scheduledStart !== null
                       ? ` · scheduled ${fmtWhen(row.scheduledStart)}`
                       : ""}
@@ -299,9 +298,9 @@ function QueueBlock({ data, basePath }: { data: QueueState; basePath: string }) 
       {data.queue.data.hasMore && data.queue.data.nextCursor !== null ? (
         <p className={styles.moreLine}>
           <Link to={`${basePath}?${olderParams.toString()}`} className={styles.retry}>
-            Older submissions
+            View Older Requests
           </Link>{" "}
-          continue on the next page of the queue — the oldest always lead.
+          Open the next page to see older requests. The oldest requests appear first.
         </p>
       ) : null}
     </SectionCard>
@@ -320,7 +319,7 @@ function RetryHere() {
   const { pathname, search } = useLocation();
   return (
     <Link to={`${pathname}${search}`} className={styles.retry}>
-      Try again
+      Try Again
     </Link>
   );
 }

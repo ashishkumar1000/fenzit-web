@@ -133,7 +133,7 @@ describe("consoleRole", () => {
 });
 
 describe("sectionsFor", () => {
-  it("gives staff Inspect, Account, Reports, Deletion requests and Config, in that order", () => {
+  it("gives staff Inspect Person, Account Details, Reports, Delete Requests and App Settings, in that order", () => {
     expect(sectionsFor("staff").map((s) => s.to)).toEqual([
       "/admin/inspect",
       "/admin/account",
@@ -156,7 +156,7 @@ describe("sectionsFor", () => {
     ]);
   });
 
-  it("gives a member Me and the shared Jobs page", () => {
+  it("gives a member My Details and the shared Jobs page", () => {
     expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me", "/admin/company/jobs"]);
   });
 });
@@ -181,7 +181,7 @@ describe("sectionGroupsFor", () => {
           { to: "/admin/company/holidays", label: "Holidays" },
         ],
       },
-      { caption: "Money", links: [{ to: "/admin/company/payroll", label: "Payroll" }] },
+      { caption: "Money", links: [{ to: "/admin/company/payroll", label: "Salary" }] },
     ]);
   });
 
@@ -241,15 +241,15 @@ describe("Console: access", () => {
 
     expect(
       await screen.findByText(
-        "We could not check your access. Check your connection and try again.",
+        "We could not check your access. Please check your internet connection and try again.",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
     // The sign-in is kept: a connection failure is not a signed-out state.
     expect(window.localStorage.getItem(SESSION_KEY)).not.toBeNull();
   });
 
-  it("recovers on Try again without a fresh sign-in", async () => {
+  it("recovers on Try Again without a fresh sign-in", async () => {
     writeSession({ token: "tok-1", name: null });
     meAnswers.push(() => {
       throw new TypeError("network down");
@@ -259,7 +259,7 @@ describe("Console: access", () => {
     meAnswers.push(me(), me());
 
     renderAdmin();
-    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Try Again" }));
 
     // The greeting now comes from the merged Overview's own header — waited
     // on the Owner pill, which only that page renders.
@@ -283,7 +283,7 @@ describe("Console: who sees what", () => {
     expect(h1).toHaveTextContent("Hello, Ravi Kumar");
     expect(screen.getByLabelText("Breadcrumb").textContent).toBe("Console›Overview");
     // The role lives in the sidebar user chip.
-    expect(screen.getByText("Company owner")).toBeInTheDocument();
+    expect(screen.getByText("Company Owner")).toBeInTheDocument();
     // The dashboard merged into Overview: its failing slices degrade to
     // their own retry lines (this test's fetch mock is offline).
     expect(
@@ -298,9 +298,9 @@ describe("Console: who sees what", () => {
     expect(screen.getByRole("link", { name: "Jobs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Holidays" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Attendance" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Inspect Person" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Account Details" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "My Details" })).toBeNull();
   });
 
   it("gives a platform admin the staff sections, greeting a nameless account as Hello", async () => {
@@ -310,17 +310,17 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Hello" })).toBeInTheDocument();
-    expect(screen.getByText("Fenzit staff")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Inspect" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Account" })).toBeInTheDocument();
+    expect(screen.getByText("Fenzit Staff")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Inspect Person" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Account Details" })).toBeInTheDocument();
     // The landing index: whole-row links with their plain-English blurbs, and
     // the safety line that says what this console cannot do.
     expect(
-      screen.getByRole("link", { name: /Everything the system knows about one person/ }),
+      screen.getByRole("link", { name: /View all details about a person/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("This console cannot delete anything.")).toBeInTheDocument();
+    expect(screen.getByText("You cannot delete anything from this page.")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Me" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "My Details" })).toBeNull();
   });
 
   it("shows the role alone in the sidebar chip when the name is blank or only spaces", async () => {
@@ -329,8 +329,8 @@ describe("Console: who sees what", () => {
 
     renderAdmin();
 
-    expect(await screen.findByRole("link", { name: "Inspect" })).toBeInTheDocument();
-    expect(screen.getByText("Fenzit staff").parentElement?.textContent).toBe("Fenzit staff");
+    expect(await screen.findByRole("link", { name: "Inspect Person" })).toBeInTheDocument();
+    expect(screen.getByText("Fenzit Staff").parentElement?.textContent).toBe("Fenzit Staff");
   });
 
   it("points each staff index row at its own section", async () => {
@@ -340,13 +340,12 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     const inspect = await screen.findByRole("link", {
-      name: /Everything the system knows about one person/,
+      name: /View all details about a person/,
     });
     expect(inspect).toHaveAttribute("href", "/admin/inspect");
-    expect(screen.getByRole("link", { name: /App-wide settings/ })).toHaveAttribute(
-      "href",
-      "/admin/config",
-    );
+    expect(
+      screen.getByRole("link", { name: /Manage app updates and support contact/ }),
+    ).toHaveAttribute("href", "/admin/config");
   });
 
   it("gives an employee only the Me section — the console no longer refuses them", async () => {
@@ -356,10 +355,10 @@ describe("Console: who sees what", () => {
     renderAdmin();
 
     expect(await screen.findByRole("heading", { name: "Hello, Ravi Kumar" })).toBeInTheDocument();
-    expect(screen.getByText("Team member")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Me" })).toBeInTheDocument();
+    expect(screen.getByText("Team Member")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My Details" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Company" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Inspect" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Inspect Person" })).toBeNull();
   });
 });
 
@@ -378,7 +377,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
 
     // The badge renames the link for AT and shows the count on the row —
     // the design's chip on the active Leave pill.
-    const leave = await screen.findByRole("link", { name: "Leave, 3 pending" });
+    const leave = await screen.findByRole("link", { name: "Leave – 3 requests waiting" });
     expect(leave).toHaveTextContent("3");
     // The design's group captions over their clusters…
     expect(screen.getByText("Business")).toBeInTheDocument();
@@ -397,7 +396,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
     renderAdmin();
 
     expect(await screen.findByRole("link", { name: "Leave" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /requests waiting/ })).toBeNull();
   });
 
   it("answers a zero pending count with a plain Leave link — zero is no news", async () => {
@@ -412,7 +411,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
     renderAdmin();
 
     expect(await screen.findByRole("link", { name: "Leave" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /requests waiting/ })).toBeNull();
   });
 
   it("answers a failed summary read with a plain Leave link — the console still loads", async () => {
@@ -424,7 +423,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
 
     expect(await screen.findByText("Owner")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leave" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /pending/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /requests waiting/ })).toBeNull();
   });
 
   it("asks no summary read for staff — no Leave section, nothing to count", async () => {
@@ -442,7 +441,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
 
     renderAdmin("/admin/inspect");
 
-    expect(await screen.findByRole("link", { name: "Inspect" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Inspect Person" })).toBeInTheDocument();
     expect(summaryCalls).toBe(0);
   });
 });
@@ -493,7 +492,7 @@ describe("Console: logging out", () => {
     meAnswers.push(me(), me());
 
     renderAdmin();
-    fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Log Out" }));
 
     expect(
       await screen.findByRole("heading", {
@@ -520,7 +519,7 @@ describe("Console: the sidebar's active link on a section page", () => {
     // Two /users/me calls: the layout's check, then the jobs loader's.
     meAnswers.push(me(), me());
     renderAdmin("/admin/company/jobs");
-    const sidebar = await screen.findByRole("navigation", { name: "Console sections" });
+    const sidebar = await screen.findByRole("navigation", { name: "Console Menu" });
     expect(within(sidebar).getByRole("link", { name: "Jobs" })).toHaveAttribute(
       "aria-current",
       "page",

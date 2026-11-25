@@ -11,7 +11,7 @@ import { Spinner } from "../../../components/ui/Spinner";
 import styles from "./JobSettingsDialog.module.css";
 
 /** The chip's colour and icon say the setting at a glance: violet tag for the
- *  full create+approval, green bolt for plain create ("Creates jobs"), gray
+ *  full create+approval, green bolt for plain create ("Can Create Jobs"), gray
  *  power mark for off. */
 function chipSummary(row: { canCreateJobs: boolean; jobApprovalRequired: boolean }): {
   label: string;
@@ -20,9 +20,9 @@ function chipSummary(row: { canCreateJobs: boolean; jobApprovalRequired: boolean
 } {
   if (!row.canCreateJobs) return { label: "Off", variant: "off", Icon: PowerIcon };
   if (row.jobApprovalRequired) {
-    return { label: "Create + approval", variant: "approval", Icon: ApprovalTagIcon };
+    return { label: "Can Create Jobs with Approval", variant: "approval", Icon: ApprovalTagIcon };
   }
-  return { label: "Creates jobs", variant: "create", Icon: ZapIcon };
+  return { label: "Can Create Jobs", variant: "create", Icon: ZapIcon };
 }
 
 /**
@@ -102,8 +102,8 @@ export function JobSettingsCell({
             Job settings
           </h3>
           <p className={styles.dialogHint}>
-            Changes apply to the next job this employee creates. Jobs already waiting stay as they
-            are.
+            These settings will apply to the next job this employee creates. Jobs already waiting
+            for approval will not be affected.
           </p>
           <label className={styles.switchRow}>
             <input
@@ -113,8 +113,8 @@ export function JobSettingsCell({
               onChange={(event) => setCreateOn(event.target.checked)}
             />
             <span>
-              Can create jobs
-              <small>They record their own visits and tasks.</small>
+              Allow Employee to Create Jobs
+              <small>The employee can add their own visits and work details.</small>
             </span>
           </label>
           <label className={styles.switchRow}>
@@ -126,11 +126,11 @@ export function JobSettingsCell({
               onChange={(event) => setApprovalOn(event.target.checked)}
             />
             <span>
-              Approval needed
+              Owner Approval Required
               <small>
                 {createOn
-                  ? "New jobs wait for your approval first."
-                  : "Turn on Can create jobs first."}
+                  ? "New jobs created by this employee will need your approval first."
+                  : `Turn on "Allow Employee to Create Jobs" first.`}
               </small>
             </span>
           </label>
@@ -143,7 +143,7 @@ export function JobSettingsCell({
             {markVisible ? (
               <>
                 <p className={styles.savedMark} role="status">
-                  Job settings saved.
+                  Job settings saved successfully.
                 </p>
                 {/* A saved dialog only needs to be closed — another Save
                     would double-submit the same switches. */}

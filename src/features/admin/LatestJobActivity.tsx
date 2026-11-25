@@ -15,26 +15,26 @@ function line(row: NotificationRow): string {
   const forWhom = customer !== null ? ` for ${customer}` : "";
   switch (row.eventType) {
     case "job.submitted":
-      return `${payloadText(row, "employee_name") ?? "An employee"} submitted ${job}${forWhom}`;
+      return `${payloadText(row, "employee_name") ?? "An employee"} submitted ${job}${forWhom}.`;
     case "job.approved":
-      return `${job}${forWhom} was approved`;
+      return `${job}${forWhom} was approved.`;
     case "job.rejected": {
       const reason = payloadText(row, "reason");
-      return `${job}${forWhom} was rejected${reason !== null ? ` — ${reason}` : ""}`;
+      return `${job}${forWhom} was rejected${reason ? `. Reason: ${reason}` : ""}.`;
     }
     case "job.edited": {
       const fields = row.payload["changed_fields"];
       const names = Array.isArray(fields)
         ? (fields as unknown[]).filter((f): f is string => typeof f === "string").join(", ")
         : "";
-      return `${job}${forWhom} was edited${names !== "" ? ` (${names})` : ""}`;
+      return `${job}${forWhom} was updated${names !== "" ? ` (${names})` : ""}.`;
     }
     case "job.cancelled":
-      return `${job}${forWhom} was cancelled`;
+      return `${job}${forWhom} was cancelled.`;
     case "job.assigned":
-      return `${job}${forWhom} was assigned`;
+      return `${job}${forWhom} was assigned to an employee.`;
     default:
-      return `${job} — ${humanize(row.eventType.replace(/^job\./, ""))}`;
+      return `${job} — ${humanize(row.eventType.replace(/^job\./, ""))}.`;
   }
 }
 
@@ -52,18 +52,18 @@ export function LatestJobActivity({
 }) {
   return (
     <SectionCard
-      title="Latest job activity"
+      title="Latest Job Updates"
       meta={data.ok && data.data.length > 0 ? `${data.data.length}` : null}
     >
       {!data.ok ? (
         <p className={styles.failed} role="alert">
-          The activity feed could not load.
+          We could not load the latest job updates.
           <button type="button" className={styles.retry} onClick={onRetry}>
-            Try again
+            Try Again
           </button>
         </p>
       ) : data.data.length === 0 ? (
-        <p className={styles.line}>No job activity yet. Alerts appear here as they happen.</p>
+        <p className={styles.line}>No job updates yet. New updates will appear here.</p>
       ) : (
         <ul className={styles.feed}>
           {data.data.map((row) => (

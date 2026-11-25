@@ -19,7 +19,7 @@ export function ClearAllButton({ filters }: { filters: CustomersFilters }) {
       className={styles.clearAll}
       onClick={() => navigate(customersUrl(filters, { q: "", bucket: "all", sort: "created_new" }))}
     >
-      Clear all
+      Clear All Filters
     </button>
   );
 }
@@ -54,7 +54,7 @@ export function SearchBox({ filters }: { filters: CustomersFilters }) {
         name="q"
         type="search"
         className={styles.searchInput}
-        placeholder="Search name or phone…"
+        placeholder="Search by customer name or phone number…"
         aria-label="Search customers"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -70,8 +70,8 @@ export function SearchBox({ filters }: { filters: CustomersFilters }) {
 const BUCKET_CHIPS: Array<{ value: CustomersFilters["bucket"]; label: string }> = [
   { value: "all", label: "All" },
   { value: "new", label: "New" },
-  { value: "single", label: "Single job" },
-  { value: "repeat", label: "Repeat" },
+  { value: "single", label: "One Job" },
+  { value: "repeat", label: "Repeat Customers" },
 ];
 
 /** The bucket chip row: links, so a chip change is a navigation and the

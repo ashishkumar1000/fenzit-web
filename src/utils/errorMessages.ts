@@ -3,16 +3,16 @@ import { ApiError, NoCompanySelectedError } from "../services/api";
 // Plain-English copy for each error_code the BE can return. Screens show these
 // strings, never ApiError.message, because that text is written for developers.
 const MESSAGES_BY_CODE = new Map<string, string>([
-  ["UNAUTHORIZED", "Your session has ended. Sign in again to continue."],
+  ["UNAUTHORIZED", "Your session has ended. Please sign in again."],
   ["FORBIDDEN", "You do not have permission to do this."],
-  ["VALIDATION_ERROR", "Check the highlighted fields and try again."],
-  ["RESOURCE_NOT_FOUND", "We could not find that. It may have been removed."],
+  ["VALIDATION_ERROR", "Please check the highlighted fields and try again."],
+  ["RESOURCE_NOT_FOUND", "We could not find this information. It may have been removed."],
   // Neutral on purpose: a duplicate on one screen must not say that another
   // company holds the number. Screen-specific wording belongs at the call site.
-  ["DUPLICATE_RESOURCE", "That already exists."],
-  ["ALREADY_IN_TEAM", "That person is already on your team."],
-  ["RATE_LIMIT_EXCEEDED", "Too many attempts. Wait a few minutes and try again."],
-  ["RATE_LIMITED", "Too many attempts. Wait a few minutes and try again."],
+  ["DUPLICATE_RESOURCE", "This information already exists."],
+  ["ALREADY_IN_TEAM", "This person is already part of your team."],
+  ["RATE_LIMIT_EXCEEDED", "Too many attempts. Please wait a few minutes and try again."],
+  ["RATE_LIMITED", "Too many attempts. Please wait a few minutes and try again."],
   ["INVALID_OTP", "That code is not right. Check it and try again."],
   ["OTP_EXPIRED", "That code has expired. Ask for a new one."],
   ["OTP_SESSION_LOCKED", "Too many wrong codes. Wait before you try again."],
@@ -34,9 +34,9 @@ const MESSAGES_BY_CODE = new Map<string, string>([
 ]);
 
 export const NO_COMPANY_MESSAGE =
-  "Pick a company first. Search for the person, then choose the company you want to work on.";
-export const GENERIC_MESSAGE = "Something went wrong. Try again.";
-export const SERVER_MESSAGE = "Something went wrong on our side. Try again in a moment.";
+  "Please select a company first. Search for the person and choose the company you want to manage.";
+export const GENERIC_MESSAGE = "Something went wrong. Please try again.";
+export const SERVER_MESSAGE = "Something went wrong on our side. Please try again in a moment.";
 
 /**
  * Turns any thrown value into a sentence a user can read. Known `error_code`s

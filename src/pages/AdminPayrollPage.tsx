@@ -19,13 +19,13 @@ import styles from "./AdminPayrollPage.module.css";
  */
 
 const TAB_LIST = [
-  { value: "components", label: "Components" },
-  { value: "structures", label: "Structures" },
+  { value: "components", label: "Salary Components" },
+  { value: "structures", label: "Salary Structure" },
   { value: "deductions", label: "Deductions" },
-  { value: "statutory", label: "Statutory" },
-  { value: "calendar", label: "Calendar" },
-  { value: "runs", label: "Runs" },
-  { value: "audit", label: "Audit" },
+  { value: "statutory", label: "Government Rules" },
+  { value: "calendar", label: "Salary Calendar" },
+  { value: "runs", label: "Salary Runs" },
+  { value: "audit", label: "History" },
 ];
 
 export function AdminPayrollPage() {
@@ -47,15 +47,15 @@ export function AdminPayrollPage() {
       <header className={styles.pageHead}>
         <div>
           <h1 className={styles.heading}>
-            Payroll
+            Salary
             <span className={styles.rolePill}>
               <CrownIcon size={13} className={styles.rolePillIcon} />
               Owner
             </span>
           </h1>
           <p className={styles.lede}>
-            Set up pay once — components, structures, deductions and the statutory switches the
-            monthly run reads.
+            Set up how employee salaries are calculated and paid. You can manage salary details,
+            deductions, attendance and payment dates from here.
           </p>
         </div>
       </header>
@@ -115,7 +115,7 @@ function TopBar() {
           ›
         </span>
         <span className={styles.crumbHere} aria-current="page">
-          Payroll
+          Salary
         </span>
       </nav>
     </div>

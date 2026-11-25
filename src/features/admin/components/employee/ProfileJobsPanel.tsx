@@ -18,14 +18,15 @@ export function ProfileJobsPanel({ jobs }: { jobs: Slice<JobsPageResult> }) {
     return (
       <div className={styles.card}>
         <p className={styles.failed} role="alert">
-          The job history could not load. Try opening this page again from the menu.
+          We could not load the employee's job history. Please go back to the menu and open this
+          page again.
         </p>
       </div>
     );
   }
   const data = jobs.data;
   const chips = [
-    { label: "Total jobs", value: data.stats.total, tone: styles.chipPrimary },
+    { label: "Total Jobs", value: data.stats.total, tone: styles.chipPrimary },
     { label: "In progress", value: data.stats.inProgress, tone: styles.chip },
     { label: "Scheduled", value: data.stats.scheduled, tone: styles.chip },
     { label: "Completed", value: data.stats.completed, tone: styles.chipDone },
@@ -53,19 +54,19 @@ export function ProfileJobsPanel({ jobs }: { jobs: Slice<JobsPageResult> }) {
           </span>
         ))}
       </div>
-      <SectionCard title="Job history">
+      <SectionCard title="Job History">
         <DataTable
-          columns={["Job", "Service", "Location", "Date", "Status"]}
+          columns={["Job", "Work Type", "Location", "Date", "Status"]}
           rows={rows}
-          empty="No jobs yet — assign one from the Assign Job button above."
+          empty="No jobs assigned yet. Use the Assign Job button above to assign the first job."
         />
         {data.total > data.data.length ? (
           <p className={styles.more}>
-            Showing the newest {data.data.length} of {data.total} —{" "}
+            {`Showing the latest ${data.data.length} jobs out of ${data.total}. `}
             <Link to="/admin/company/jobs" className={styles.jobLink}>
-              open the Jobs page
+              Open the Jobs page
             </Link>{" "}
-            for everything.
+            to see all jobs.
           </p>
         ) : null}
       </SectionCard>

@@ -13,9 +13,21 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
   background: var(--color-surface-sunken);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-2);
   border-bottom: 1px solid var(--color-border-subtle);
-  white-space: nowrap;
+  /* The plain-English headers are longer ("Employee Code", "Employment
+     Details") — a nowrap header forced the table past its container, which
+     crushed the flexible name column into per-character tall rows (found
+     live 2026-11-25). Wrapping a header to two lines beats starving the
+     name column. */
+  white-space: normal;
+}
+
+/* The identity column keeps a readable floor; the wrapper scrolls instead
+   of squeezing names per-character when the viewport is tight. */
+.table th:first-child,
+.table td:first-child {
+  min-width: 140px;
 }
 
 .table th:first-child {
@@ -50,7 +62,7 @@
 }
 
 .table td {
-  padding: var(--space-3) var(--space-3);
+  padding: var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--color-border-subtle);
   color: var(--color-text-strong);
   vertical-align: middle;
@@ -105,7 +117,13 @@ a.name:hover {
 .email {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  overflow-wrap: anywhere;
+  /* One line with an ellipsis, never a wrap: a wrapped email tripled the
+     row height against its neighbours (found live 2026-11-25); the full
+     address lives on the person's profile. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .quiet {
@@ -212,7 +230,9 @@ a.name:hover {
   cursor: pointer;
   padding: var(--space-1) var(--space-3);
   min-height: 32px;
-  white-space: nowrap;
+  /* "Send Invitation Again" is longer than the old "Resend invite" — let it
+     wrap rather than force the column wide (found live 2026-11-25). */
+  white-space: normal;
 }
 
 .resendButton:hover {

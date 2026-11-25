@@ -141,7 +141,7 @@ describe("loginAction: the sign-in step", () => {
     expectStep(result);
     expect(result.error).toEqual({
       field: "identifier",
-      message: "Too many attempts. Wait a few minutes and try again.",
+      message: "Too many attempts. Please wait a few minutes and try again.",
     });
   });
 
@@ -207,7 +207,7 @@ describe("loginAction: the sign-in step", () => {
     expectStep(result);
     expect(result.error).toEqual({
       field: "form",
-      message: "Something went wrong on our side. Try again in a moment.",
+      message: "Something went wrong on our side. Please try again in a moment.",
     });
   });
 
@@ -328,7 +328,7 @@ describe("loginAction: the code step", () => {
     expectStep(result);
     expect(result.error).toEqual({
       field: "code",
-      message: "Something went wrong on our side. Try again in a moment.",
+      message: "Something went wrong on our side. Please try again in a moment.",
     });
   });
 

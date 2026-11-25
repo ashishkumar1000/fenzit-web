@@ -34,24 +34,25 @@ export function ReportHistoryList({
   onRetryHistory: () => void;
 }) {
   const rows = history.ok ? history.data.filter((row) => row.reportType === reportType) : [];
-  const label = reportTypeLabel(reportType).toLowerCase();
+  const label = reportTypeLabel(reportType);
 
   return (
     <div>
       <div className={styles.head}>
-        <h4 className={styles.title}>Previous {label} reports</h4>
+        <h4 className={styles.title}>Previous {label} Reports</h4>
         {history.ok && rows.length > 0 ? <span className={styles.count}>{rows.length}</span> : null}
       </div>
       {!history.ok ? (
         <p className={styles.hint} role="alert">
-          The report history could not load.
+          We could not load your report history.
           <button type="button" className={styles.retry} onClick={onRetryHistory}>
-            Try again
+            Try Again
           </button>
         </p>
       ) : rows.length === 0 ? (
         <p className={styles.hint}>
-          Nothing generated yet. Reports you build are listed here to download again.
+          No reports created yet. Reports you download will appear here so you can download them
+          again later.
         </p>
       ) : (
         <ul className={styles.list}>
@@ -61,10 +62,10 @@ export function ReportHistoryList({
                 <span className={styles.range}>{rangeLabel(row)}</span>
                 <span className={styles.meta}>
                   {row.technicianCount === null
-                    ? "All employees"
-                    : `${row.technicianCount} employee${row.technicianCount === 1 ? "" : "s"}`}
+                    ? "All Employees"
+                    : `${row.technicianCount} ${row.technicianCount === 1 ? "Employee" : "Employees"}`}
                   {" · "}
-                  {fmtWhen(row.createdAt)}
+                  {`Created: ${fmtWhen(row.createdAt)}`}
                 </span>
               </div>
               <div className={styles.side}>
@@ -87,7 +88,7 @@ export function ReportHistoryList({
                     disabled={busyId !== null}
                     aria-label={`Retry the ${rangeLabel(row)} ${label} report`}
                   >
-                    {busyId === row.id && busyKind === "retry" ? "Retrying…" : "Try again"}
+                    {busyId === row.id && busyKind === "retry" ? "Trying Again…" : "Try Again"}
                   </button>
                 ) : null}
               </div>
