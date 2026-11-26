@@ -25,13 +25,14 @@ import styles from "./LeaveRequestsTab.module.css";
  * tap or a search is navigation, and the loader refetches the truth.
  */
 
-/** The pills' words, the design's own: the queue reads "Needs review", a
- *  withdrawn request reads "Self-cancelled" — the wire's raw words only
+/** The pills' words, the design's own: the queue reads "Needs review", an
+ *  owner-revoked approval reads "Revoked" — distinct from "Cancelled"
+ *  (the employee's own withdrawal, `cancelled`); the wire's raw words only
  *  ever reach the status chips. */
 const PILL_LABELS: Record<Exclude<LeaveStatusFilter, "all">, string> = {
   pending: "Needs review",
   approved: "Approved",
-  revoked: "Self-cancelled",
+  revoked: "Revoked",
   rejected: "Rejected",
   cancelled: "Cancelled",
 };

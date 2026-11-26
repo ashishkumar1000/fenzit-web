@@ -10,7 +10,9 @@ import { CrownIcon } from "../components/ui/consoleIcons";
 import styles from "./AdminLeavePage.module.css";
 
 const LEAVE_TABS = [
-  { value: "types", label: "Types" },
+  // "Config" — the mobile redesign renamed the tab (the fixed catalog's
+  // values are configuration, not a list of types); parity with the app.
+  { value: "types", label: "Config" },
   { value: "requests", label: "Requests" },
   { value: "calendar", label: "Upcoming Leaves" },
 ];

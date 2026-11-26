@@ -277,6 +277,11 @@ describe("AdminLeavePage: the types tab", () => {
     expect(
       screen.getByText("No rate — days come from approved comp-off earns, not a rate."),
     ).toBeInTheDocument();
+    // The tab strip reads the redesign's word — "Config", not the retired
+    // "Types" (the mobile parity rename; a revert must fail here, the way
+    // the Jobs page pins its own strip).
+    expect(screen.getByLabelText("Page sections").textContent).toContain("Config");
+    expect(screen.getByLabelText("Page sections").textContent).not.toContain("Types");
     expect(
       screen.getByText(/Kept for history, not editable: Old Casual Leave/),
     ).toBeInTheDocument();
@@ -370,9 +375,12 @@ describe("AdminLeavePage: the requests tab", () => {
       sentRequests().some((r) => r.url.includes("status=pending") && r.url.includes("limit=20")),
     ).toBe(true);
     // The pills read the whole tenant's counts (the summary read), whatever
-    // the page's own filter is.
+    // the page's own filter is. The revoked pill is pinned by its word —
+    // an owner-revoked approval reads "Revoked", never the retired
+    // "Self-cancelled" (the design's distinction from "Cancelled").
     expect(screen.getByRole("link", { name: "Needs review 1" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "All 2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Revoked 0" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("link", { name: "Approved 1" }));
     await waitFor(() => {
       expect(sentRequests().some((r) => r.url.includes("status=approved"))).toBe(true);
