@@ -4,6 +4,8 @@ import { messageForError } from "../../utils/errorMessages";
 import { emailLogin, sendOtp, verifyOtp, type LoginResponse } from "./loginApi";
 import { classifyIdentifier, formatPhoneLabel, LOGIN_DIAL_CODE } from "./loginInput";
 import { writeSession } from "../../services/session";
+import { invalidateIdentityCache } from "../admin/identityCache";
+import { dismissSessionEndedToasts } from "../../components/ui/toastStore";
 
 export type LoginField = "identifier" | "password" | "code" | "form";
 
@@ -109,6 +111,12 @@ function finishSignIn(
   if (!saved) {
     return failed({ field: "form", message: SAVE_FAILED });
   }
+  // A fresh token starts with an empty identity cache (CAP-8): nothing a
+  // previous sign-in fetched may serve the new one, even at the same key.
+  invalidateIdentityCache();
+  // The sign-in that just ended may have left a session-ended alert on
+  // screen; it must not survive into the session that replaced it.
+  dismissSessionEndedToasts();
   return redirect("/admin");
 }
 

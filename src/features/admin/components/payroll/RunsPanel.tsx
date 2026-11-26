@@ -1,10 +1,12 @@
 import { Link, Form, useActionData, useFetcher, useNavigation, useRevalidator } from "react-router";
-import { useId, useRef } from "react";
+// eslint-disable-next-line no-restricted-imports -- effects wire the module run watcher and toast announcements, never server reads
+import { useEffect, useId, useRef } from "react";
 import { fmtDay, fmtWhen } from "../../format";
 import type { adminPayrollAction } from "../../payrollAction";
-import { fmtMoney } from "../../payrollFormat";
+import { fmtMoney, fmtMonthHead } from "../../payrollFormat";
 import type { PayrollMonthStatusView } from "../../payrollViews";
 import type { LockView, OffCycleLineView, PayrollRunView } from "../../payrollRunApi";
+import { resumePayrollRunWatch, setPayrollRunRevalidator } from "../../payrollRunWatcher";
 import type { MemberRow } from "../../companyApi";
 import { Spinner } from "../../../../components/ui/Spinner";
 import dialogStyles from "../JobSettingsDialog.module.css";
@@ -35,17 +37,12 @@ const DIVISOR_WORDS: Record<string, string> = {
   "fixed-26": "Fixed 26 days",
 };
 
-/** A YYYY-MM month as the owner reads it — "October 2026". */
-function fmtMonthHead(month: string): string {
-  const [year, mon] = month.split("-").map(Number);
-  if (!year || !mon) return month;
-  return new Date(year, mon - 1, 1).toLocaleDateString("en-IN", {
-    month: "long",
-    year: "numeric",
-  });
-}
-
 type SliceOf<T> = { ok: true; data: T } | { ok: false };
+
+/** A run still on the BE's async status machine — the watcher's business. */
+function isInFlight(run: PayrollRunView | null): run is PayrollRunView {
+  return run !== null && (run.status === "queued" || run.status === "running");
+}
 
 export function RunsPanel({
   month,
@@ -66,6 +63,29 @@ export function RunsPanel({
   offCycleLines: SliceOf<OffCycleLineView[]>;
   members: SliceOf<MemberRow[]>;
 }) {
+  const revalidator = useRevalidator();
+  // The watcher's revalidate closure reads the ref, so the registration (one
+  // effect for the whole mount) always reaches the latest revalidator. The
+  // write happens in an effect — refs are not touched during render.
+  const revalidateRef = useRef(revalidator);
+  useEffect(() => {
+    revalidateRef.current = revalidator;
+  });
+  // CAP-9: the module watcher owns the polling; while this page is mounted
+  // it revalidates here, so a watched run's outcome lands without a Refresh.
+  useEffect(() => {
+    setPayrollRunRevalidator(() => {
+      if (revalidateRef.current.state === "idle") void revalidateRef.current.revalidate();
+    });
+    return () => setPayrollRunRevalidator(null);
+  }, []);
+  // Runs already in flight when this panel loads (a trigger from earlier, a
+  // reload mid-run) join the watch from the loader's own data; a run the
+  // watcher tracks that came back terminal through a refetch settles here.
+  useEffect(() => {
+    resumePayrollRunWatch([run, ...history].filter(isInFlight));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run/history are the loader's answer; the watcher upserts idempotently.
+  }, [run, history]);
   if (!monthStatus.ok || !lock.ok || !offCycleLines.ok || !members.ok) {
     return (
       <div className={styles.card}>
@@ -204,7 +224,12 @@ function MonthCard({
               </p>
             ) : null}
             <div className={styles.saveRow}>
-              <button type="submit" className={styles.saveButton} disabled={busy}>
+              <button
+                type="submit"
+                className={styles.saveButton}
+                disabled={busy}
+                aria-busy={busy ? true : undefined}
+              >
                 {busy ? <Spinner size={13} /> : null}
                 {busy
                   ? "Starting…"
@@ -466,8 +491,14 @@ function LockCard({
           ref={dialogRef}
           className={dialogStyles.dialog}
           aria-labelledby={titleId}
+          // Mid-send the dialog locks (CAP-5): backdrop click and Esc cannot
+          // dismiss it while the lock posts — an accidental dismissal on a
+          // permanent action is exactly the accident this lock exists for.
+          onCancel={(event) => {
+            if (busy) event.preventDefault();
+          }}
           onClick={(event) => {
-            if (event.target === dialogRef.current) dialogRef.current?.close();
+            if (event.target === dialogRef.current && !busy) dialogRef.current?.close();
           }}
         >
           {saved && lock !== null ? (
@@ -535,10 +566,16 @@ function LockCard({
                   type="button"
                   className={dialogStyles.quietButton}
                   onClick={() => dialogRef.current?.close()}
+                  disabled={busy}
                 >
                   Cancel
                 </button>
-                <button type="submit" className={styles.saveButton} disabled={busy}>
+                <button
+                  type="submit"
+                  className={styles.saveButton}
+                  disabled={busy}
+                  aria-busy={busy ? true : undefined}
+                >
                   {busy ? <Spinner size={13} /> : null}
                   {busy ? "Locking…" : "Lock Permanently"}
                 </button>

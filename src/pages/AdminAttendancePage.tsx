@@ -1,4 +1,4 @@
-import { Link, useLoaderData, useLocation, useRevalidator } from "react-router";
+import { Link, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import type {
   adminAttendanceLoader,
   AttendanceData,
@@ -7,8 +7,14 @@ import type {
 import { readAttendanceFilters } from "../features/admin/adminBrowseLoaders";
 import { ATTENDANCE_PATH, ATTENDANCE_NO_OFFICE } from "../features/admin/attendanceUrl";
 import { humanize } from "../features/admin/status";
+import {
+  RegionFormSkeleton,
+  RegionTableSkeleton,
+  RegionTilesSkeleton,
+} from "../features/admin/components/RegionSkeleton";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { Tabs } from "../features/admin/components/Tabs";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import { fmtDay } from "../features/admin/format";
 import { ReportExportCard } from "../features/admin/ReportExportCard";
 import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
@@ -49,7 +55,21 @@ export function AdminAttendancePage() {
   // The month table's filters are read from the address on every render, not
   // from loader data — a filter navigation revalidates nothing, so this is
   // what keeps the table honest with the URL.
-  const filters = readAttendanceFilters(new URLSearchParams(useLocation().search));
+  const location = useLocation();
+  const filters = readAttendanceFilters(new URLSearchParams(location.search));
+  const navigation = useNavigation();
+  // The roster region's load: the route refetches only on a tab change (the
+  // filters are client-side and served without a refetch), so only a tab
+  // change moves the region — the roster's tiles and table stand in while
+  // the load persists past the delay, and the report tab's card when the
+  // report is what's loading. Same-address revalidations keep the region.
+  const regionPending =
+    navigation.state === "loading" &&
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
+  const pendingTab = regionPending
+    ? new URLSearchParams(navigation.location?.search).get("tab")
+    : null;
 
   if (data.state === "failed") {
     return (
@@ -98,19 +118,44 @@ export function AdminAttendancePage() {
           ) : null}
         </div>
       </header>
-      <Tabs basePath={ATTENDANCE_PATH} tabs={ATTENDANCE_TABS} current={data.tab} />
-      {data.state === "ok" && data.tab === "month" ? (
-        <MonthPanel data={data} filters={filters} />
-      ) : null}
-      {data.state === "ok" && data.tab === "report" ? (
-        <SectionCard title="Attendance report">
-          <ReportExportCard
-            reportType="attendance_report"
-            history={data.history}
-            onRetryHistory={() => revalidator.revalidate()}
-          />
-        </SectionCard>
-      ) : null}
+      <Tabs
+        basePath={ATTENDANCE_PATH}
+        tabs={ATTENDANCE_TABS}
+        current={
+          pendingTab !== null && ATTENDANCE_TABS.some((tab) => tab.value === pendingTab)
+            ? pendingTab
+            : data.tab
+        }
+      />
+      <SkeletonSlot
+        show={regionPending}
+        className={styles.stack}
+        skeleton={
+          pendingTab === "report" ? (
+            // The report tab is a form (from/to dates + the generate button)
+            // with the history beneath — a form-shaped card, not a table.
+            <RegionFormSkeleton fields={3} />
+          ) : (
+            <>
+              <RegionTilesSkeleton />
+              <RegionTableSkeleton rows={8} columns={[2.4, 1.4, 1, 1, 1, 1, 1]} />
+            </>
+          )
+        }
+      >
+        {data.state === "ok" && data.tab === "month" ? (
+          <MonthPanel data={data} filters={filters} />
+        ) : null}
+        {data.state === "ok" && data.tab === "report" ? (
+          <SectionCard title="Attendance report">
+            <ReportExportCard
+              reportType="attendance_report"
+              history={data.history}
+              onRetryHistory={() => revalidator.revalidate()}
+            />
+          </SectionCard>
+        ) : null}
+      </SkeletonSlot>
     </>
   );
 }

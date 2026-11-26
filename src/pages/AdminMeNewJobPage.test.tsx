@@ -12,6 +12,7 @@ import {
   setRespond,
   useApiBase,
 } from "../testing/fetchMock";
+import { setIdentityTtlForTests } from "../features/admin/identityCache";
 
 // The employee's create-job page (Epic 22, CAP-2): the refusal is the page,
 // not a disabled form; the idempotency key survives a failed attempt so a
@@ -25,6 +26,10 @@ beforeAll(() => {
 afterAll(() => {
   clearApiBase();
 });
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const KEY_STORE = "fenzit.newjob.idempotencyKey";
 let jobPosts: number;
@@ -124,10 +129,11 @@ function ownerRoster(): Array<Record<string, unknown>> {
   ];
 }
 
-function renderNewJob(entry = "/admin/me/new-job"): void {
+function renderNewJob(entry = "/admin/me/new-job") {
   writeSession({ token: "tok-1", name: "Priya" });
   const router = createMemoryRouter(routes, { initialEntries: [entry] });
   render(<RouterProvider router={router} />);
+  return router;
 }
 
 function fillRequiredFields(): void {
@@ -167,17 +173,18 @@ describe("AdminMeNewJobPage: the refusal is the page (CAP-2)", () => {
 
   it("shows a retry card, not a crash, when the loader fails", async () => {
     defaultState();
-    // The layout's own check must succeed, then the child loader's call fails —
-    // the page keeps its own retry, not the router's error screen.
-    let meCalls = 0;
-    setRespond((url) => {
-      if (url.endsWith("/users/me")) {
-        meCalls += 1;
-        return meCalls === 1 ? respondDefault(url) : jsonResponse({}, 500);
-      }
-      return respondDefault(url);
-    });
-    renderNewJob();
+    // The layout's check and the child loader's role check share one identity
+    // read per burst (CAP-8), so the child's check can no longer fail on its
+    // own call: load the form once, expire the shared identity, and re-run
+    // only the child loader (the layout's shouldRevalidate declines the
+    // same-path recheck) with /users/me now answering 500 — the page keeps
+    // its own retry, not the router's error screen.
+    setIdentityTtlForTests(10);
+    const router = renderNewJob();
+    await screen.findByLabelText("What Work Needs to Be Done?");
+    setRespond((url) => (url.endsWith("/users/me") ? jsonResponse({}, 500) : respondDefault(url)));
+    await sleep(40);
+    await router.navigate("/admin/me/new-job?recheck=1");
     expect(await screen.findByText(/We could not open the new job form/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try Again" })).toBeInTheDocument();
   });
@@ -493,15 +500,14 @@ describe("AdminMeNewJobPage: the owner's create form", () => {
 
   it("keeps the owner's back address even when the form fails to load", async () => {
     meRole = "owner";
-    let meCalls = 0;
-    setRespond((url) => {
-      if (url.endsWith("/users/me")) {
-        meCalls += 1;
-        return meCalls === 1 ? respondDefault(url) : jsonResponse({}, 500);
-      }
-      return respondDefault(url);
-    });
-    renderNewJob("/admin/company/jobs/new");
+    // Same shape as the member retry test above: expire the shared identity
+    // (CAP-8) and re-run only the child loader with /users/me answering 500.
+    setIdentityTtlForTests(10);
+    const router = renderNewJob("/admin/company/jobs/new");
+    await screen.findByLabelText("What Work Needs to Be Done?");
+    setRespond((url) => (url.endsWith("/users/me") ? jsonResponse({}, 500) : respondDefault(url)));
+    await sleep(40);
+    await router.navigate("/admin/company/jobs/new?recheck=1");
     expect(await screen.findByText(/We could not open the new job form/)).toBeInTheDocument();
     const back = screen.getByRole("link", { name: "Back" });
     expect(back).toHaveAttribute("href", "/admin/company/jobs");

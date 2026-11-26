@@ -91,8 +91,14 @@ export function JobSettingsCell({
         ref={dialogRef}
         className={styles.dialog}
         aria-labelledby={titleId}
+        // Mid-send the dialog locks (CAP-5): a backdrop click or Esc cannot
+        // dismiss it while the settings post — the switches may be saved
+        // without the person ever seeing the outcome.
+        onCancel={(event) => {
+          if (busy) event.preventDefault();
+        }}
         onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
+          if (event.target === dialogRef.current && !busy) dialogRef.current?.close();
         }}
       >
         <Form method="post" className={styles.dialogForm}>
@@ -161,10 +167,16 @@ export function JobSettingsCell({
                   type="button"
                   className={styles.quietButton}
                   onClick={() => dialogRef.current?.close()}
+                  disabled={busy === true}
                 >
                   Cancel
                 </button>
-                <button type="submit" className={styles.saveButton} disabled={busy === true}>
+                <button
+                  type="submit"
+                  className={styles.saveButton}
+                  disabled={busy === true}
+                  aria-busy={busy === true ? true : undefined}
+                >
                   {busy === true ? <Spinner size={13} /> : null}
                   {busy === true ? "Saving…" : "Save"}
                 </button>

@@ -1,6 +1,8 @@
-import { Link, useLoaderData } from "react-router";
+import { Link, useLoaderData, useLocation, useNavigation } from "react-router";
 import type { adminPayrollLoader } from "../features/admin/payrollLoaders";
+import { RegionTableSkeleton } from "../features/admin/components/RegionSkeleton";
 import { Tabs } from "../features/admin/components/Tabs";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import { CrownIcon } from "../components/ui/consoleIcons";
 import { ComponentsPanel } from "../features/admin/components/payroll/ComponentsPanel";
 import { StructuresPanel } from "../features/admin/components/payroll/StructuresPanel";
@@ -30,6 +32,20 @@ const TAB_LIST = [
 
 export function AdminPayrollPage() {
   const data = useLoaderData<typeof adminPayrollLoader>();
+  const location = useLocation();
+  const navigation = useNavigation();
+  // The panel region's load: every address change on this page (tab, month)
+  // is a genuine refetch — while it persists past the delay the panel below
+  // the tab strip stands in. A different page's navigation is the shell's
+  // skeleton; a same-address revalidation (a run's action, a lock) keeps
+  // the panel — its own busy states carry that.
+  const regionPending =
+    navigation.state === "loading" &&
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
+  const pendingTab = regionPending
+    ? new URLSearchParams(navigation.location?.search).get("tab")
+    : null;
 
   if (data.state === "failed") {
     return (
@@ -59,47 +75,57 @@ export function AdminPayrollPage() {
           </p>
         </div>
       </header>
-      <Tabs basePath="/admin/company/payroll" tabs={TAB_LIST} current={data.tab} />
-      {data.tab === "components" ? <ComponentsPanel components={data.components} /> : null}
-      {data.tab === "structures" ? (
-        <StructuresPanel
-          members={data.members}
-          employee={data.employee}
-          structures={data.structures}
-          components={data.components}
-        />
-      ) : null}
-      {data.tab === "deductions" ? <DeductionsPanel heads={data.heads} /> : null}
-      {data.tab === "statutory" ? (
-        <StatutoryPanel
-          members={data.members}
-          pfRows={data.pfRows}
-          tds={data.tds}
-          pfEmployee={data.pfEmployee}
-          pfExclusion={data.pfExclusion}
-        />
-      ) : null}
-      {data.tab === "calendar" ? (
-        <CalendarPanel
-          calendar={data.calendar}
-          month={data.month}
-          monthStatus={data.monthStatus}
-          stateRules={data.stateRules}
-        />
-      ) : null}
-      {data.tab === "runs" ? (
-        <RunsPanel
-          month={data.month}
-          monthStatus={data.monthStatus}
-          run={data.run}
-          runStale={data.runStale}
-          history={data.history}
-          lock={data.lock}
-          offCycleLines={data.offCycleLines}
-          members={data.members}
-        />
-      ) : null}
-      {data.tab === "audit" ? <AuditPanel entries={data.entries} members={data.members} /> : null}
+      <Tabs
+        basePath="/admin/company/payroll"
+        tabs={TAB_LIST}
+        current={
+          pendingTab !== null && TAB_LIST.some((tab) => tab.value === pendingTab)
+            ? pendingTab
+            : data.tab
+        }
+      />
+      <SkeletonSlot show={regionPending} skeleton={<RegionTableSkeleton rows={6} />}>
+        {data.tab === "components" ? <ComponentsPanel components={data.components} /> : null}
+        {data.tab === "structures" ? (
+          <StructuresPanel
+            members={data.members}
+            employee={data.employee}
+            structures={data.structures}
+            components={data.components}
+          />
+        ) : null}
+        {data.tab === "deductions" ? <DeductionsPanel heads={data.heads} /> : null}
+        {data.tab === "statutory" ? (
+          <StatutoryPanel
+            members={data.members}
+            pfRows={data.pfRows}
+            tds={data.tds}
+            pfEmployee={data.pfEmployee}
+            pfExclusion={data.pfExclusion}
+          />
+        ) : null}
+        {data.tab === "calendar" ? (
+          <CalendarPanel
+            calendar={data.calendar}
+            month={data.month}
+            monthStatus={data.monthStatus}
+            stateRules={data.stateRules}
+          />
+        ) : null}
+        {data.tab === "runs" ? (
+          <RunsPanel
+            month={data.month}
+            monthStatus={data.monthStatus}
+            run={data.run}
+            runStale={data.runStale}
+            history={data.history}
+            lock={data.lock}
+            offCycleLines={data.offCycleLines}
+            members={data.members}
+          />
+        ) : null}
+        {data.tab === "audit" ? <AuditPanel entries={data.entries} members={data.members} /> : null}
+      </SkeletonSlot>
     </>
   );
 }

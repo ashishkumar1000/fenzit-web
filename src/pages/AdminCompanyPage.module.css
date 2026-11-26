@@ -109,6 +109,16 @@
   gap: var(--space-5);
 }
 
+/* The report region's stack (2026-11-26): the skeleton swap wraps the range
+   pills + report body in one node carrying the shell main's rhythm — the
+   placeholder occupies the report's footprint exactly. When the region
+   isn't loading the slot renders its children unwrapped inside .main. */
+.reportStack {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
 @media (min-width: 900px) {
   .pair {
     grid-template-columns: 1fr 1fr;

@@ -39,3 +39,14 @@ export function normalizePercent(raw: string): number | null {
   const rounded = Number(value.toFixed(2));
   return rounded <= 0 ? null : rounded;
 }
+
+/** A YYYY-MM month as the owner reads it — "October 2026". Shared by the
+ *  Runs panel and the run watcher's toasts, so a month never reads two ways. */
+export function fmtMonthHead(month: string): string {
+  const [year, mon] = month.split("-").map(Number);
+  if (!year || !mon) return month;
+  return new Date(year, mon - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+}

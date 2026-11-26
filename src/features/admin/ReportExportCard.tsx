@@ -10,6 +10,7 @@ import {
 } from "./jobExportApi";
 import { ReportHistoryList } from "./ReportHistoryList";
 import { Dropdown } from "./components/Dropdown";
+import { toastIfSessionEnded } from "../../components/ui/toastStore";
 import { messageForError } from "../../utils/errorMessages";
 import { istShifted, istToday } from "./format";
 import type { Slice } from "./slice";
@@ -140,7 +141,10 @@ export function ReportExportCard({
       onRetryHistory();
     } catch (error) {
       // A dead session, a refused window, a network drop — each speaks for
-      // itself, instead of every failure reading as a build problem.
+      // itself, instead of every failure reading as a build problem. The
+      // inline line stays; a 401 also toasts, because it alone can end the
+      // sign-in the user is mid-way through (§4.8).
+      toastIfSessionEnded(error);
       setState({ kind: "error", message: messageForError(error) });
     }
   };
@@ -157,6 +161,7 @@ export function ReportExportCard({
         setActionError("This report is not ready to download. Please create a new report.");
       }
     } catch (error) {
+      toastIfSessionEnded(error);
       setActionError(messageForError(error));
     } finally {
       setBusyId(null);
@@ -187,6 +192,7 @@ export function ReportExportCard({
         onRetryHistory();
       }
     } catch (error) {
+      toastIfSessionEnded(error);
       setActionError(messageForError(error));
     } finally {
       setBusyId(null);
@@ -248,16 +254,18 @@ export function ReportExportCard({
             </p>
           )
         ) : null}
-        {state.kind !== "working" ? (
-          <button
-            type="button"
-            className={styles.button}
-            onClick={() => void generate()}
-            disabled={datesInverted || datesMissing}
-          >
-            Download Report
-          </button>
-        ) : null}
+        {/* CAP-6: the button stays mounted through a generate — it goes
+            pending (label swap, disabled, aria-busy) instead of vanishing,
+            so the layout never jumps while the report builds. */}
+        <button
+          type="button"
+          className={styles.button}
+          onClick={() => void generate()}
+          disabled={datesInverted || datesMissing || state.kind === "working"}
+          aria-busy={state.kind === "working" ? true : undefined}
+        >
+          {state.kind === "working" ? "Preparing…" : "Download Report"}
+        </button>
       </div>
       {datesInverted ? (
         <p className={styles.alert} role="alert">

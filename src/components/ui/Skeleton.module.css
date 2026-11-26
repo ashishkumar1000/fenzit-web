@@ -1,0 +1,89 @@
+/* Shared skeleton system (2026-11-26) — one shimmer recipe for the whole
+   console, derived from the original TableSkeleton block and the design's
+   `--color-shimmer-sheen` token: a sunken block with a light sheen sweeping
+   across it. Blocks are decorative (aria-hidden in the component); the
+   page or shell hosting a slot owns the role="status" announcement. */
+
+.block {
+  display: block;
+  width: 100%;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+      90deg,
+      var(--color-surface-sunken) 25%,
+      var(--color-shimmer-sheen) 50%,
+      var(--color-surface-sunken) 75%
+    )
+    var(--color-surface-sunken);
+  background-size: 200% 100%;
+}
+
+/* Corner vocabulary for the archetypes — the default block is radius-sm. */
+.radiusXs {
+  border-radius: var(--radius-xs);
+}
+
+.radiusMd {
+  border-radius: var(--radius-md);
+}
+
+.radiusLg {
+  border-radius: var(--radius-lg);
+}
+
+.radiusPill {
+  border-radius: var(--radius-pill);
+}
+
+.radiusCircle {
+  border-radius: 50%;
+}
+
+.radiusNone {
+  border-radius: 0;
+}
+
+/* One row of content: cells share the row like table columns (proportional
+   weights) or hold a fixed width (an avatar, an action). */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Rows stack with the table grid's rhythm, so a rebuilt skeleton occupies
+   the same vertical beat as the rows it stands in for. */
+.list {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The shimmer is motion, so it ships under the no-preference gate only —
+   the reduce fallback below is the static state (CAP-7). */
+@media (prefers-reduced-motion: no-preference) {
+  .block {
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Reduced motion: no sweep, no frozen sheen — plain sunken blocks stay
+   visible exactly where the content will land (loading-cases.md §5). */
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    background-image: none;
+    background-color: var(--color-surface-sunken);
+  }
+}

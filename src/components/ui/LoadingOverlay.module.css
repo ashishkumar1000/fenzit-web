@@ -1,0 +1,16 @@
+/* The console's activity overlay (2026-11-26). Fixed like the dialogs' and
+   boot pane's layer (z-index 50), but transparent on purpose — the owner's
+   amendment to the loading overhaul: no scrim, no blur, nothing between
+   the user and the page. The shell stays interactive beneath it
+   (pointer-events none), and the centered Pour loader is the only thing
+   that paints, so it reads from anywhere on a long page. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  pointer-events: none;
+}

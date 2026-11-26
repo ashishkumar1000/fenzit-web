@@ -1,0 +1,52 @@
+/* Region skeleton containers (2026-11-26) — the recipes mirror the real
+   regions' surfaces (SectionCard's panel, ConsoleTiles' grid) with tokened
+   values, so a region's skeleton occupies the same dimensions the content
+   will occupy. The shimmer blocks themselves come from the shared
+   primitives. */
+
+/* The SectionCard recipe: white card, hairline, its radius and shadow. */
+.card {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+/* The ConsoleTiles recipe: auto-fit tile row. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.tile {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-strong) 6%, transparent);
+  min-width: 0;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* The detail-page body: heading, lede, panel. */
+.detail {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+}

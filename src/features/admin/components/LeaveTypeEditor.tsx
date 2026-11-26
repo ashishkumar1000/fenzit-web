@@ -364,6 +364,7 @@ export function LeaveTypeEditor({ type }: { type: LeaveTypeRow }) {
             type="submit"
             className={dialogStyles.saveButton}
             disabled={busy || !dirty || (enabled && hasRate && !daysOk)}
+            aria-busy={busy ? true : undefined}
           >
             {busy ? <Spinner size={13} /> : null}
             {busy ? "Saving…" : `Save ${type.name}`}

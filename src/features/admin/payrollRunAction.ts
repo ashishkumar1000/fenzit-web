@@ -3,6 +3,7 @@ import { requireConsoleRole } from "./adminLoader";
 import { withPayrollError } from "./payrollAction";
 import { normalizeMoney } from "./payrollFormat";
 import { lockMonth, saveRunOverride, triggerRun } from "./payrollRunApi";
+import { watchPayrollRun } from "./payrollRunWatcher";
 
 /**
  * The runs/lock/override intents of the payroll page's action. The page's
@@ -56,7 +57,11 @@ export async function adminPayrollRunAction(
         const month = text(form, "month");
         if (!MONTH_SHAPE.test(month))
           return errorResult(intent, "Pick a real month to run payroll for.");
-        await triggerRun(token, month, request.signal);
+        const run = await triggerRun(token, month, request.signal);
+        // The run is async on the BE (the answer is the queued run) — the
+        // watcher polls the runs list and toasts the outcome wherever the
+        // person is, revalidating the page when it is mounted (CAP-9).
+        watchPayrollRun(run);
         return { kind: "run-trigger", state: "done" };
       }
       case "lock-month": {

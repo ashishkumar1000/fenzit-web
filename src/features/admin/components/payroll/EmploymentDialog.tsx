@@ -1,5 +1,6 @@
 import { useFetcher, useRevalidator } from "react-router";
-import { useId, useRef, useState } from "react";
+// eslint-disable-next-line no-restricted-imports -- the effect syncs the dialog lock (Esc/backdrop hold) while the save posts; no server reads here
+import { useEffect, useId, useRef, useState } from "react";
 import type { payrollEmploymentAction, payrollEmploymentLoader } from "../../payrollLoaders";
 import type { EmploymentView } from "../../payrollViews";
 import { Spinner } from "../../../../components/ui/Spinner";
@@ -29,6 +30,9 @@ type LoadedEmployment =
 export function EmploymentCell({ userId, name }: { userId: string; name: string | null }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [openCount, setOpenCount] = useState(0);
+  // Mid-save the dialog locks (CAP-5): a backdrop click or Esc cannot dismiss
+  // it while the employment details post.
+  const [locked, setLocked] = useState(false);
   const loader = useFetcher<typeof payrollEmploymentLoader>();
   const data = loader.data;
   return (
@@ -49,8 +53,11 @@ export function EmploymentCell({ userId, name }: { userId: string; name: string 
         ref={dialogRef}
         className={`${dialogStyles.dialog} ${styles.wideDialog}`}
         aria-label={`Employment details for ${name ?? "employee"}`}
+        onCancel={(event) => {
+          if (locked) event.preventDefault();
+        }}
         onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
+          if (event.target === dialogRef.current && !locked) dialogRef.current?.close();
         }}
       >
         {openCount > 0 ? (
@@ -58,6 +65,7 @@ export function EmploymentCell({ userId, name }: { userId: string; name: string 
             key={openCount}
             result={data ?? { state: "loading" }}
             close={() => dialogRef.current?.close()}
+            setLocked={setLocked}
           />
         ) : null}
       </dialog>
@@ -68,9 +76,13 @@ export function EmploymentCell({ userId, name }: { userId: string; name: string 
 export function EmploymentDialog({
   result,
   close,
+  setLocked,
 }: {
   result: LoadedEmployment | { state: "loading" };
   close: () => void;
+  /** Host's dialog lock (CAP-5): the form holds the host's dismissals while
+   *  its save posts. Optional — hosts without the lock behave as before. */
+  setLocked?: (locked: boolean) => void;
 }) {
   const revalidator = useRevalidator();
   const finish = (): void => {
@@ -111,7 +123,7 @@ export function EmploymentDialog({
           </div>
         </>
       ) : (
-        <EmploymentForm employment={result.employment} close={finish} />
+        <EmploymentForm employment={result.employment} close={finish} setLocked={setLocked} />
       )}
     </div>
   );
@@ -139,7 +151,15 @@ type FieldKey = (typeof FIELDS)[number];
 
 const asText = (value: string | null): string => value ?? "";
 
-function EmploymentForm({ employment, close }: { employment: EmploymentView; close: () => void }) {
+function EmploymentForm({
+  employment,
+  close,
+  setLocked,
+}: {
+  employment: EmploymentView;
+  close: () => void;
+  setLocked?: (locked: boolean) => void;
+}) {
   const save = useFetcher<typeof payrollEmploymentAction>();
   const titleId = useId();
   const [values, setValues] = useState<Record<FieldKey, string>>(() => {
@@ -148,6 +168,13 @@ function EmploymentForm({ employment, close }: { employment: EmploymentView; clo
     return seed;
   });
   const busy = save.state !== "idle";
+  // The host dialog's dismissals (backdrop, Esc) hold while the save posts;
+  // the unmount cleanup releases the lock when the dialog remounts per open.
+  useEffect(() => {
+    if (setLocked === undefined) return;
+    setLocked(busy);
+    return () => setLocked(false);
+  }, [busy, setLocked]);
   const done = save.data?.state === "done";
   const error = save.data?.state === "error" ? save.data.message : null;
   const notFound = save.data?.state === "not-found";
@@ -346,6 +373,7 @@ function EmploymentForm({ employment, close }: { employment: EmploymentView; clo
             className={dialogStyles.saveButton}
             onClick={submit}
             disabled={busy || codeCleared}
+            aria-busy={busy ? true : undefined}
           >
             {busy ? <Spinner size={13} /> : null}
             {busy ? "Saving…" : "Save"}

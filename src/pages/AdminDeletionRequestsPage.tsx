@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
+import { Form, useActionData, useLoaderData, useNavigation, useRevalidator } from "react-router";
 import type {
   adminDeletionAction,
   adminDeletionLoader,
@@ -19,12 +19,21 @@ export function AdminDeletionRequestsPage() {
   const data = useLoaderData<typeof adminDeletionLoader>();
   const result = useActionData<typeof adminDeletionAction>();
   const navigation = useNavigation();
+  const revalidator = useRevalidator();
 
   if (data.state === "failed") {
     return (
       <SectionCard title="Deletion requests">
         <p className={styles.alert} role="alert">
-          The request list could not load. Refresh the page to try again.
+          The request list could not load.{" "}
+          <button
+            type="button"
+            className={styles.quietButton}
+            onClick={() => revalidator.revalidate()}
+            disabled={revalidator.state !== "idle"}
+          >
+            {revalidator.state !== "idle" ? "Retrying…" : "Try again"}
+          </button>
         </p>
       </SectionCard>
     );
@@ -43,7 +52,10 @@ export function AdminDeletionRequestsPage() {
         Marking a request done records your review only. It does not delete the account or its data
         yet.
       </p>
-      {navigation.state === "loading" ? <p className={styles.quiet}>Loading requests…</p> : null}
+      {/* The list never swaps for a skeleton: a complete/reject POST
+          revalidates the same address, and the contract keeps the rows there
+          (the item's own busy button, then the shell's overlay after the
+          delay, carry the cue). */}
       {actionError ? (
         <p className={styles.alert} role="alert">
           {actionError}

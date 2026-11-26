@@ -32,6 +32,8 @@ import type {
   OffCycleLineView,
   PayrollRunView,
 } from "../features/admin/payrollRunApi";
+import { resetPayrollRunWatcherForTests } from "../features/admin/payrollRunWatcher";
+import { resetToastsForTests } from "../components/ui/toastStore";
 
 /**
  * Fixtures and the honest fake for the payroll page tests. Reads answer
@@ -348,11 +350,17 @@ export function setUpPayrollPageTests(): void {
     };
     team.rows = defaultTeam();
     setRespond(payrollStandard);
+    // Module state the page mounts own: the run watcher starts real timers
+    // for in-flight runs, and the toast layer keeps its stack between tests.
+    resetPayrollRunWatcherForTests();
+    resetToastsForTests();
   });
   afterEach(() => {
     restoreFetchMock();
     window.localStorage.clear();
     cleanup();
+    resetPayrollRunWatcherForTests();
+    resetToastsForTests();
   });
 }
 

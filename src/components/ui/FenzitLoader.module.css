@@ -1,0 +1,32 @@
+/* Hand-authored "Pour" loader (2026-11-26). Layout and the variant sizes
+   only — the pour, meniscus, bubbles and reduced-motion behaviour live in
+   FenzitMark.module.css, so the two variants share one identical cycle.
+   Sizes are plain custom properties so a wrapper can override them without
+   touching this file. */
+
+.loader {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hero {
+  --fenzit-mark-size: var(--fenzit-hero-size, 112px);
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inline {
+  --fenzit-mark-size: var(--fenzit-inline-size, 30px);
+}
+
+/* Screen-reader-only status text (same clip pattern as DialCodeSelect). */
+.srStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

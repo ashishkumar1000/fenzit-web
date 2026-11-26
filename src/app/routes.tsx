@@ -16,6 +16,7 @@ import { PricingPage } from "../pages/PricingPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PrivacyPolicyPage, SecurityTrustPage, TermsOfServicePage } from "../pages/LegalPage";
 import { RootLayout } from "./RootLayout";
+import { AdminBootFallback } from "./AdminBootFallback";
 
 /**
  * Every route in the app. Kept free of browser-only code, so the build can render it on the
@@ -26,6 +27,12 @@ import { RootLayout } from "./RootLayout";
 export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
+    // The console's boot fallback lives at the root, eagerly: a fallback
+    // declared inside the /admin route's own lazy module is unreachable on
+    // boot (it cannot load before the module it waits for), which left the
+    // real blank window uncovered. See AdminBootFallback for the measured
+    // evidence.
+    HydrateFallback: AdminBootFallback,
     children: [
       {
         id: "home",

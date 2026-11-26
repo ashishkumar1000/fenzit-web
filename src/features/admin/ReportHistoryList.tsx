@@ -76,6 +76,7 @@ export function ReportHistoryList({
                     className={styles.action}
                     onClick={() => onDownload(row)}
                     disabled={busyId !== null}
+                    aria-busy={busyId === row.id ? true : undefined}
                     aria-label={`Download the ${rangeLabel(row)} ${label} report`}
                   >
                     {busyId === row.id ? "Preparing…" : "Download"}
@@ -86,6 +87,7 @@ export function ReportHistoryList({
                     className={styles.action}
                     onClick={() => onRetry(row)}
                     disabled={busyId !== null}
+                    aria-busy={busyId === row.id && busyKind === "retry" ? true : undefined}
                     aria-label={`Retry the ${rangeLabel(row)} ${label} report`}
                   >
                     {busyId === row.id && busyKind === "retry" ? "Trying Again…" : "Try Again"}

@@ -7,6 +7,17 @@
   gap: 14px;
 }
 
+/* The load region's stack (2026-11-26): the skeleton swap wraps the stats,
+   table and coverage in one node, so it carries the page's own column
+   rhythm — the placeholder occupies the loaded region's footprint exactly
+   (CLS rule). When the region isn't loading, the slot renders its children
+   unwrapped and the .page gap keeps the rhythm. */
+.regionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .card {
   border: 1px solid var(--color-border-subtle);
   border-radius: 14px;

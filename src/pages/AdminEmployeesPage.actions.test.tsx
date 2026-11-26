@@ -66,6 +66,46 @@ describe("Employees: the invite dialog's send rules", () => {
       screen.getByText("Please enter a valid phone number with 6 to 15 digits."),
     ).toBeInTheDocument();
   });
+
+  it("locks the dialog while the invitation posts — Cancel and Esc cannot dismiss it", async () => {
+    // Hold the invite's API call in the air so the fetcher stays busy.
+    let release: (() => void) | null = null;
+    setRespond((url) => {
+      const parsed = new URL(url, "http://localhost");
+      if (parsed.pathname.endsWith("/auth/invite")) {
+        return new Promise<Response>((resolve) => {
+          release = () =>
+            resolve(
+              jsonResponse({ invite_id: "inv-1", employee_code: "EMP-009", sms_status: "sent" }),
+            );
+        });
+      }
+      return standard(url);
+    });
+    renderAt("/admin/company/employees");
+    await screen.findByText("Asha V");
+    fireEvent.click(screen.getByRole("button", { name: "Invite Employee" }));
+    const dialog = document.querySelector("dialog") as HTMLDialogElement;
+    fireEvent.change(within(dialog).getByLabelText("Employee Name"), {
+      target: { value: "Meera" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Phone Number"), {
+      target: { value: "9812345678" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
+
+    expect(await within(dialog).findByText("Sending…")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+    // The dialog's cancel event (Esc) is held: it must not default.
+    fireEvent(dialog, new Event("cancel", { cancelable: true }));
+    expect(dialog.open).toBe(true);
+
+    expect(release).not.toBeNull();
+    release!();
+    // The invitation lands, the lock releases, and the code comes back.
+    expect(await within(dialog).findByText("Invitation Saved Successfully")).toBeInTheDocument();
+    expect(within(dialog).getByText(/EMP-009/)).toBeInTheDocument();
+  });
 });
 
 describe("Employees: Download list", () => {

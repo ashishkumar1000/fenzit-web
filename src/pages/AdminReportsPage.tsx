@@ -40,7 +40,10 @@ export function AdminReportsPage() {
 
   return (
     <SectionCard title="Photo reports" meta={String(data.rows.length)}>
-      {navigation.state === "loading" ? <p className={styles.quiet}>Loading reports…</p> : null}
+      {/* The list never swaps for a skeleton: this page has no address that
+          refetches — a hide/dismiss POST revalidates the same address, and
+          the contract keeps the rows there (the item's own busy button, then
+          the shell's overlay after the delay, carry the cue). */}
       {actionError ? (
         <p className={styles.alert} role="alert">
           {actionError}

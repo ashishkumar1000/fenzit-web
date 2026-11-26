@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { writeSession } from "../services/session";
+import { resetToastsForTests } from "../components/ui/toastStore";
 import {
   clearApiBase,
   installFetchMock,
@@ -32,6 +33,8 @@ const COMPANY_ID = "9be0c7d0-1a2b-4c3d-8e4f-5a6b7c8d9e0f";
 beforeEach(() => {
   installFetchMock();
   setRespond(respondDefault);
+  // The subscription save announces through the toast layer (module state).
+  resetToastsForTests();
 });
 
 function respondDefault(url: string): Response {
@@ -143,6 +146,7 @@ afterEach(() => {
   window.localStorage.clear();
   window.sessionStorage.clear();
   cleanup();
+  resetToastsForTests();
 });
 
 function renderInspect(entry = `/admin/inspect?number=9876543210&company=${COMPANY_ID}`): void {

@@ -6,6 +6,7 @@ import {
   adminHolidaysLoader,
 } from "./holidayLoaders";
 import { clearSession, readSession, writeSession } from "../../services/session";
+import { resetIdentityCacheForTests } from "./identityCache";
 import {
   clearApiBase,
   installFetchMock,
@@ -172,6 +173,9 @@ describe("adminHolidaysLoader: one overview fetch carries the year", () => {
       state: "failed",
     });
 
+    // CAP-8: the loader above cached the live identity; a dead session is
+    // only observable past that seam, so drop the cache before the 401 leg.
+    resetIdentityCacheForTests();
     setRespond((url) => (url.endsWith("/users/me") ? jsonResponse({}, 401) : respondDefault(url)));
     await expectRedirect(adminHolidaysLoader(holidaysArgs("/admin/company/holidays")), "/login");
     // The dead session must go before the redirect — nothing reads a stale token.
@@ -298,6 +302,9 @@ describe("adminHolidayUploadLoader: the popup classifies against EVERY year", ()
       state: "failed",
     });
 
+    // CAP-8: the failed call above rode a cached identity; cross the cache
+    // seam so the 401 leg is actually observed.
+    resetIdentityCacheForTests();
     setRespond((url) => (url.endsWith("/users/me") ? jsonResponse({}, 401) : respondDefault(url)));
     await expectRedirect(
       adminHolidayUploadLoader(holidaysArgs("/admin/company/holidays/upload")),

@@ -84,8 +84,14 @@ export function HolidayModal({
       className={styles.dialog}
       aria-labelledby={titleId}
       onClose={onClose}
+      // Mid-send the dialog locks (CAP-5): backdrop click and Esc cannot
+      // dismiss it while the holiday posts — an accidental dismissal could
+      // leave the owner unsure whether the date was saved.
+      onCancel={(event) => {
+        if (busy) event.preventDefault();
+      }}
       onClick={(event) => {
-        if (event.target === dialogRef.current) dialogRef.current?.close();
+        if (event.target === dialogRef.current && !busy) dialogRef.current?.close();
       }}
     >
       <fetcher.Form method="post" className={styles.form}>
@@ -116,7 +122,13 @@ export function HolidayModal({
             </h3>
             <p className={styles.hint}>Set up the holiday date and pick which offices it closes</p>
           </div>
-          <button type="button" className={styles.close} onClick={close} aria-label="Close">
+          <button
+            type="button"
+            className={styles.close}
+            onClick={close}
+            aria-label="Close"
+            disabled={busy}
+          >
             ×
           </button>
         </header>
@@ -222,12 +234,17 @@ export function HolidayModal({
         ) : null}
 
         <footer className={styles.actions}>
-          <button type="button" className={styles.quietButton} onClick={close}>
+          <button type="button" className={styles.quietButton} onClick={close} disabled={busy}>
             Cancel
           </button>
           {/* The page action revalidates the loader on success, so the new
               holiday is on the page the moment the dialog closes. */}
-          <button type="submit" className={styles.saveButton} disabled={busy}>
+          <button
+            type="submit"
+            className={styles.saveButton}
+            disabled={busy}
+            aria-busy={busy ? true : undefined}
+          >
             {busy ? <Spinner size={13} /> : null}
             {busy ? "Saving…" : editing ? "Save Changes" : "Save Holiday"}
           </button>

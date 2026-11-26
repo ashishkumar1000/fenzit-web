@@ -1,4 +1,5 @@
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { SkeletonBlock, SkeletonList } from "../../../components/ui/Skeleton";
 import { StatusBadge } from "./Badge";
 import styles from "./Table.module.css";
 
@@ -65,15 +66,17 @@ export function DataTable({ columns, rows, empty }: TableProps) {
   );
 }
 
-/** Shimmering placeholder rows shown while a section's data is in flight. */
+/** Shimmering placeholder rows shown while a section's data is in flight.
+ *  Rebuilt 2026-11-26 on the shared skeleton primitives: the same rows, the
+ *  same 14px lines and the every-third-line-short rhythm the tables always
+ *  had, now drawn by the one shimmer system the whole console shares. Still
+ *  purely decorative — the pages announce the load around it. */
 export function TableSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className={styles.skeleton} aria-hidden="true">
+    <SkeletonList>
       {Array.from({ length: rows }, (_, i) => (
-        <Fragment key={i}>
-          <span className={styles.skeletonCell} data-w={i % 3 === 1 ? "short" : "long"} />
-        </Fragment>
+        <SkeletonBlock key={i} width={i % 3 === 1 ? "45%" : undefined} />
       ))}
-    </div>
+    </SkeletonList>
   );
 }

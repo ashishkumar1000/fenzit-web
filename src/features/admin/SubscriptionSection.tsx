@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRevalidator } from "react-router";
+import { pushToast, toastForFailure } from "../../components/ui/toastStore";
 import { apiFetch } from "../../services/api";
 import { readSession } from "../../services/session";
 import { messageForError } from "../../utils/errorMessages";
@@ -44,9 +45,15 @@ export function SubscriptionSection({
         body: JSON.stringify({ validUntil: `${date}T23:59:59+05:30` }),
       });
       setSaved(true);
+      // The card's "Saved" line scrolls away with the page; the toast keeps
+      // the completion visible wherever the person is now (§4).
+      pushToast("Subscription end date saved.", "success");
       revalidator.revalidate();
     } catch (failure) {
       setError(messageForError(failure));
+      // The inline line stays; the toast adds the one reading the inline
+      // line cannot give — a 401 with the re-login hint (§4.8).
+      toastForFailure(failure);
     } finally {
       setSaving(false);
     }

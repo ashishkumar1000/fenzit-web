@@ -1,4 +1,12 @@
-import { Link, useFetcher, useLoaderData, useRevalidator, useParams } from "react-router";
+import {
+  Link,
+  useFetcher,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+  useRevalidator,
+  useParams,
+} from "react-router";
 import { useRef, useState } from "react";
 import type {
   employeeProfileAction,
@@ -20,6 +28,11 @@ import { ProfileJobsPanel } from "../features/admin/components/employee/ProfileJ
 import { ProfileAttendancePanel } from "../features/admin/components/employee/ProfileAttendancePanel";
 import { ProfileLeavePanel } from "../features/admin/components/employee/ProfileLeavePanel";
 import { ProfilePayrollPanel } from "../features/admin/components/employee/ProfilePayrollPanel";
+import {
+  RegionFormSkeleton,
+  RegionTableSkeleton,
+} from "../features/admin/components/RegionSkeleton";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import { EMPLOYEE_PROFILE_TABS } from "../features/admin/employeeProfileLabels";
 import { fmtIstDay, fmtPhone } from "../features/admin/format";
 import styles from "./AdminEmployeeProfilePage.module.css";
@@ -40,6 +53,14 @@ export function AdminEmployeeProfilePage() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [dialogOpenCount, setDialogOpenCount] = useState(0);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  // Mid-save the employment dialog locks (CAP-5): backdrop click and Esc
+  // cannot dismiss it while the details post.
+  const [dialogLocked, setDialogLocked] = useState(false);
+  // Read before the not-found/failed early returns below — hooks must run
+  // on every render, and the panel's pending state is only consulted past
+  // them.
+  const location = useLocation();
+  const navigation = useNavigation();
 
   if (data.state === "not-found") {
     return (
@@ -72,6 +93,23 @@ export function AdminEmployeeProfilePage() {
   const basePath = `/admin/company/employees/${member.userId}`;
   const activateBusy = activate.state !== "idle";
   const activateError = activate.data?.state === "error" ? activate.data.message : null;
+  // The panel region's load: the route refetches only when the addressed
+  // tab or month moved (the route's shouldRevalidate serves everything
+  // else), so only those moves stand the panel below the tab strip in —
+  // the header card above it stays put. The strip follows the tab being
+  // loaded while the panel holds.
+  const currentParams = new URLSearchParams(location.search);
+  const navSearch =
+    navigation.state === "loading" &&
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search
+      ? navigation.location?.search
+      : null;
+  const pendingTab = navSearch === null ? null : new URLSearchParams(navSearch).get("tab");
+  const pendingMonth = navSearch === null ? null : new URLSearchParams(navSearch).get("month");
+  const regionPending =
+    navSearch !== null &&
+    (pendingTab !== currentParams.get("tab") || pendingMonth !== currentParams.get("month"));
   const openEmployment = () => {
     setDialogOpenCount((count) => count + 1);
     employment.load(`${EMPLOYMENT_RESOURCE_PATH}?userId=${member.userId}`);
@@ -163,41 +201,58 @@ export function AdminEmployeeProfilePage() {
           </p>
         ) : null}
       </header>
-      <Tabs basePath={basePath} tabs={[...EMPLOYEE_PROFILE_TABS]} current={data.tab} />
-      {data.tab === "master" ? (
-        <MasterRecordPanel
-          employment={data.employment}
-          skills={member.skills}
-          openEmployment={openEmployment}
-        />
-      ) : null}
-      {data.tab === "jobs" ? <ProfileJobsPanel jobs={data.jobs} /> : null}
-      {data.tab === "attendance" ? (
-        <ProfileAttendancePanel
-          memberName={member.name ?? "this employee"}
-          basePath={basePath}
-          month={data.month}
-          enrolment={data.enrolment}
-          office={data.office}
-          punches={data.punches}
-        />
-      ) : null}
-      {data.tab === "leave" ? (
-        <ProfileLeavePanel balances={data.balances} requests={data.requests} />
-      ) : null}
-      {data.tab === "payroll" ? (
-        <ProfilePayrollPanel
-          memberUserId={member.userId}
-          structures={data.structures}
-          payslips={data.payslips}
-        />
-      ) : null}
+      <Tabs
+        basePath={basePath}
+        tabs={[...EMPLOYEE_PROFILE_TABS]}
+        current={
+          pendingTab !== null && EMPLOYEE_PROFILE_TABS.some((tab) => tab.value === pendingTab)
+            ? pendingTab
+            : data.tab
+        }
+      />
+      <SkeletonSlot
+        show={regionPending}
+        className={styles.regionStack}
+        skeleton={<ProfileSkeleton tab={pendingTab ?? data.tab} />}
+      >
+        {data.tab === "master" ? (
+          <MasterRecordPanel
+            employment={data.employment}
+            skills={member.skills}
+            openEmployment={openEmployment}
+          />
+        ) : null}
+        {data.tab === "jobs" ? <ProfileJobsPanel jobs={data.jobs} /> : null}
+        {data.tab === "attendance" ? (
+          <ProfileAttendancePanel
+            memberName={member.name ?? "this employee"}
+            basePath={basePath}
+            month={data.month}
+            enrolment={data.enrolment}
+            office={data.office}
+            punches={data.punches}
+          />
+        ) : null}
+        {data.tab === "leave" ? (
+          <ProfileLeavePanel balances={data.balances} requests={data.requests} />
+        ) : null}
+        {data.tab === "payroll" ? (
+          <ProfilePayrollPanel
+            memberUserId={member.userId}
+            structures={data.structures}
+            payslips={data.payslips}
+          />
+        ) : null}
+      </SkeletonSlot>
       <dialog
         ref={dialogRef}
         className={styles.dialog}
         aria-label={`Employment details for ${member.name ?? "employee"}`}
+        onCancel={(event) => {
+          if (dialogLocked) event.preventDefault();
+        }}
         onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
+          if (event.target === dialogRef.current && !dialogLocked) dialogRef.current?.close();
         }}
       >
         {dialogOpenCount > 0 ? (
@@ -205,11 +260,21 @@ export function AdminEmployeeProfilePage() {
             key={dialogOpenCount}
             result={employment.data ?? { state: "loading" }}
             close={() => dialogRef.current?.close()}
+            setLocked={setDialogLocked}
           />
         ) : null}
       </dialog>
     </>
   );
+}
+
+/** The profile panel's stand-in, shaped by the tab being loaded: the master
+ *  record is a form, the attendance panel a ledger, the rest lists — the
+ *  footprint each panel fills. */
+function ProfileSkeleton({ tab }: { tab: string }) {
+  if (tab === "master") return <RegionFormSkeleton fields={6} />;
+  if (tab === "attendance") return <RegionTableSkeleton rows={5} columns={[1.4, 2.2, 1.4, 1]} />;
+  return <RegionTableSkeleton rows={7} columns={[2, 1.2, 1.2, 1]} />;
 }
 
 function TopBar() {

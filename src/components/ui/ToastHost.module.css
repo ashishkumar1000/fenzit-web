@@ -1,0 +1,82 @@
+/* The toast layer (CAP-5, 2026-11-26). One fixed stack, bottom-right of the
+   viewport, above the loading overlay's z-50 convention so an outcome is
+   never hidden behind the shell. Tokens only; the entrance slides up once
+   under no-preference motion only. */
+
+.region {
+  position: fixed;
+  inset-block-end: var(--space-5);
+  inset-inline-end: var(--space-5);
+  z-index: 60;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: stretch;
+  max-width: min(24rem, calc(100vw - var(--space-8)));
+  /* The stack never blocks the page beneath it — only the toasts
+     themselves take pointer events (their own dismiss buttons). */
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-inline-start: 3px solid var(--color-status-done-solid);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3) var(--space-3);
+}
+
+.toast[data-tone="error"] {
+  border-inline-start-color: var(--color-danger);
+}
+
+.message {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+  min-width: 0;
+}
+
+.dismiss {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.dismiss:hover {
+  color: var(--color-text-strong);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: toast-enter var(--motion-duration-slow) var(--motion-ease-out) both;
+  }
+
+  @keyframes toast-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

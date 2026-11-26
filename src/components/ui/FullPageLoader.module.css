@@ -1,0 +1,17 @@
+/* Full-page boot loader (2026-11-26): the console's overlay layer, the same
+   fixed inset-0 / z-index 50 pane the dialogs sit on, but light. The scrim
+   is the page surface (#F9FAFB) at 60% — mostly opaque, so the 8px blur
+   behind it is decoration and never the thing that makes the loader legible
+   (WCAG 1.4.3). The blur lives on the pane, behind the hosted loader, so it
+   never applies to the mark itself: the Pour logo stays crisp. */
+
+.pane {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgb(249 250 251 / 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}

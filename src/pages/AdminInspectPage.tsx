@@ -7,11 +7,13 @@ import { BulkImportPanel } from "../features/admin/bulkImport/BulkImportPanel";
 import { SearchForm } from "../features/admin/components/SearchForm";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { TableSkeleton } from "../features/admin/components/Table";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import styles from "./AdminInspectPage.module.css";
 
-/** The Inspect section: search anyone, read everything. While the lookup is
- *  in flight the stale results give way to skeleton rows — loading is shown,
- *  never faked with old data. */
+/** The Inspect section: search anyone, read everything. A lookup in flight
+ *  stands its searching card in after the 300ms delay (a fast answer never
+ *  flashes one) and holds it at least 500ms — loading is shown, never faked
+ *  with old data. */
 export function AdminInspectPage() {
   const data = useLoaderData<typeof adminInspectLoader>();
   const revalidator = useRevalidator();
@@ -28,11 +30,15 @@ export function AdminInspectPage() {
         defaultValue={data.state === "found" || data.state === "not-found" ? data.phone : ""}
         busy={busy}
       />
-      {busy && hasQuery ? (
-        <SectionCard title="Searching…">
-          <TableSkeleton rows={4} />
-        </SectionCard>
-      ) : (
+      <SkeletonSlot
+        show={busy && hasQuery}
+        className={styles.stack}
+        skeleton={
+          <SectionCard title="Searching…">
+            <TableSkeleton rows={4} />
+          </SectionCard>
+        }
+      >
         <>
           {data.state === "idle" ? (
             <div className={styles.idle}>
@@ -88,7 +94,7 @@ export function AdminInspectPage() {
             </>
           ) : null}
         </>
-      )}
+      </SkeletonSlot>
     </div>
   );
 }

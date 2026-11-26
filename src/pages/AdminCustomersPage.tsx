@@ -49,13 +49,15 @@ export function AdminCustomersPage() {
   const from = (result.page - 1) * result.pageSize + 1;
   const to = Math.min(result.page * result.pageSize, result.total);
   const busy = navigation.state !== "idle";
-  // A different address is loading (a filter or page changed) — the table's
-  // rows are about to be replaced, so the skeleton stands in. A plain
-  // revalidation (an action's refetch) keeps the current rows on screen.
+  // This page's own reload (a filter or page changed — the address's search
+  // moved while the pathname stayed) — the table's rows are about to be
+  // replaced, so the skeleton stands in. Navigating to another page is the
+  // shell's skeleton; a same-address revalidation keeps the current rows on
+  // screen (the "— Updating…" cue carries).
   const navigating =
     navigation.state === "loading" &&
-    (navigation.location?.pathname !== location.pathname ||
-      navigation.location?.search !== location.search);
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
 
   const tiles: ConsoleTile[] = [
     {

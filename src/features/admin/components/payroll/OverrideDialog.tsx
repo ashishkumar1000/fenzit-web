@@ -1,4 +1,5 @@
-import { useId, useRef, useState } from "react";
+// eslint-disable-next-line no-restricted-imports -- the effect syncs the dialog lock (Esc/backdrop hold) while the save posts; no server reads here
+import { useEffect, useId, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import type { adminPayrollAction } from "../../payrollAction";
 import { fmtMoney, normalizeMoney } from "../../payrollFormat";
@@ -20,6 +21,10 @@ import styles from "./OverrideDialog.module.css";
 export function OverrideControl({ month, members }: { month: string; members: MemberRow[] }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [openCount, setOpenCount] = useState(0);
+  // Mid-send the dialog locks (CAP-5): a backdrop click or Esc cannot dismiss
+  // it while the override posts — an accidental dismissal could leave the
+  // person unsure whether the statutory amount was saved.
+  const [locked, setLocked] = useState(false);
   const roster = members.filter((m) => m.role === "employee" && m.status === "active");
   return (
     <>
@@ -38,8 +43,11 @@ export function OverrideControl({ month, members }: { month: string; members: Me
         ref={dialogRef}
         className={`${dialogStyles.dialog} ${styles.wideDialog}`}
         aria-label="Change Government Deduction Amount"
+        onCancel={(event) => {
+          if (locked) event.preventDefault();
+        }}
         onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
+          if (event.target === dialogRef.current && !locked) dialogRef.current?.close();
         }}
       >
         {openCount > 0 ? (
@@ -48,6 +56,7 @@ export function OverrideControl({ month, members }: { month: string; members: Me
             month={month}
             roster={roster}
             close={() => dialogRef.current?.close()}
+            setLocked={setLocked}
           />
         ) : null}
       </dialog>
@@ -59,10 +68,12 @@ function OverrideForm({
   month,
   roster,
   close,
+  setLocked,
 }: {
   month: string;
   roster: MemberRow[];
   close: () => void;
+  setLocked: (locked: boolean) => void;
 }) {
   const fetcher = useFetcher<typeof adminPayrollAction>();
   const titleId = useId();
@@ -71,6 +82,12 @@ function OverrideForm({
   const [amount, setAmount] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const busy = fetcher.state !== "idle";
+  // The dialog's dismissals (backdrop, Esc) hold while the save posts; the
+  // unmount cleanup releases the lock when the form remounts per open.
+  useEffect(() => {
+    setLocked(busy);
+    return () => setLocked(false);
+  }, [busy, setLocked]);
   const result =
     fetcher.data !== undefined && typeof fetcher.data === "object" && "kind" in fetcher.data
       ? (fetcher.data as { kind: string; state: string; message?: string })
@@ -178,7 +195,12 @@ function OverrideForm({
         <button type="button" className={dialogStyles.quietButton} onClick={close} disabled={busy}>
           Cancel
         </button>
-        <button type="submit" className={dialogStyles.saveButton} disabled={busy || !ready}>
+        <button
+          type="submit"
+          className={dialogStyles.saveButton}
+          disabled={busy || !ready}
+          aria-busy={busy ? true : undefined}
+        >
           {busy ? <Spinner size={13} /> : null}
           {busy ? "Saving…" : "Save Changes"}
         </button>

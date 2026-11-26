@@ -3,6 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { writeSession } from "../services/session";
+import {
+  resetIdentityCacheForTests,
+  setIdentityTtlForTests,
+} from "../features/admin/identityCache";
 import { istShifted, istToday } from "../features/admin/format";
 import type { OwnerReportResponse } from "../features/admin/jobReportsApi";
 import type { MemberRow, PulseResponse } from "../features/admin/companyApi";
@@ -35,9 +39,12 @@ let pulseFails: boolean;
 let membersFails: boolean;
 let leaveFails: boolean;
 let reportFails: boolean;
+let meFails: boolean;
 let reportBody: () => Response | Promise<Response>;
 let meHasSubscription: boolean;
-/** 1 = the layout's check, 2 = the overview loader's own. */
+/** The /users/me reads this test saw — one per navigation burst under the
+ *  shared identity cache (CAP-8): the layout's check and every
+ *  requireConsoleRole in the burst share a single answer. */
 let meCalls: number;
 
 beforeEach(() => {
@@ -45,6 +52,7 @@ beforeEach(() => {
   membersFails = false;
   leaveFails = false;
   reportFails = false;
+  meFails = false;
   reportBody = () => jsonResponse(fullReport);
   meHasSubscription = true;
   meCalls = 0;
@@ -54,6 +62,9 @@ beforeEach(() => {
 
 afterEach(() => {
   restoreFetchMock();
+  // The identity cache's TTL knob and entries are module state — a shrunk
+  // TTL must never leak into the next test (or the next test file).
+  resetIdentityCacheForTests();
   window.localStorage.clear();
   cleanup();
 });
@@ -76,6 +87,7 @@ function fullMe(): Response {
 function respondDefault(url: string): Response | Promise<Response> {
   if (url.endsWith("/users/me")) {
     meCalls += 1;
+    if (meFails) return jsonResponse({}, 500);
     return fullMe();
   }
   if (url.includes("/attendance/dashboard")) {
@@ -233,23 +245,34 @@ describe("AdminCompanyPage: the merged overview's shell", () => {
     expect(sentRequests().some((r) => r.url.includes("/audit"))).toBe(false);
   });
 
-  it("shows the whole-page failure card when only the overview's check fails", async () => {
-    // The layout's /users/me succeeds, the overview loader's own fails: the
-    // layout renders, the child loader degrades to its card. (Both failing
-    // together is the layout's retry screen, covered in AdminPage.test.)
-    setRespond((url) => {
-      if (url.endsWith("/users/me")) {
-        meCalls += 1;
-        if (meCalls === 1) return fullMe();
-        throw new TypeError("network down");
-      }
-      return respondDefault(url);
-    });
+  it("reads /users/me once per burst — the layout's check and the overview loader's role check share the identity (CAP-8)", async () => {
+    // Before the shared identity cache this burst made two identical reads,
+    // and a test could fail the second to reach the whole-page failure card.
+    // One answer now serves both loaders: a failed identity read fails the
+    // layout too (its retry screen — covered in AdminPage.test), so that
+    // card is only reachable through the overview's own data slices, which
+    // degrade per-card above.
     renderConsole();
+    await screen.findByText("Priya");
+
+    expect(meCalls).toBe(1);
+  });
+
+  it("degrades a dead identity read to the whole-page failure card once the cache has expired", async () => {
+    const router = renderConsole();
+    await screen.findByText("Priya");
+
+    // Burst 1 cached the identity (CAP-8). Shrink the TTL to 0 so the next
+    // burst must re-read it, put the read on the floor, and take a preset
+    // link — the loader re-runs and the failed read (not an auth error)
+    // settles the whole page as failed.
+    setIdentityTtlForTests(0);
+    meFails = true;
+    fireEvent.click(screen.getByRole("link", { name: /Today/ }));
 
     expect(await screen.findByText("The company data could not load.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
-    expect(screen.queryByText("Priya")).toBeNull();
+    expect(router.state.location.search).toBe("?range=today");
   });
 
   it("bounces a member hand-typing the overview address back to their own console", async () => {
@@ -603,7 +626,7 @@ describe("AdminCompanyPage: the report request on the wire (CAP-8)", () => {
   it("clicks a period pill: the address changes, the report refetches for that window, and the layout's check does not re-run", async () => {
     const router = renderConsole("/admin/company");
     await screen.findByText("Priya");
-    const meBefore = meCalls; // layout's check + the first loader run
+    const meBefore = meCalls; // the burst's single shared identity read
 
     fireEvent.click(screen.getByRole("link", { name: "Last 7 days" }));
 
@@ -619,9 +642,10 @@ describe("AdminCompanyPage: the report request on the wire (CAP-8)", () => {
     const query = new URL(calls[1]?.url ?? "").searchParams;
     expect(query.get("from")).toBe(istShifted(-6));
     expect(query.get("to")).toBe(istToday());
-    // The layout's shouldRevalidate declines the non-/admin address: exactly
-    // ONE new /users/me (the overview loader's own role check), never two.
-    expect(meCalls).toBe(meBefore + 1);
+    // The layout's shouldRevalidate declines the non-/admin address, and the
+    // overview loader's re-run rides the shared identity cache (CAP-8): the
+    // /users/me count does not move.
+    expect(meCalls).toBe(meBefore);
   });
 });
 

@@ -27,6 +27,7 @@ import {
 } from "../features/admin/companyApi";
 import { readSession } from "../services/session";
 import { ApiError } from "../services/api";
+import { toastIfSessionEnded } from "../components/ui/toastStore";
 import { istToday } from "../features/admin/format";
 import headerStyles from "./HolidaysSchedulePage.module.css";
 import styles from "./AdminHolidayUploadPage.module.css";
@@ -285,6 +286,9 @@ function UploadPanel({
             ? error.message
             : "The sheet could not be uploaded. Check your connection and try again.",
       });
+      // The inline failure card speaks for itself; only a 401 additionally
+      // toasts — it alone can end the sign-in mid-flow (§4.8).
+      toastIfSessionEnded(error);
     }
   };
 
@@ -705,6 +709,7 @@ function ConfirmPopup({
             className={styles.modalPrimary}
             onClick={onConfirm}
             disabled={busy || nothingToDo}
+            aria-busy={busy ? true : undefined}
           >
             {busy
               ? "Saving…"

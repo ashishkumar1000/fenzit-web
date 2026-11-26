@@ -15,6 +15,7 @@
 
 .dialog::backdrop {
   background: var(--color-scrim);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 

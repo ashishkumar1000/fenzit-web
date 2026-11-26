@@ -3,6 +3,7 @@ import {
   Navigate,
   NavLink,
   Outlet,
+  useFetchers,
   useLoaderData,
   useLocation,
   useNavigate,
@@ -14,7 +15,17 @@ import { Flag, Palmtree } from "lucide-react";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
+import { FullPageLoader } from "../components/ui/FullPageLoader";
+import { LoadingOverlay } from "../components/ui/LoadingOverlay";
+import { SkeletonBlock, SkeletonSlot } from "../components/ui/Skeleton";
+import { ToastHost } from "../components/ui/ToastHost";
 import { sectionGroupsFor, sectionsFor } from "../features/admin/adminLoader";
+import { invalidateIdentityCache } from "../features/admin/identityCache";
+import {
+  RegionDetailSkeleton,
+  RegionRowsSkeleton,
+  RegionTilesSkeleton,
+} from "../features/admin/components/RegionSkeleton";
 import type { adminLoader, ConsoleRole } from "../features/admin/adminLoader";
 import {
   ConsoleArt,
@@ -38,17 +49,13 @@ import logo3x from "../assets/brand/logo-3x.png";
 import { clearSession } from "../services/session";
 import styles from "./AdminPage.module.css";
 
-/** Shown while the access check runs on a direct visit to /admin. */
+/** Shown while the access check runs on a direct visit to /admin: the
+ *  full-page Pour loader centered on a light blurred pane (2026-11-26),
+ *  instead of the plain text line it replaced. The loader's own
+ *  role="status" announces the label politely, so the screen-reader
+ *  contract of the old text is kept. */
 export function AdminChecking() {
-  return (
-    <div className={styles.page}>
-      <Container>
-        <main className={styles.main}>
-          <p className={styles.status}>Checking your access…</p>
-        </main>
-      </Container>
-    </div>
-  );
+  return <FullPageLoader label="Checking your access…" />;
 }
 
 /** Reports uses the lucide flag icon, the same family as the mobile app. */
@@ -203,10 +210,33 @@ export function AdminLayout() {
   // employee profile's param'd address draws its own header too.
   const ownHeader = pageHasOwnHeader(location.pathname);
   const navigation = useNavigation();
-  const busy = navigation.state !== "idle" || revalidator.state !== "idle";
+  // Fetchers count too: a mutation posted from the bottom of a long page is
+  // exactly the activity the console must make visible.
+  const fetchers = useFetchers();
+  const busy =
+    navigation.state !== "idle" ||
+    revalidator.state !== "idle" ||
+    fetchers.some((fetcher) => fetcher.state !== "idle");
+  // A different console page is loading (a route navigation — includes the
+  // target page's first lazy chunk and both loader levels): the content
+  // region stands in with the target page's archetype while the load
+  // persists past the delay. Same-page revalidations and query-only
+  // navigations (tab/month/filter changes) keep the current page — the
+  // pages scope those to their own regions, and the loading cases' cue for
+  // visible data is stale-while-revalidate, not a full swap.
+  const pendingPathname =
+    navigation.state === "loading" ? navigation.location?.pathname : undefined;
+  const pageNavigating =
+    pendingPathname !== undefined &&
+    pendingPathname.startsWith("/admin") &&
+    pendingPathname.replace(/\/+$/, "") !== location.pathname.replace(/\/+$/, "");
+  const targetPathname = pendingPathname ?? location.pathname;
 
   const logOut = () => {
     clearSession();
+    // The identity cache is keyed by token (CAP-8) — nothing the old session
+    // fetched may serve the next sign-in.
+    invalidateIdentityCache();
     navigate("/login", { replace: true });
   };
 
@@ -246,25 +276,99 @@ export function AdminLayout() {
         </div>
       </aside>
       <div className={wide ? styles.contentWide : styles.content}>
-        {/* The loading line: always on the plain pages, and on the pages with
-            their own header only while a load runs — there it reads as a
-            loader, never as a static divider. */}
-        {!ownHeader || busy ? (
-          <div className={styles.progress} role="progressbar" aria-hidden={!busy}>
-            <span className={busy ? styles.progressFillActive : styles.progressFill} />
-          </div>
-        ) : null}
         <main className={styles.main}>
           {ownHeader ? null : (
             <h1 className={styles.heading}>
               {data.name === null ? "Hello" : `Hello, ${data.name}`}
             </h1>
           )}
-          <Outlet />
+          <SkeletonSlot show={pageNavigating} skeleton={<NavSkeleton pathname={targetPathname} />}>
+            <Outlet />
+          </SkeletonSlot>
         </main>
       </div>
+      {/* The console's activity overlay: the Pour loader floating over the
+          console while any router work runs — navigations, revalidations and
+          fetchers. It replaces the old 3px line loader (owner, 2026-11-26):
+          loud enough to see from the bottom of a long page, transparent and
+          click-through so the shell beneath stays usable. Its own timing
+          (300ms in, 500ms minimum) keeps quick operations flash-free. */}
+      <LoadingOverlay show={busy} />
+      {/* The console's toast layer (CAP-5): one host for the whole shell, so
+          a mutation's outcome outlives the card that started it and any
+          scroll away from its status line. */}
+      <ToastHost />
     </div>
   );
+}
+
+/** The content region's target-archetype skeleton (CAP-2): while a route
+ *  navigation loads a different console page, the shell renders this in the
+ *  slot, shaped like the page the user is heading to. Purely decorative —
+ *  the LoadingOverlay carries the announcement. */
+function NavSkeleton({ pathname }: { pathname: string }) {
+  const archetype = targetArchetype(pathname);
+  if (archetype === "dashboard") {
+    return (
+      <div className={styles.navStack}>
+        <SkeletonBlock width="34%" height={20} />
+        <RegionTilesSkeleton />
+        <RegionRowsSkeleton rows={3} columns={[1.2, 2.5, 1.2]} />
+      </div>
+    );
+  }
+  if (archetype === "detail") {
+    return <RegionDetailSkeleton />;
+  }
+  if (archetype === "calendar") {
+    return (
+      <div className={styles.navStack}>
+        <SkeletonBlock width="30%" height={20} />
+        <div className={styles.navColumns}>
+          <RegionRowsSkeleton rows={5} columns={[1]} />
+          <RegionRowsSkeleton rows={4} columns={[1]} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.navStack}>
+      <SkeletonBlock width="30%" height={20} />
+      <RegionRowsSkeleton rows={8} columns={[2.4, 1.6, 1.2, 1.2, 1.4]} />
+    </div>
+  );
+}
+
+/** The target page's archetype, from the loading cases' surface map: the
+ *  company overview reads as a dashboard of tiles and panels; a single
+ *  job's or employee's page and the form/profile pages read as detail
+ *  bodies; the holidays calendar is a two-column card grid; everything
+ *  else is a table or list. */
+function targetArchetype(pathname: string): "table" | "dashboard" | "detail" | "calendar" {
+  const clean = pathname.replace(/\/+$/, "");
+  if (clean === "/admin/company") {
+    return "dashboard";
+  }
+  if (
+    /^\/admin\/company\/jobs\/[^/]+$/.test(clean) ||
+    /^\/admin\/company\/employees\/[^/]+$/.test(clean)
+  ) {
+    return "detail";
+  }
+  // The bulk-upload tab is a form card, not a list — the detail body reads
+  // right where a table skeleton would mislead.
+  if (clean === "/admin/company/holidays/upload") {
+    return "detail";
+  }
+  // The calendar tab's body is the month card and the side lists in two
+  // columns — the schedule tab beside it stays a table, as it is one.
+  if (clean === "/admin/company/holidays") {
+    return "calendar";
+  }
+  if (clean === "/admin/config" || clean === "/admin/me" || clean.startsWith("/admin/me/")) {
+    return "detail";
+  }
+  return "table";
 }
 
 /** The pages that draw their own heading block (breadcrumb, greeting, page

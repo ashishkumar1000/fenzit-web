@@ -5,7 +5,12 @@ import type { Slice } from "../features/admin/slice";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
 import { LinkCard } from "../features/admin/components/LinkCard";
+import {
+  RegionTableSkeleton,
+  RegionTilesSkeleton,
+} from "../features/admin/components/RegionSkeleton";
 import { DataTable, type TableCell } from "../features/admin/components/Table";
+import { SkeletonRow, SkeletonSlot } from "../components/ui/Skeleton";
 import { AttendanceArt } from "../features/admin/components/art/AttendanceArt";
 import { CustomersArt } from "../features/admin/components/art/CustomersArt";
 import { HolidaysArt } from "../features/admin/components/art/HolidaysArt";
@@ -66,6 +71,15 @@ export function AdminCompanyPage() {
   // link is navigation, and the loader refetches the report for it.
   const location = useLocation();
   const preset = new URLSearchParams(location.search).get("range") ?? "30";
+  // The report region's load: a preset link changes only the address's
+  // range — while it persists past the delay the report region (pills,
+  // headline, breakdown) stands in, and the pulse, link cards and leave
+  // list around it stay put. A different page's navigation is the shell's
+  // skeleton; the same-address "Try again" reload keeps the failed card.
+  const regionPending =
+    navigation.state === "loading" &&
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
 
   if (data.state === "failed") {
     return (
@@ -211,12 +225,18 @@ export function AdminCompanyPage() {
         />
       </div>
 
-      <JobReport
-        report={data.report}
-        range={data.range}
-        preset={preset}
-        retryTo={`${location.pathname}${location.search}`}
-      />
+      <SkeletonSlot
+        show={regionPending}
+        className={styles.reportStack}
+        skeleton={<ReportSkeleton />}
+      >
+        <JobReport
+          report={data.report}
+          range={data.range}
+          preset={preset}
+          retryTo={`${location.pathname}${location.search}`}
+        />
+      </SkeletonSlot>
 
       <div className={styles.pair}>
         {data.leave.ok ? (
@@ -408,6 +428,20 @@ function Fact({ label, value }: { label: string; value: string }) {
       <p className={styles.factLabel}>{label}</p>
       <p className={styles.factValue}>{value}</p>
     </div>
+  );
+}
+
+/** The report region's stand-in: the period pills, the four headline tiles,
+ *  the two fact cards and the per-employee breakdown — the footprint the
+ *  loaded report fills. */
+function ReportSkeleton() {
+  return (
+    <>
+      <SkeletonRow cells={["64px", "104px", "120px", "96px", "112px"]} height={26} />
+      <RegionTilesSkeleton tiles={4} />
+      <RegionTilesSkeleton tiles={2} />
+      <RegionTableSkeleton rows={6} columns={[2.2, 0.8, 0.8, 0.8, 0.8, 0.8, 1]} />
+    </>
   );
 }
 

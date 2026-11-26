@@ -7,10 +7,12 @@ import { GlyphAccount } from "../features/admin/components/glyphs";
 import { SearchForm } from "../features/admin/components/SearchForm";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { TableSkeleton } from "../features/admin/components/Table";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import styles from "./AdminAccountPage.module.css";
 
 /** The Account section: find a person, then flip their flags — with confirms.
- *  While the lookup is in flight the stale results give way to skeleton rows. */
+ *  A lookup in flight stands its searching card in after the 300ms delay and
+ *  holds it at least 500ms — loading is shown, never faked with old data. */
 export function AdminAccountPage() {
   const data = useLoaderData<typeof adminAccountLoader>();
   const revalidator = useRevalidator();
@@ -28,11 +30,15 @@ export function AdminAccountPage() {
         defaultValue={phone}
         busy={busy}
       />
-      {busy && hasQuery ? (
-        <SectionCard title="Searching…">
-          <TableSkeleton rows={4} />
-        </SectionCard>
-      ) : (
+      <SkeletonSlot
+        show={busy && hasQuery}
+        className={styles.stack}
+        skeleton={
+          <SectionCard title="Searching…">
+            <TableSkeleton rows={4} />
+          </SectionCard>
+        }
+      >
         <>
           {data.state === "idle" ? (
             <div className={styles.idle}>
@@ -92,7 +98,7 @@ export function AdminAccountPage() {
             </>
           ) : null}
         </>
-      )}
+      </SkeletonSlot>
     </div>
   );
 }

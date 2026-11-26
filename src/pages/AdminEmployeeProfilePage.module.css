@@ -157,6 +157,16 @@
   justify-items: start;
 }
 
+/* The panel region's stack (2026-11-26): the skeleton swap wraps the tabs'
+   panels in one node carrying the shell main's rhythm — the placeholder
+   occupies the loaded panel's footprint exactly. When the panel isn't
+   loading the slot renders its children unwrapped inside .main. */
+.regionStack {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
 .error {
   margin: 0;
   color: var(--color-text-body);

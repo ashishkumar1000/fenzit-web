@@ -1,0 +1,30 @@
+/* The Fenzit mark's loader artwork (2026-11-26, owner-supplied f-loader.svg).
+   All fill motion is SVG SMIL running in the DOM (see FenzitMark.tsx); this
+   stylesheet owns only the sizing, the overflow frame and the reduced-motion
+   opacity pulse. */
+
+.mark {
+  display: block;
+  width: var(--fenzit-mark-size, 96px);
+  height: var(--fenzit-mark-size, 96px);
+  overflow: hidden;
+}
+
+/* Reduced motion: the component renders the static fully-filled branch
+   (no SMIL at all — it ignores the media query), and the mark breathes
+   with a gentle opacity pulse only. No transforms. */
+@media (prefers-reduced-motion: reduce) {
+  .mark {
+    animation: fenzit-mark-pulse 1.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes fenzit-mark-pulse {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0.6;
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { AdminChecking } from "./AdminPage";
 import { consoleRole, sectionGroupsFor, sectionsFor } from "../features/admin/adminLoader";
 import { SESSION_KEY, writeSession } from "../services/session";
 import { resetLeaveSummaryCacheForTests } from "../features/admin/leaveSummaryCache";
+import { resetIdentityCacheForTests } from "../features/admin/identityCache";
 import { clearApiBase, jsonResponse, useApiBase } from "../testing/fetchMock";
 
 let meAnswers: Array<() => Response> = [];
@@ -28,8 +29,9 @@ beforeEach(() => {
   meCalls = 0;
   summaryAnswer = undefined;
   // The shared summary cache is module state — one test's answer must never
-  // serve the next test's badge.
+  // serve the next test's badge. The identity cache is the same shape.
   resetLeaveSummaryCacheForTests();
+  resetIdentityCacheForTests();
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith("/users/me")) {
@@ -449,15 +451,18 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
 describe("Console: section gating", () => {
   it("bounces an employee who hand-types /admin/inspect back to their own console", async () => {
     writeSession({ token: "tok-1", name: "Ravi" });
-    // The layout loader and the refused child loader each ask who the person is.
-    meAnswers.push(me({ role: "employee" }));
+    // The identity read is shared per burst (CAP-8): the layout loader and
+    // the refused child loader both read the cached answer, so one wire
+    // read serves the whole bounce.
     meAnswers.push(me({ role: "employee" }));
 
     renderAdmin("/admin/inspect");
 
     // The refusal lands on /admin, and the index forwards a member to Me —
     // the Me section itself is on screen, not a welcome card to click.
-    expect(await screen.findByRole("heading", { name: "(no name)", level: 2 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Ravi Kumar", level: 2 }),
+    ).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("98765 43210")).toBeNull();
   });
 

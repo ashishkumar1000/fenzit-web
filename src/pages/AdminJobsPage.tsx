@@ -265,13 +265,15 @@ export function AdminJobsPage() {
   const location = useLocation();
   const navigation = useNavigation();
   const busy = navigation.state !== "idle" || revalidator.state !== "idle";
-  // A different address is loading (a filter or page changed) — the owner's
-  // rows are about to be replaced, so the skeleton stands in. A plain
-  // revalidation (the queue's action) keeps the current rows on screen.
+  // This page's own reload (a filter or page changed — the address's search
+  // moved while the pathname stayed) — the owner's rows are about to be
+  // replaced, so the skeleton stands in. Navigating to another page is the
+  // shell's skeleton; a same-address revalidation (the queue's action) keeps
+  // the current rows on screen.
   const navigating =
     navigation.state === "loading" &&
-    (navigation.location?.pathname !== location.pathname ||
-      navigation.location?.search !== location.search);
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
   const [query, setQuery] = useState("");
 
   // The member table's sort toggle rides the URL (?sort=soonest).

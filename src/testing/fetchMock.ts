@@ -4,6 +4,8 @@
 // restoreFetchMock() in afterEach and clearApiBase() in afterAll; a test aims
 // the responder with setRespond().
 
+import { resetIdentityCacheForTests } from "../features/admin/identityCache";
+
 export type SentRequest = {
   url: string;
   method: string;
@@ -29,6 +31,11 @@ export function clearApiBase(): void {
 export function installFetchMock(): void {
   sent = [];
   respond = () => jsonResponse({});
+  // The shared identity cache is module state keyed by token, and every
+  // loader test signs in with the same token — one file's /users/me answer
+  // must never serve the next file's access check. The install IS the
+  // per-test boundary, so the reset rides it.
+  resetIdentityCacheForTests();
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     sent.push({

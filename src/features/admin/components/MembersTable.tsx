@@ -1,9 +1,11 @@
 import { Link, useFetcher } from "react-router";
-import type { ComponentType } from "react";
+// eslint-disable-next-line no-restricted-imports -- the effect announces the resend outcome through the toast layer once; no server reads here
+import { useEffect, useRef, type ComponentType } from "react";
 import type { MemberRow } from "../companyApi";
 import type { EmployeesActionResult, EmployeesFilters, MembersSort } from "../adminBrowseLoaders";
 import { employeesUrl } from "../employeesUrl";
 import { CrownIcon, UserIcon, type ConsoleIconProps } from "../../../components/ui/consoleIcons";
+import { pushToast } from "../../../components/ui/toastStore";
 import { humanize } from "../status";
 import { JobSettingsCell } from "./JobSettingsDialog";
 import { EmploymentCell } from "./payroll/EmploymentDialog";
@@ -37,12 +39,31 @@ function ResendCell({ row }: { row: MemberRow }) {
   const mine =
     fetcher.data?.kind === "resend" && fetcher.data.userId === row.userId ? fetcher.data : null;
   const busy = fetcher.state !== "idle";
+  // The row's note dies with its scroll position; the toast layer keeps the
+  // resend's outcome visible wherever the person is now (§4). The ref guard
+  // keeps one submission announced exactly once — a new resend produces a
+  // new fetcher.data object, so it announces again.
+  const announced = useRef<EmployeesActionResult | undefined>(undefined);
+  useEffect(() => {
+    if (mine === null || announced.current === fetcher.data) return;
+    announced.current = fetcher.data;
+    if (mine.state === "done") {
+      pushToast(resendOutcomeLine(mine.smsStatus), "success");
+    } else {
+      pushToast(mine.message, "error");
+    }
+  }, [mine, fetcher.data]);
   return (
     <>
       <fetcher.Form method="post" className={styles.resendForm}>
         <input type="hidden" name="intent" value="resend" />
         <input type="hidden" name="userId" value={row.userId} />
-        <button type="submit" className={styles.resendButton} disabled={busy}>
+        <button
+          type="submit"
+          className={styles.resendButton}
+          disabled={busy}
+          aria-busy={busy ? true : undefined}
+        >
           {busy ? <Spinner size={12} /> : null}
           {busy ? "Sending…" : "Send Invitation Again"}
         </button>

@@ -2,7 +2,8 @@ import { redirect, type LoaderFunctionArgs } from "react-router";
 import { ApiError } from "../../services/api";
 import { clearSession, readSession } from "../../services/session";
 import { readLeaveSummaryCached } from "./leaveSummaryCache";
-import { fetchCurrentUser, type CurrentUser } from "./adminApi";
+import { invalidateIdentityCache, readCurrentUserCached } from "./identityCache";
+import type { CurrentUser } from "./adminApi";
 
 export type ConsoleRole = "staff" | "owner" | "member";
 
@@ -123,7 +124,14 @@ export async function loadMe(request: Request): Promise<{ token: string; me: Cur
   if (session === null) {
     throw redirect("/login");
   }
-  const me = await fetchCurrentUser(session.token, request.signal);
+  // A navigation already superseded does not start the shared read; the read
+  // itself carries no caller signal — it may serve another loader mid-flight
+  // (the shared-fetch rule, same as the leave summary cache).
+  if (request.signal.aborted) throw new DOMException("Aborted", "AbortError");
+  // CAP-8: the identity rides the shared 30s cache, so the layout loader's
+  // access check and every requireConsoleRole in the same burst share one
+  // /users/me read.
+  const me = await readCurrentUserCached(session.token);
   return { token: session.token, me };
 }
 
@@ -144,6 +152,9 @@ export async function adminLoader({ request }: LoaderFunctionArgs): Promise<Admi
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {
       clearSession();
+      // The token died under the access check — nothing it fetched may be
+      // trusted past this point.
+      invalidateIdentityCache();
       throw redirect("/login");
     }
     // A cancelled navigation is not a failed access check, so it is not shown as one.

@@ -169,43 +169,34 @@
   color: var(--color-text-muted);
 }
 
-/* ── Top bar (phones; also the console header on wide screens) ─────── */
+/* The 3px line loader was removed in 2026-11-26 — the console's activity
+   signal is now the transparent full-screen Pour overlay
+   (src/components/ui/LoadingOverlay), visible from anywhere on a long
+   page. */
 
-.progress {
-  height: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-sunken);
-  overflow: hidden;
+/* The route-navigation skeleton's stack (CAP-2): the shell renders the
+   target page's archetype in the content slot, sharing the main region's
+   vertical rhythm. */
+.navStack {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  min-width: 0;
 }
 
-.progressFill,
-.progressFillActive {
-  display: block;
-  height: 100%;
-  width: 30%;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  transform: translateX(-100%);
+/* The holidays calendar's two-column body — the month card on the left,
+   the side lists on the right (the holidays page's own .grid rhythm,
+   including its 960px stack-over point). */
+.navColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
 }
 
-.progressFillActive {
-  animation: progress-slide 1.1s var(--motion-ease-standard) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .progressFillActive {
-    animation: none;
-    transform: none;
-    opacity: 0.5;
-  }
-}
-
-@keyframes progress-slide {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(433%);
+@media (max-width: 960px) {
+  .navColumns {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -347,11 +338,9 @@
   width: min(300px, 100%);
 }
 
-.status {
-  margin: 0;
-  font-size: var(--font-size-base);
-  color: var(--color-text-body);
-}
+/* The boot loader's plain text status line moved to FullPageLoader in
+   2026-11-26 (the Pour loader over the light blurred pane), so no status
+   class is needed here any more. */
 
 .error {
   margin: 0;

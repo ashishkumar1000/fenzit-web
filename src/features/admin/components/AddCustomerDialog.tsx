@@ -1,5 +1,6 @@
 import { useFetcher } from "react-router";
-import { useId, useRef, useState } from "react";
+// eslint-disable-next-line no-restricted-imports -- the effect syncs the dialog lock (Esc/backdrop hold) while the save posts; no server reads here
+import { useEffect, useId, useRef, useState } from "react";
 import type { CustomerCreateResult } from "../adminBrowseLoaders";
 import { DEFAULT_DIAL_CODE, type CountryCode } from "../../../services/countryCodes";
 import { Spinner } from "../../../components/ui/Spinner";
@@ -14,6 +15,10 @@ import styles from "./AddCustomerDialog.module.css";
 export function AddCustomerControl({ countries }: { countries: CountryCode[] | undefined }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [openCount, setOpenCount] = useState(0);
+  // Mid-send the dialog locks (CAP-5): a backdrop click or Esc cannot dismiss
+  // it while the customer posts — an accidental dismissal would abandon a
+  // save that may already have landed.
+  const [locked, setLocked] = useState(false);
   return (
     <>
       <button
@@ -31,8 +36,11 @@ export function AddCustomerControl({ countries }: { countries: CountryCode[] | u
         ref={dialogRef}
         className={dialogStyles.dialog}
         aria-label="Add Customer"
+        onCancel={(event) => {
+          if (locked) event.preventDefault();
+        }}
         onClick={(event) => {
-          if (event.target === dialogRef.current) dialogRef.current?.close();
+          if (event.target === dialogRef.current && !locked) dialogRef.current?.close();
         }}
       >
         {openCount > 0 && countries !== undefined ? (
@@ -40,6 +48,7 @@ export function AddCustomerControl({ countries }: { countries: CountryCode[] | u
             key={openCount}
             countries={countries}
             close={() => dialogRef.current?.close()}
+            setLocked={setLocked}
           />
         ) : null}
       </dialog>
@@ -51,7 +60,15 @@ export function AddCustomerControl({ countries }: { countries: CountryCode[] | u
  *  optional, then POST /customers through a fetcher, so the page's own action
  *  data stays untouched. The loader refetches after the action and the new
  *  row appears in the list. */
-function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close: () => void }) {
+function AddCustomerForm({
+  countries,
+  close,
+  setLocked,
+}: {
+  countries: CountryCode[];
+  close: () => void;
+  setLocked: (locked: boolean) => void;
+}) {
   const fetcher = useFetcher<CustomerCreateResult>();
   const titleId = useId();
   const [dialCode, setDialCode] = useState(DEFAULT_DIAL_CODE);
@@ -60,6 +77,12 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const busy = fetcher.state !== "idle";
+  // The dialog's dismissals (backdrop, Esc) hold while the save posts; the
+  // unmount cleanup releases the lock when the form remounts per open.
+  useEffect(() => {
+    setLocked(busy);
+    return () => setLocked(false);
+  }, [busy, setLocked]);
   // The save button says why it is off. Phone rules match the hint: 6 to 15
   // digits, numbers only. Address and city are optional extras.
   const nameMissing = name.trim() === "";
@@ -157,10 +180,20 @@ function AddCustomerForm({ countries, close }: { countries: CountryCode[]; close
           ) : null}
           {!busy && !ready ? <p className={dialogStyles.dialogHint}>{whyNotReady}</p> : null}
           <div className={dialogStyles.dialogActions}>
-            <button type="button" className={dialogStyles.quietButton} onClick={close}>
+            <button
+              type="button"
+              className={dialogStyles.quietButton}
+              onClick={close}
+              disabled={busy}
+            >
               Cancel
             </button>
-            <button type="submit" className={dialogStyles.saveButton} disabled={busy || !ready}>
+            <button
+              type="submit"
+              className={dialogStyles.saveButton}
+              disabled={busy || !ready}
+              aria-busy={busy ? true : undefined}
+            >
               {busy ? <Spinner size={13} /> : null}
               {busy ? "Saving…" : "Save Customer"}
             </button>

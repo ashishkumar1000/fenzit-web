@@ -1,5 +1,8 @@
+// eslint-disable-next-line no-restricted-imports -- the effect announces the save outcome through the toast layer once; no server reads here
+import { useEffect, useRef } from "react";
 import { useActionData, useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { Button } from "../components/ui/Button";
+import { pushToast } from "../components/ui/toastStore";
 import type {
   adminConfigAction,
   adminConfigLoader,
@@ -19,6 +22,27 @@ export function AdminConfigPage() {
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const busy = navigation.state !== "idle" || revalidator.state !== "idle";
+
+  // The save's outcome also lands in the toast layer (§4): the form's notice
+  // scrolls away with the page, and the person saving is not always staring
+  // at it. The ref guard keeps one submission announced exactly once — a new
+  // save produces a new result object, so it announces again.
+  const announced = useRef<ConfigActionData | undefined>(undefined);
+  useEffect(() => {
+    if (result === undefined || announced.current === result) return;
+    announced.current = result;
+    if (result.state === "saved") {
+      pushToast(
+        "Saved. Installed apps pick this up on their next launch or when they come back to the foreground.",
+        "success",
+      );
+    } else if (result.state === "error") {
+      pushToast(result.message, "error");
+    } else if (result.state === "forbidden") {
+      pushToast("Only super admins can change these settings.", "error");
+    }
+    // invalid: the inline field errors anchor to the fields to fix — no toast.
+  }, [result]);
 
   if (data.state === "forbidden") {
     return <ForbiddenView />;
@@ -45,10 +69,9 @@ export function AdminConfigPage() {
   return (
     <div className={styles.page}>
       <Intro />
-      {navigation.state === "loading" ? (
-        <p className={styles.quiet}>Loading the latest settings…</p>
-      ) : null}
-      {/* Keyed on the saved values: after a save the form restarts from what the server now holds. */}
+      {/* A save revalidates the same address: the form stays put (its own
+          saving state, then the shell's overlay after the delay, carry the
+          cue) and restarts from what the server now holds. */}
       <ConfigForm
         key={JSON.stringify(data.config)}
         config={data.config}

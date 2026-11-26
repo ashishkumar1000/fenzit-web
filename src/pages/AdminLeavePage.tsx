@@ -1,11 +1,13 @@
-import { Link, useLoaderData, useRevalidator } from "react-router";
+import { Link, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import type { adminLeaveLoader } from "../features/admin/leaveLoaders";
 import { LEAVE_PATH } from "../features/admin/leaveUrl";
 import { LeaveTypesTab } from "../features/admin/components/LeaveTypesTab";
 import { LeaveRequestsTab } from "../features/admin/components/LeaveRequestsTab";
 import { LeaveCalendarTab } from "../features/admin/components/LeaveCalendarTab";
+import { RegionTableSkeleton } from "../features/admin/components/RegionSkeleton";
 import { SectionCard } from "../features/admin/components/SectionCard";
 import { Tabs } from "../features/admin/components/Tabs";
+import { SkeletonSlot } from "../components/ui/Skeleton";
 import { CrownIcon } from "../components/ui/consoleIcons";
 import styles from "./AdminLeavePage.module.css";
 
@@ -26,6 +28,21 @@ export function AdminLeavePage() {
   const data = useLoaderData<typeof adminLeaveLoader>();
   const revalidator = useRevalidator();
   const busy = revalidator.state !== "idle";
+  const location = useLocation();
+  const navigation = useNavigation();
+  // The panel region's load: a same-page address change (tab, month, status,
+  // filters) is a genuine refetch — while it persists past the delay, the
+  // panel below the tab strip stands in. A different page's navigation is
+  // the shell's skeleton; a same-address revalidation keeps the panel.
+  const regionPending =
+    navigation.state === "loading" &&
+    navigation.location?.pathname === location.pathname &&
+    navigation.location?.search !== location.search;
+  // The tab strip reads the tab being loaded, so the strip follows the click
+  // while the panel holds.
+  const pendingTab = regionPending
+    ? new URLSearchParams(navigation.location?.search).get("tab")
+    : null;
 
   if (data.state === "failed") {
     return (
@@ -69,36 +86,46 @@ export function AdminLeavePage() {
           </p>
         </div>
       </header>
-      <Tabs basePath={LEAVE_PATH} tabs={LEAVE_TABS} current={data.tab} />
-      {data.tab === "types" ? <LeaveTypesTab rows={data.rows} /> : null}
-      {data.tab === "calendar" ? (
-        // Keyed by the month so a month change remounts the tab — the day
-        // modal is component state, and a stale one must not survive the
-        // navigation that replaced the grid beneath it.
-        <LeaveCalendarTab
-          key={data.month}
-          month={data.month}
-          page={data.page}
-          upcoming={data.upcoming}
-          upcomingHasMore={data.upcomingHasMore}
-          holidays={data.holidays}
-          summary={data.summary}
-        />
-      ) : null}
-      {data.tab === "requests" ? (
-        <LeaveRequestsTab
-          status={data.status}
-          q={data.q}
-          month={data.month}
-          cursor={data.cursor}
-          selected={data.selected}
-          counts={data.counts}
-          page={data.page}
-          selection={data.selection}
-          hasMore={data.page.hasMore}
-          nextCursor={data.page.nextCursor}
-        />
-      ) : null}
+      <Tabs
+        basePath={LEAVE_PATH}
+        tabs={LEAVE_TABS}
+        current={
+          pendingTab !== null && LEAVE_TABS.some((tab) => tab.value === pendingTab)
+            ? pendingTab
+            : data.tab
+        }
+      />
+      <SkeletonSlot show={regionPending} skeleton={<RegionTableSkeleton rows={7} />}>
+        {data.tab === "types" ? <LeaveTypesTab rows={data.rows} /> : null}
+        {data.tab === "calendar" ? (
+          // Keyed by the month so a month change remounts the tab — the day
+          // modal is component state, and a stale one must not survive the
+          // navigation that replaced the grid beneath it.
+          <LeaveCalendarTab
+            key={data.month}
+            month={data.month}
+            page={data.page}
+            upcoming={data.upcoming}
+            upcomingHasMore={data.upcomingHasMore}
+            holidays={data.holidays}
+            summary={data.summary}
+          />
+        ) : null}
+        {data.tab === "requests" ? (
+          <LeaveRequestsTab
+            status={data.status}
+            q={data.q}
+            month={data.month}
+            cursor={data.cursor}
+            selected={data.selected}
+            counts={data.counts}
+            page={data.page}
+            selection={data.selection}
+            hasMore={data.page.hasMore}
+            nextCursor={data.page.nextCursor}
+          />
+        ) : null}
+      </SkeletonSlot>
     </>
   );
 }

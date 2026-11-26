@@ -3,6 +3,7 @@ import { cleanup, render } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { writeSession } from "../services/session";
+import { resetToastsForTests } from "../components/ui/toastStore";
 import {
   clearApiBase,
   installFetchMock,
@@ -143,10 +144,14 @@ export function setUpEmployeesPageTests(): void {
     installFetchMock();
     team.rows = defaultRows();
     setRespond(standard);
+    // The resend cell now announces through the toast layer — module state
+    // that must not leak one test's outcome into the next.
+    resetToastsForTests();
   });
   afterEach(() => {
     restoreFetchMock();
     window.localStorage.clear();
     cleanup();
+    resetToastsForTests();
   });
 }
