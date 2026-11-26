@@ -166,6 +166,47 @@ export function GlyphArrow({ size = 18 }: GlyphProps) {
   );
 }
 
+/** An arrow landing in a tray — the sheet download action. */
+export function GlyphDownload({ size = 18 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <path d="M12 4v10.5" />
+      <path d="M7.5 10.5 12 15l4.5-4.5" />
+      <path d="M4.5 16.5V18A1.5 1.5 0 0 0 6 19.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5" />
+    </svg>
+  );
+}
+
+/** A circled check — the safe-preview promise. */
+export function GlyphCheckCircle({ size = 16 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M8.5 12.2l2.4 2.4 4.6-5" />
+    </svg>
+  );
+}
+
+/** A cloud with an arrow up — the dropzone's invite. */
+export function GlyphCloudUpload({ size = 24 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <path d="M7 17.5a4.5 4.5 0 0 1-.6-8.96 5.5 5.5 0 0 1 10.74-1.1A4.25 4.25 0 0 1 16.75 17.5" />
+      <path d="M12 20v-7" />
+      <path d="M9 15.5 12 12.5l3 3" />
+    </svg>
+  );
+}
+
+/** A paperclip — the file-picker affordance. */
+export function GlyphPaperclip({ size = 16 }: GlyphProps) {
+  return (
+    <svg {...base(size)} className={styles.line}>
+      <path d="M17.5 11 11 17.5a3.4 3.4 0 0 1-4.8-4.8l7-7a2.3 2.3 0 0 1 3.2 3.2l-6.9 6.9a1.15 1.15 0 0 1-1.6-1.6l6.1-6.1" />
+    </svg>
+  );
+}
+
 /**
  * The console's hero scene: a dossier card mid-inspection — badge, redacted
  * rows, a magnifier that catches the light, sparkles. Fresh artwork for this

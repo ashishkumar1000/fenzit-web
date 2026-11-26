@@ -20,7 +20,14 @@ export function Tabs({
   basePath: string;
   /** `badge`, when present, is a small count beside the label — e.g. the
    *  approvals waiting on the Approval tab. */
-  tabs: Array<{ value: string; label: string; badge?: string }>;
+  tabs: Array<{
+    value: string;
+    label: string;
+    badge?: string;
+    /** A full address override — the holidays pages' tabs are three sibling
+     *  paths (Calendar / Full List / Bulk Upload), not ?tab= panels. */
+    to?: string;
+  }>;
   /** The active tab's value. */
   current: string;
 }) {
@@ -29,7 +36,7 @@ export function Tabs({
       {tabs.map((tab) => (
         <Link
           key={tab.value}
-          to={tab.value === tabs[0]?.value ? basePath : `${basePath}?tab=${tab.value}`}
+          to={tab.to ?? (tab.value === tabs[0]?.value ? basePath : `${basePath}?tab=${tab.value}`)}
           className={tab.value === current ? styles.tabActive : styles.tab}
           aria-current={tab.value === current ? "page" : undefined}
         >

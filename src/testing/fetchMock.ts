@@ -35,7 +35,12 @@ export function installFetchMock(): void {
       url,
       method: init?.method ?? "GET",
       headers: new Headers(init?.headers),
-      body: init?.body ? JSON.parse(String(init.body)) : undefined,
+      // The API's bodies are JSON strings — parsed so tests assert objects.
+      // A non-string body (the bulk upload's raw File) records as itself.
+      body:
+        typeof init?.body === "string" && init.body !== ""
+          ? JSON.parse(init.body)
+          : (init?.body ?? undefined),
     });
     return respond(url);
   }) as unknown as typeof fetch;

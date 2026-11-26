@@ -73,6 +73,7 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company/payroll": GlyphPayroll,
   "/admin/company/jobs": GlyphJobs,
   "/admin/company/holidays": GlyphHolidays,
+  "/admin/company/holidays/schedule": GlyphHolidays,
   "/admin/company/leave": GlyphLeave,
   "/admin/company/attendance": GlyphAttendance,
   "/admin/me": GlyphMe,
@@ -282,6 +283,10 @@ const PAGES_WITH_OWN_HEADER = new Set([
   "/admin/company/leave",
   "/admin/company/attendance",
   "/admin/company/payroll",
+  // All three holidays pages draw the design's full header: crumbs, greeting, offices.
+  "/admin/company/holidays",
+  "/admin/company/holidays/schedule",
+  "/admin/company/holidays/upload",
 ]);
 
 /** One plain-English line per section, shown under its name on the landing
@@ -299,6 +304,7 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/company/payroll": "Manage salary details, deductions and government rules.",
   "/admin/company/jobs": "Create jobs, assign them to employees and track their progress.",
   "/admin/company/holidays": "Manage holidays for your team.",
+  "/admin/company/holidays/schedule": "See every holiday of the year in one table.",
   "/admin/company/leave": "Manage leave types and employee leave requests.",
   "/admin/company/attendance": "See who checked in, where they checked in and at what time.",
 };

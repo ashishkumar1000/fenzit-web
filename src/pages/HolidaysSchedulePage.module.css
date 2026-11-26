@@ -1,0 +1,423 @@
+/* The full holiday schedule page (2026-11-26) — stats, filters, the
+   month-grouped table and the coverage footer. Tokens only. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface-card);
+  padding: 18px 20px;
+}
+
+.empty {
+  margin: 4px 0;
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+
+/* --- Header --------------------------------------------------------------- */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The design's breadcrumb trail: Workspace › Settings › Holidays & Time-off */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.crumbLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbLink:hover {
+  color: var(--color-primary);
+}
+
+.crumbSep {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.crumbHere {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ghostButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghostButton:hover {
+  background: var(--color-surface-sunken);
+}
+
+.primaryButton {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  background: var(--color-primary-hover);
+}
+
+/* --- Stat cards ------------------------------------------------------------ */
+
+.statRow {
+  display: grid;
+  /* The third (long-weekends) card is conditional — auto-fit collapses the
+     empty column when a tenant runs no weekly offs. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.statCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface-card);
+  padding: 16px 18px;
+}
+
+.statIcon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  flex-shrink: 0;
+}
+
+.statEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.statValue {
+  margin: 3px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text-strong);
+}
+
+.statSub {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* --- Filters ---------------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 14px;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 48px;
+}
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pill[data-on="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+/* --- Table -------------------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.table td {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--color-text-body);
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+.monthRow td {
+  background: var(--color-surface-sunken);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  padding: 7px 12px;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-primary-soft);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
+.dateBlock {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 5px 4px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.dateDay {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.dateMonth {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.nameStrong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.desc {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.weekdayText {
+  font-weight: 600;
+}
+
+.impact {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.editBtn {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.editBtn:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-primary-soft);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- Branch office coverage ------------------------------------------------------ */
+
+.coverageTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.coverageSub {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.coverageList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coverageRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) 1fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.coverageName {
+  font-weight: 600;
+  color: var(--color-text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coverageBar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.coverageFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.coverageCount {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* --- Narrow screens --------------------------------------------------------------- */
+
+@media (max-width: 960px) {
+  .statRow {
+    grid-template-columns: 1fr;
+  }
+
+  .coverageRow {
+    grid-template-columns: 1fr auto;
+  }
+
+  .coverageBar {
+    display: none;
+  }
+}

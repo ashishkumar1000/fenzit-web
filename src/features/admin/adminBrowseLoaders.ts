@@ -7,7 +7,6 @@ import { loadApprovalQueueState, type QueueState } from "./approvalLoaders";
 import {
   createCustomer,
   fetchCustomersPage,
-  fetchHolidays,
   fetchJobs,
   fetchJobsPage,
   fetchMembers,
@@ -19,7 +18,6 @@ import {
   type CustomerBucketFilter,
   type CustomersPageResult,
   type CustomersSort,
-  type HolidayRow,
   type JobRow,
   type JobsPageResult,
   type JobsPriorityFilter,
@@ -840,7 +838,11 @@ export async function adminEmployeesAction({
  *  pass-through on cancel (the request was aborted, so nothing is shown),
  *  plain English otherwise. Generic over the action's result shape, so each
  *  action builds its own kind of error result. */
-function withActionError<R>(error: unknown, signal: AbortSignal, build: (message: string) => R): R {
+export function withActionError<R>(
+  error: unknown,
+  signal: AbortSignal,
+  build: (message: string) => R,
+): R {
   if (error instanceof Response) throw error;
   if (isAuthError(error)) {
     clearSession();
@@ -849,23 +851,6 @@ function withActionError<R>(error: unknown, signal: AbortSignal, build: (message
   if (signal.aborted) throw error;
   if (error instanceof DOMException && error.name === "AbortError") throw error;
   return build(messageForError(error));
-}
-
-export type HolidaysData = { state: "ok"; rows: HolidayRow[] } | BrowseFail;
-
-export async function adminHolidaysLoader({ request }: LoaderFunctionArgs): Promise<HolidaysData> {
-  try {
-    const { token } = await requireConsoleRole(request, ["owner"]);
-    return { state: "ok", rows: await fetchHolidays(token, request.signal) };
-  } catch (error) {
-    if (error instanceof Response) throw error;
-    if (isAuthError(error)) {
-      clearSession();
-      throw redirect("/login");
-    }
-    if (request.signal.aborted) throw error;
-    return { state: "failed" };
-  }
 }
 
 export type AttendanceData =

@@ -1,7 +1,156 @@
+/* The redesigned holidays page (2026-11-26) — year switcher, month calendar,
+   upcoming banner and lists. Tokens only. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Design header: crumbs + greeting + office line + Add Holiday --------- */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* The design's breadcrumb trail: Workspace › Settings › Holidays & Time-off */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.crumbLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.crumbLink:hover {
+  color: var(--color-primary);
+}
+
+.crumbSep {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.crumbHere {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.headTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.headSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.headActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.addTop {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addTop:hover {
+  background: var(--color-primary-hover);
+}
+
+.yearRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.yearChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.yearChip[data-active="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+.currentMark {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.yearChip[data-active="true"] .currentMark {
+  background: var(--color-on-primary-soft);
+  color: var(--color-text-on-color);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface-card);
+  padding: 18px 20px;
+}
+
 .failed,
 .empty {
-  margin: 0;
-  font-size: var(--font-size-sm);
+  margin: 4px 0;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 
@@ -9,22 +158,542 @@
   color: var(--color-danger);
 }
 
-.caption,
-.captionPast {
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
+/* --- Month calendar ------------------------------------------------------ */
+
+.calHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.calTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.calNav {
+  display: flex;
+  gap: 6px;
+}
+
+.navButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.calGrid {
+  margin-top: 12px;
+  display: grid;
+  /* minmax(0,1fr), not 1fr: a nowrap holiday chip inflates its column's
+     min-content and the 7 columns go unequal — every box must be the same
+     size, the chip trims instead (owner rule 2026-11-26). */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekday {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: center;
   letter-spacing: 0.04em;
+}
+
+.cell {
+  position: relative;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
+  border-radius: 10px;
+  min-height: 62px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  /* The ornament bleeds to the cell edges — clip it to the rounded box. */
+  overflow: hidden;
+}
+
+.cell:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-primary-soft);
+}
+
+.cell[data-today="true"] {
+  border-color: var(--color-primary);
+}
+
+/* --- Cell materials (research round 2026-11-26: flat tints, hairline
+   patterns, a ring — never illustrations; one device per state, all token
+   colours so the day number stays the loudest element) --------------------- */
+
+/* Weekly off: sunken tint + a soft 2px dot grid on 10px spacing — the
+   "resting" texture, near-invisible at arm's length. After .cell:hover so
+   it wins the source-order tie at equal specificity. */
+.cell[data-off="true"] {
+  background-color: var(--color-surface-sunken);
+  background-image: radial-gradient(var(--color-border-default) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.cell[data-off="true"]:hover {
+  border-color: var(--color-border-focus);
+  background-color: var(--color-surface-sunken);
+  background-image: radial-gradient(var(--color-border-default) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+/* Holiday: the primary tint plus a 3px accent bar on the cell's left edge —
+   the semantic "this day is different" cue, distinct from the weekend's
+   texture. Declared after the off rule so a holiday falling on a weekly off
+   wears the holiday material. */
+.cell[data-holiday="true"] {
+  background-color: var(--color-primary-soft);
+  background-image: none;
+}
+
+.cell[data-holiday="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--color-primary);
+}
+
+.cell[data-holiday="true"]:hover {
+  border-color: var(--color-border-focus);
+  background-color: var(--color-primary-soft);
+  background-image: none;
+}
+
+/* Today: a ring, never a pattern — patterns compete with "today"; the ring
+   is the convention and wins the hierarchy over any tint. */
+.cell[data-today="true"] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.cellDay {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.cellHoliday {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: 999px;
+  padding: 2px 7px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calFoot {
+  margin-top: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.legend {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-body);
+}
+
+.legendDot {
+  color: var(--color-primary);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+/* --- Total paid holidays card -------------------------------------------- */
+
+.totalCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface-card);
+  padding: 16px 20px;
+}
+
+.totalIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.totalEyebrow {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.yearTag {
+  margin-left: 4px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.totalSub {
+  margin: 3px 0 0;
+  font-size: 12.5px;
   color: var(--color-text-muted);
 }
 
-.captionPast {
-  margin-top: var(--space-4);
+.totalDays {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text-strong);
+  white-space: nowrap;
 }
 
-.chips {
+/* --- Long weekends card --------------------------------------------------- */
+
+.weekendHead {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 12px;
+}
+
+.weekendIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--palette-amber-50);
+  color: var(--palette-amber-500);
+  flex-shrink: 0;
+}
+
+.weekendTag {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* The "How?" chip beside the tag — opens the explainer sheet. */
+.howChip {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.howChip:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.weekendTitle {
+  margin: 14px 0 4px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.weekendList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weekendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13.5px;
+}
+
+.weekendName {
+  font-weight: 600;
+  min-width: 0;
+}
+
+.weekendChip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.tip {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--palette-amber-600);
+}
+
+/* --- Upcoming-holiday banner ---------------------------------------------- */
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-radius: 14px;
+  padding: 18px 20px;
+  color: var(--color-text-on-color);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-gradient-start),
+    var(--color-primary-gradient-end)
+  );
+}
+
+.bannerEyebrow {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-on-primary-faint);
+}
+
+.bannerName {
+  margin: 6px 0 2px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.bannerSub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-on-primary-faint);
+}
+
+.bannerCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  min-height: 74px;
+  border-radius: 12px;
+  background: var(--color-on-primary-soft);
+  border: 1px solid var(--color-on-primary-soft);
+}
+
+.bannerIn {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.bannerDays {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+/* --- Upcoming / past lists ------------------------------------------------ */
+
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.countTag {
+  margin-left: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: 999px;
+  padding: 2px 9px;
+  vertical-align: middle;
+}
+
+.seeAll {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.rows {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.dayBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.dayMon {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dayNum {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.officeTag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: 999px;
+  padding: 1px 8px;
+  align-self: flex-start;
+}
+
+.rowActions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.linkish {
+  border: none;
+  background: none;
+  color: var(--color-text-link);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.linkish:hover {
+  background: var(--color-primary-soft);
+}
+
+.pastList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pastRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: var(--color-surface-page);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.pastTick {
+  color: var(--color-status-done-solid);
+  font-weight: 700;
+}
+
+/* --- Narrow screens -------------------------------------------------------- */
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

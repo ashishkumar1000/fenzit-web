@@ -373,11 +373,49 @@ export const routes: RouteObject[] = [
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([
                 import("../pages/AdminHolidaysPage"),
-                import("../features/admin/adminBrowseLoaders"),
+                import("../features/admin/holidayLoaders"),
               ]);
               return {
                 Component: page.AdminHolidaysPage,
                 loader: loaderModule.adminHolidaysLoader,
+                action: loaderModule.adminHolidayAction,
+              };
+            },
+          },
+          {
+            // The holiday calendar's full-list view (2026-11-26): a flat
+            // sibling — the same overview loader, plus the inspector
+            // sidebar's impact facts on ?inspect=<date>. Row writes post to
+            // this route's own action (the same function).
+            path: "company/holidays/schedule",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/HolidaysSchedulePage"),
+                import("../features/admin/holidayLoaders"),
+              ]);
+              return {
+                Component: page.HolidaysSchedulePage,
+                loader: loaderModule.adminHolidayScheduleLoader,
+                action: loaderModule.adminHolidayAction,
+              };
+            },
+          },
+          {
+            // The holidays section's bulk-upload tab (2026-11-26): the
+            // download/fill/upload flow. Its own loader adds the WHOLE
+            // calendar's dates so the confirm popup can mark each sheet row
+            // new or already-there; the upload itself posts the .xlsx
+            // straight to BE from the page.
+            path: "company/holidays/upload",
+            lazy: async () => {
+              const [page, loaderModule] = await Promise.all([
+                import("../pages/AdminHolidayUploadPage"),
+                import("../features/admin/holidayLoaders"),
+              ]);
+              return {
+                Component: page.AdminHolidayUploadPage,
+                loader: loaderModule.adminHolidayUploadLoader,
+                action: loaderModule.adminHolidayAction,
               };
             },
           },

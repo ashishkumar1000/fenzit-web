@@ -1,0 +1,252 @@
+/* The add/edit holiday dialog — tokens only, no raw hex (2026-11-26). */
+
+.dialog {
+  /* The global `* { margin: 0 }` reset kills the native dialog's auto
+     centering — put it back so the sheet floats mid-page. */
+  margin: auto;
+  width: min(560px, calc(100vw - 32px));
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 24px 64px rgba(17, 24, 39, 0.24);
+  color: var(--color-text-strong);
+  background: var(--color-surface-card);
+}
+
+.dialog::backdrop {
+  background: var(--color-scrim);
+  backdrop-filter: blur(4px);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.headerIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.hint {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.close:hover {
+  background: var(--color-surface-sunken);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.required {
+  color: var(--color-danger);
+  font-style: normal;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.input {
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text-strong);
+  background: var(--color-surface-card);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+.dateBox {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  margin: 0;
+  background: var(--color-surface-page);
+}
+
+.dateLegend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.dateRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.miniLabel {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.dateFact {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.factTag {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-status-done-fg);
+  background: var(--color-status-done-bg);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.dateNote {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 10px;
+}
+
+.offices {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.officesMeta {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: var(--color-text-link);
+  text-align: right;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chip[data-on="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-color);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 14px;
+}
+
+.quietButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.saveButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  border-radius: 10px;
+  padding: 9px 20px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saveButton:hover:enabled {
+  background: var(--color-primary-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

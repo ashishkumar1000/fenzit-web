@@ -1,0 +1,654 @@
+/* The bulk-upload page (2026-11-26) — the download/fill/upload explainer and
+   the dropzone. Tokens only, same card language as the rest of the section. */
+
+.card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  background: var(--color-surface-card);
+  padding: 18px 20px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.panelSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* --- The three steps -------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-sunken);
+  padding: 12px 14px;
+}
+
+.stepNum {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.stepTitle {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.stepText {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* The simplified copy's bullet lists under each step. */
+.stepList {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.stepButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  /* Full card width, pinned to the card's bottom edge — the stretched
+     stepInner above has the spare space. The count caption rides along above
+     it. The negative left margin walks the button back out over the number
+     column (24px circle + 10px flex gap) so its side gaps match the card's
+     14px padding on BOTH sides. */
+  align-self: stretch;
+  margin: auto 0 0 calc(-1 * (24px + 10px));
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stepButton:hover {
+  filter: brightness(1.06);
+}
+
+.stepButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* The step bullets take the house colour — browser-default markers read as
+   unfinished next to the drawn glyphs everywhere else. */
+.stepList li::marker {
+  color: var(--color-primary);
+}
+
+/* The heading's classification chip ("Batch Processing"). */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.titleChip {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* The Safe Preview promise under the intro. */
+.safeLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-primary);
+}
+
+.safeLine strong {
+  font-weight: 700;
+}
+
+.safeLine span {
+  color: var(--color-text-body);
+}
+
+/* Each step's content is a column that stretches to the card's full height so
+   bottom chips (margin-top: auto) pin to the card's bottom edge. */
+.stepInner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  align-self: stretch;
+}
+
+/* The inline format chip (YYYY-MM-DD) — monospace because it names bytes. */
+.dateChip {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+/* The "Updating an existing holiday" inset note in step 2. */
+.updateCallout {
+  margin: 12px 0 0;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.updateCallout strong {
+  color: var(--color-text-body);
+}
+
+/* Step 3's pinned green validation marker — full card width, bottom edge, with
+   the same walk-back over the number column as the download button. */
+.validChip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  align-self: stretch;
+  margin: auto 0 0 calc(-1 * (24px + 10px));
+  padding: 8px 14px;
+  border: 1px solid var(--color-status-done-border);
+  background: var(--color-status-done-bg);
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-status-done-fg);
+}
+
+/* The download count caption under the primary button. It walks back over the
+   number column (24px circle + 10px flex gap) so its left edge matches the
+   full-width button above it; card 3 renders an invisible twin of this block
+   to keep the green chip on the button's bottom line. */
+.stepCaption {
+  margin: 8px 0 0 calc(-1 * (24px + 10px));
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+/* --- The dropzone ------------------------------------------------------------ */
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
+  min-height: 120px;
+  border: 1.5px dashed var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-surface-card);
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzoneOver {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.dropzoneBusy {
+  border-color: var(--color-border-focus);
+  cursor: progress;
+}
+
+.dropzoneTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.dropzoneSub {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.dropzoneSub strong {
+  color: var(--color-text-body);
+}
+
+/* The cloud glyph sits in a small sunken tile, like an app icon. */
+.dropzoneTile {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-sunken);
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+/* "Browse Files" — a real button-looking pill inside the label-dropzone. */
+.dropzoneButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dropzone:hover .dropzoneButton {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.fileInput {
+  /* The label IS the dropzone — the input stays in the tree for the
+     keyboard/file-picker contract but paints nothing. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- The success card ---------------------------------------------------------- */
+
+.doneCard {
+  margin-top: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: var(--color-surface-sunken);
+  padding: 14px 16px;
+}
+
+.doneTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text-strong);
+}
+
+.doneList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.doneRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.doneDate {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 88px;
+}
+
+.doneName {
+  color: var(--color-text-body);
+}
+
+.doneNote {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.doneLink {
+  display: inline-block;
+  margin-top: 10px;
+  margin-right: 12px;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.doneLink:hover {
+  text-decoration: underline;
+}
+
+.againButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 10px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.againButton:hover {
+  background: var(--color-primary-soft);
+}
+
+/* --- The row-errors card --------------------------------------------------------- */
+
+.errorCard {
+  margin-top: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-danger, #dc2626);
+  border-radius: 12px;
+  background: var(--color-surface-sunken);
+  padding: 14px 16px;
+}
+
+.errorTitle {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.errorTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.errorTable th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.errorTable td {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-text-body);
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: top;
+}
+
+.errorTable td:last-child {
+  color: var(--color-text-strong);
+}
+
+.errorDate {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- The confirm popup --------------------------------------------------------- */
+
+.modal {
+  /* The global `* { margin: 0 }` reset kills the native dialog's auto
+     centering — put it back explicitly (the HolidayModal idiom). */
+  margin: auto;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-surface-card);
+  padding: 0;
+  width: min(880px, calc(100vw - 64px));
+  max-height: min(82vh, 900px);
+  /* The BODY scrolls its table area; the dialog box itself never scrolls —
+     title, warnings, and actions must stay visible at every row count. */
+  overflow: hidden;
+}
+
+.modal::backdrop {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+  padding: 22px 26px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modalSub {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+
+.modalScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 14px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+}
+
+.modalTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+}
+
+.modalTable th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface-card);
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.modalTable td {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--color-text-body);
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: top;
+}
+
+.modalDate {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.modalDesc {
+  color: var(--color-text-muted);
+}
+
+.badgeNew {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.badgeSkip {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background: var(--color-surface-sunken);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.badgeChanged {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-status-scheduled-fg);
+  background: var(--color-status-scheduled-bg);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+/* The "was: <old name>" echo under a changed row's name (and the rename
+ * arrow on the done card). */
+.badgeWas {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.modalWeekday {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* The mistake catches: stale sheet, big override batch, past dates, a name
+ * typed twice. Amber, plain words, never blocking. */
+.modalWarn {
+  flex: none;
+  margin-top: 12px;
+  border: 1px solid var(--color-status-scheduled-border);
+  background: var(--color-status-scheduled-bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--color-status-scheduled-fg);
+}
+
+.modalWarn ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.modalActions {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modalGhost {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalGhost:hover {
+  background: var(--color-surface-sunken);
+}
+
+.modalPrimary {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-color);
+  border-radius: 10px;
+  padding: 9px 18px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalPrimary:hover {
+  background: var(--color-primary-hover);
+}
+
+.modalPrimary:disabled,
+.modalGhost:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* --- Narrow screens ----------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}

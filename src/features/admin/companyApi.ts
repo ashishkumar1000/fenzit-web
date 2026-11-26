@@ -1,4 +1,5 @@
-import { apiFetch } from "../../services/api";
+import { apiFetch, ApiError } from "../../services/api";
+import { getApiBaseUrl } from "../../config/env";
 
 /**
  * Clients for the owner's Company section. Every endpoint already exists and
@@ -467,11 +468,173 @@ export interface HolidayRow {
   id: string;
   date: string;
   name: string;
+  /** Optional one-liner the schedule page renders (null when unset). */
+  description?: string | null;
+  /** 'all' (every office) or 'offices' (only officeIds) — absent on an
+   *  older backend, which behaves as 'all'. */
+  scope?: string;
+  officeIds?: string[];
+  /** Employees closed on THIS holiday's own date — the overview ships it
+   *  date-anchored so it always matches the inspector; absent on other
+   *  sources (the client then derives an approximation from today's
+   *  roster). */
+  employeesOff?: number;
 }
 
 export function fetchHolidays(token: string, signal?: AbortSignal): Promise<HolidayRow[]> {
   return apiFetch<HolidayRow[]>("/api/v1/attendance/holidays", {
     headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** GET /attendance/holidays/overview?year= — the console's year view: the
+ *  year's holidays with their offices, plus the CURRENT staff headcount per
+ *  office and the enrolled-but-office-less count, so the pages can say
+ *  "94 employees have off" without one fetch per row. The tenant's weekly
+ *  off defaults feed the long-break finder (empty days = no weekly off). */
+export interface HolidayOverview {
+  year: string;
+  holidays: HolidayRow[];
+  offices: { officeId: string; name: string; staffCount: number }[];
+  unassignedCount: number;
+  weeklyOffDefaults: { valid: string; days: number[] }[];
+}
+
+export function fetchHolidayOverview(
+  token: string,
+  year: string,
+  signal?: AbortSignal,
+): Promise<HolidayOverview> {
+  return apiFetch<HolidayOverview>(`/api/v1/attendance/holidays/overview?year=${year}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+/** GET /attendance/holidays/impact?date= — one date's facts for the
+ *  inspector sidebar: the holiday (null on a plain date), the approved-leave
+ *  overlap (the shipped affectedEmployees list), the tracked headcount and
+ *  the per-office staff counts with their closed flags. */
+export interface HolidayImpact {
+  date: string;
+  affectedEmployees: { employeeId: string; employeeName: string; avatarUrl: string | null }[];
+  holiday: HolidayRow | null;
+  approvedLeaveCount: number;
+  trackedCount: number;
+  perOffice: { officeId: string; name: string; staffCount: number; closed: boolean }[];
+  unassignedCount: number;
+}
+
+export function fetchHolidayImpact(
+  token: string,
+  date: string,
+  signal?: AbortSignal,
+): Promise<HolidayImpact> {
+  return apiFetch<HolidayImpact>(`/api/v1/attendance/holidays/impact?date=${date}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+}
+
+export function createHoliday(
+  token: string,
+  input: { date: string; name: string; description?: string | null; officeIds?: string[] },
+): Promise<HolidayRow> {
+  // No office chips picked = every office; the backend's scope gate requires
+  // the explicit word, so the modal's semantics travel as scope.
+  const officeIds = input.officeIds ?? [];
+  return apiFetch<HolidayRow>("/api/v1/attendance/holidays", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, officeIds, scope: officeIds.length > 0 ? "offices" : "all" }),
+  });
+}
+
+export function updateHoliday(
+  token: string,
+  id: string,
+  input: { date?: string; name?: string; description?: string | null; officeIds?: string[] },
+): Promise<HolidayRow> {
+  const officeIds = input.officeIds ?? [];
+  return apiFetch<HolidayRow>(`/api/v1/attendance/holidays/${id}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, officeIds, scope: officeIds.length > 0 ? "offices" : "all" }),
+  });
+}
+
+export function removeHoliday(token: string, id: string): Promise<void> {
+  return apiFetch<void>(`/api/v1/attendance/holidays/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+/** The MIME Excel sheets travel under — the bulk endpoints' body contract. */
+const HOLIDAY_XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+/** One problem row of a rejected bulk sheet — the 422 body's errors array. */
+export interface HolidayBulkRowError {
+  /** The sheet row the problem is on (row 1 = the header). */
+  row: number;
+  date: string | null;
+  name: string | null;
+  message: string;
+}
+
+/** GET /attendance/holidays/bulk-template — the .xlsx sheet to download,
+ *  fill and upload. The template is binary, so unlike the JSON calls above
+ *  this one reads a blob straight off the response. */
+export async function downloadHolidayTemplate(token: string, signal?: AbortSignal): Promise<Blob> {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/attendance/holidays/bulk-template`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: HOLIDAY_XLSX_MIME },
+    signal,
+  });
+  if (!response.ok) {
+    let errorCode: string | undefined;
+    try {
+      const body: unknown = await response.json();
+      if (typeof body === "object" && body !== null && "error_code" in body) {
+        errorCode = String((body as { error_code: unknown }).error_code);
+      }
+    } catch {
+      // A binary endpoint's failure may not be JSON — the status carries it.
+    }
+    throw new ApiError(response.status, `Request failed with status ${response.status}`, errorCode);
+  }
+  // A 200 that is not the spreadsheet (a proxy interstitial, a stale gateway
+  // page) would otherwise save as an unreadable .xlsx and burn the user's
+  // filling time before the upload fails.
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("spreadsheetml.sheet")) {
+    throw new ApiError(response.status, "The download did not return an Excel sheet.");
+  }
+  return response.blob();
+}
+
+/** POST /attendance/holidays/bulk — the filled sheet as a raw .xlsx body.
+ *  All-or-nothing: any bad row answers 422
+ *  ATTENDANCE_HOLIDAY_BULK_INVALID with the per-row errors on ApiError.body
+ *  and NOTHING was written. A row whose date already exists stays skipped
+ *  when identical; a changed name, description, or office set UPDATES that
+ *  holiday in place (the sheet is the edit surface) — `updates` names what
+ *  changed so the done card can say so. */
+export function bulkUploadHolidays(
+  token: string,
+  file: File,
+  signal?: AbortSignal,
+): Promise<{
+  created: number;
+  updated: number;
+  skipped: number;
+  holidays: HolidayRow[];
+  updates: HolidayRow[];
+}> {
+  return apiFetch("/api/v1/attendance/holidays/bulk", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": HOLIDAY_XLSX_MIME },
+    body: file,
     signal,
   });
 }
