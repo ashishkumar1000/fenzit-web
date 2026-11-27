@@ -59,6 +59,11 @@ function memberProfile(): Record<string, unknown> {
     avatarUrl: null,
     canCreateJobs: true,
     jobApprovalRequired: true,
+    managerId: null,
+    managerName: null,
+    chain: [],
+    headcount: 0,
+    directReports: 0,
     skills: [
       { id: "s-1", name: "Pipe Leak Repair" },
       { id: "s-2", name: "Drain Cleaning & Unclog" },
@@ -130,6 +135,9 @@ function route(url: string): Response {
   const parsed = new URL(url, "http://localhost");
   const path = parsed.pathname;
   if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+  // The roster read (Epic 24): the header's chain mark and the manager
+  // picker's candidates. The one member is the person being viewed.
+  if (path.endsWith("/members")) return jsonResponse([memberProfile()]);
   if (path.endsWith(`/members/${state.member.userId}`)) return jsonResponse(memberProfile());
   if (path.endsWith(`/members/${state.member.userId}/employment`))
     return jsonResponse(employmentRow());

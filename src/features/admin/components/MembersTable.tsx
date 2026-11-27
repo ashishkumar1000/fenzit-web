@@ -4,6 +4,7 @@ import { useEffect, useRef, type ComponentType } from "react";
 import type { MemberRow } from "../companyApi";
 import type { EmployeesActionResult, EmployeesFilters, MembersSort } from "../adminBrowseLoaders";
 import { employeesUrl } from "../employeesUrl";
+import { headcountLine, reportsToLine, roleMap } from "../memberHierarchy";
 import { CrownIcon, UserIcon, type ConsoleIconProps } from "../../../components/ui/consoleIcons";
 import { pushToast } from "../../../components/ui/toastStore";
 import { humanize } from "../status";
@@ -145,6 +146,24 @@ function JoinedCell({ row }: { row: MemberRow }) {
 }
 
 /**
+ * The read-only Reports-to cell (Epic 24, CAP-6): the upward chain with the
+ * top admin marked, and the headcount below the person. The edit lives on
+ * the member's record — a table row stays a place to scan, not a form.
+ */
+function ReportsToCell({ row, roles }: { row: MemberRow; roles: Map<string, string> }) {
+  const reports = headcountLine(row.headcount);
+  const value = reportsToLine(row, roles);
+  return (
+    <div className={styles.reportsTo}>
+      <span className={styles.reportsToValue} title={value}>
+        {value}
+      </span>
+      {reports !== null ? <span className={styles.reportsToCount}>{reports}</span> : null}
+    </div>
+  );
+}
+
+/**
  * The team table: the person (gradient tile, name, "You", email), their
  * contact, the owner's job-settings column (resend link for invited rows,
  * chip for active employees), the employment dialog's cell (payroll's
@@ -156,12 +175,17 @@ export function MembersTable({
   sort,
   filters,
   selfUserId,
+  directory,
 }: {
   rows: MemberRow[];
   sort: MembersSort;
   filters: EmployeesFilters;
   selfUserId: string;
+  /** The whole roster — only for the chain's `(Owner)` mark; a failed read
+   *  leaves plain names rather than hiding the chain. */
+  directory: MemberRow[];
 }) {
+  const roles = roleMap(directory);
   return (
     <table className={styles.table}>
       <thead>
@@ -182,6 +206,7 @@ export function MembersTable({
             <SortHeader label="Employee Code" column="code" sort={sort} filters={filters} />
           </th>
           <th scope="col">Role</th>
+          <th scope="col">Reports to</th>
           <th scope="col">Status</th>
           <th scope="col">Job Settings</th>
           <th scope="col">Employment Details</th>
@@ -230,6 +255,9 @@ export function MembersTable({
                   {role.Icon ? <role.Icon size={13} strokeWidth={2} /> : null}
                   {role.label}
                 </span>
+              </td>
+              <td>
+                <ReportsToCell row={m} roles={roles} />
               </td>
               <td>
                 <span className={styles.statusPill} data-status={m.status}>

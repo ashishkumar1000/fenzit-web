@@ -10,6 +10,8 @@ type ButtonProps = {
   onClick?: () => void;
   /** The id of text that says why the button is disabled, so screen readers hear it. */
   describedBy?: string;
+  /** Moves focus here when the element mounts — the confirm stage of a flow. */
+  autoFocus?: boolean;
   children: ReactNode;
 };
 
@@ -21,6 +23,7 @@ export function Button({
   disabled = false,
   onClick,
   describedBy,
+  autoFocus = false,
   children,
 }: ButtonProps) {
   const variantClass = variant === "primary" ? styles.primary : styles.secondary;
@@ -32,6 +35,7 @@ export function Button({
       disabled={disabled}
       onClick={onClick}
       aria-describedby={describedBy}
+      autoFocus={autoFocus}
     >
       {children}
     </button>

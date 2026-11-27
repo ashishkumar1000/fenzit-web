@@ -1,11 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { jsonResponse, setRespond } from "../testing/fetchMock";
+import { jsonResponse, sentRequests, setRespond } from "../testing/fetchMock";
 import {
   lastPageRequest,
   renderAt,
+  row,
   standard,
   setUpEmployeesPageTests,
+  team,
 } from "../testing/employeesPageKit";
 
 // The Employees page's dialogs and controls: the approval switch that waits on
@@ -109,5 +111,139 @@ describe("Employees: the page heading", () => {
     renderAt("/admin/company/employees");
     await screen.findByText("Asha V");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+});
+
+describe("Employees: the invite dialog's optional reporting manager", () => {
+  const VIEWER_ID = "11111111-1111-4111-8111-111111111111";
+
+  const INVITE_OK = jsonResponse({
+    invite_id: "inv-1",
+    employee_code: "EMP-009",
+    sms_status: "sent",
+  });
+
+  function sentInvite(): { body: Record<string, unknown> } | undefined {
+    return sentRequests().find((request) => request.url.endsWith("/auth/invite")) as
+      { body: Record<string, unknown> } | undefined;
+  }
+
+  async function openInvite(): Promise<HTMLDialogElement> {
+    renderAt("/admin/company/employees");
+    await screen.findByText("Asha V");
+    fireEvent.click(screen.getByRole("button", { name: "Invite Employee" }));
+    return document.querySelector("dialog[open]") as HTMLDialogElement;
+  }
+
+  function fill(dialog: HTMLDialogElement): void {
+    fireEvent.change(within(dialog).getByLabelText("Employee Name"), {
+      target: { value: "Meera" },
+    });
+    fireEvent.change(within(dialog).getByLabelText("Phone Number"), {
+      target: { value: "9812345678" },
+    });
+  }
+
+  it("posts managerId only when a manager is chosen", async () => {
+    setRespond((url) => (url.endsWith("/auth/invite") ? INVITE_OK : standard(url)));
+    const dialog = await openInvite();
+    // Before picking, the field reads its honest default and the helper says why.
+    expect(within(dialog).getByRole("button", { name: "Not set" })).toBeInTheDocument();
+    expect(within(dialog).getByText("Optional. You can change this later.")).toBeInTheDocument();
+    fill(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
+    await waitFor(() => expect(sentInvite()).toBeDefined());
+    expect(sentInvite()?.body).not.toHaveProperty("managerId");
+  });
+
+  it("carries the chosen manager and the picker's role word", async () => {
+    // The wire ids are UUIDs; a readable fixture id would be refused by the
+    // action's shape guard before any POST (that guard has its own test).
+    const vikas = row(VIEWER_ID, "Vikas T", "viewer", "active");
+    team.rows = [...team.rows.filter((r) => r.userId !== "u-v"), vikas];
+    setRespond((url) => (url.endsWith("/auth/invite") ? INVITE_OK : standard(url)));
+    const dialog = await openInvite();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    const search = within(dialog).getByLabelText("Search your team");
+    fireEvent.change(search, { target: { value: "Vikas" } });
+    // The viewer is offered with the role word, never a database slug.
+    expect(within(dialog).getByText(`E-${VIEWER_ID} · Viewer`)).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByLabelText(/Vikas T/));
+    // D13: the viewer note is a neutral fact, shown before anything saves.
+    expect(
+      within(dialog).getByText(
+        "Viewers can't normally see leave or job requests. As a reporting manager, they will see their team's and can decide them.",
+      ),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Vikas T" })).toBeInTheDocument();
+    fill(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
+    await waitFor(() => expect(sentInvite()).toBeDefined());
+    expect(sentInvite()?.body).toMatchObject({ managerId: VIEWER_ID });
+  });
+
+  it("keeps the roster failure honest and still lets the invite go without a manager", async () => {
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/members")) {
+        return jsonResponse({ error_code: "INTERNAL_SERVER_ERROR", message: "boom" }, 500);
+      }
+      if (path.endsWith("/auth/invite")) return INVITE_OK;
+      return standard(url);
+    });
+    const dialog = await openInvite();
+    const row = within(dialog).getByRole("button", { name: "Not set" });
+    // The row stays reachable so the picker's own Try Again can be used; the
+    // hint still says why the roster is missing.
+    expect(row).toBeEnabled();
+    expect(within(dialog).getByText("Reports to can't be set right now.")).toBeInTheDocument();
+    fireEvent.click(row);
+    expect(within(dialog).getByText("We could not load your team. Try again.")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Try Again" })).toBeInTheDocument();
+    fill(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
+    await waitFor(() => expect(sentInvite()).toBeDefined());
+    expect(sentInvite()?.body).not.toHaveProperty("managerId");
+  });
+
+  it("shows the mapped refusal verbatim and keeps the dialog open", async () => {
+    team.rows = [
+      ...team.rows.filter((r) => r.userId !== "u-v"),
+      row(VIEWER_ID, "Vikas T", "viewer", "active"),
+    ];
+    setRespond((url) => {
+      if (url.endsWith("/auth/invite"))
+        return jsonResponse({ error_code: "MANAGER_NOT_ACTIVE", message: "developer text" }, 422);
+      return standard(url);
+    });
+    const dialog = await openInvite();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    fireEvent.click(within(dialog).getByLabelText(/Vikas T/));
+    fill(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
+    expect(
+      await within(dialog).findByText(
+        "That person is not an active member of the company, so they cannot be a reporting manager.",
+      ),
+    ).toBeInTheDocument();
+    expect(dialog.open).toBe(true);
+  });
+
+  it("Enter in the picker's search filters, never sends the invitation", async () => {
+    setRespond((url) => (url.endsWith("/auth/invite") ? INVITE_OK : standard(url)));
+    const dialog = await openInvite();
+    // Fill the form first: without a name and a phone the send button is
+    // disabled, so an empty form could never prove anything about Enter.
+    fill(dialog);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    const search = within(dialog).getByLabelText("Search your team");
+    fireEvent.change(search, { target: { value: "Vikas" } });
+    // The search filtered, so this is a live list and not an empty one.
+    expect(within(dialog).getByLabelText(/Vikas T/)).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Bunty R/)).toBeNull();
+    // Cancelled at the source, so the invite form around it never submits.
+    expect(fireEvent.keyDown(search, { key: "Enter" })).toBe(false);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(sentInvite()).toBeUndefined();
   });
 });

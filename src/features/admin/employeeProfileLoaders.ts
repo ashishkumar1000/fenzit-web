@@ -3,8 +3,8 @@ import { ApiError } from "../../services/api";
 import { clearSession } from "../../services/session";
 import { messageForError } from "../../utils/errorMessages";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
-import { fetchJobsPage, type JobsPageResult } from "./companyApi";
-import type { LeaveRow, Page } from "./companyApi";
+import { fetchJobsPage, fetchMembers, setManager, type JobsPageResult } from "./companyApi";
+import type { LeaveRow, MemberRow, Page } from "./companyApi";
 import { settle, type Slice } from "./slice";
 import { fetchEmployment, fetchStructures } from "./payrollApi";
 import type { EmploymentView } from "./payrollViews";
@@ -68,49 +68,44 @@ function recentMonths(count: number): string[] {
   return months;
 }
 
+/** The header facts every ok tab carries: who is signed in, the member, and
+ *  the roster (settled) that resolves the chain's `(Owner)` mark and feeds
+ *  the reporting-manager picker. */
+type EmployeeProfileOk = {
+  state: "ok";
+  selfUserId: string;
+  member: EmployeeProfile;
+  directory: Slice<MemberRow[]>;
+};
+
 export type EmployeeProfileData =
   | { state: "failed"; tab: EmployeeProfileTab }
   | { state: "not-found" }
-  | {
-      state: "ok";
-      selfUserId: string;
+  | (EmployeeProfileOk & {
       tab: "master";
-      member: EmployeeProfile;
       employment: Slice<EmploymentView>;
-    }
-  | {
-      state: "ok";
-      selfUserId: string;
+    })
+  | (EmployeeProfileOk & {
       tab: "jobs";
-      member: EmployeeProfile;
       jobs: Slice<JobsPageResult>;
-    }
-  | {
-      state: "ok";
-      selfUserId: string;
+    })
+  | (EmployeeProfileOk & {
       tab: "attendance";
-      member: EmployeeProfile;
       month: string;
       enrolment: Slice<EnrolmentRow | null>;
       office: Slice<OfficeDetail | null>;
       punches: Slice<PunchRow[]>;
-    }
-  | {
-      state: "ok";
-      selfUserId: string;
+    })
+  | (EmployeeProfileOk & {
       tab: "leave";
-      member: EmployeeProfile;
       balances: Slice<LeaveBalance[]>;
       requests: Slice<Page<LeaveRow>>;
-    }
-  | {
-      state: "ok";
-      selfUserId: string;
+    })
+  | (EmployeeProfileOk & {
       tab: "payroll";
-      member: EmployeeProfile;
       structures: Slice<SalaryStructureView[]>;
       payslips: Slice<PayslipRow[]>;
-    };
+    });
 
 export async function employeeProfileLoader({
   request,
@@ -121,6 +116,12 @@ export async function employeeProfileLoader({
   const userId = params.userId ?? "";
   try {
     const { token, me } = await requireConsoleRole(request, ["owner"]);
+    // The roster read runs alongside the member read: the header's chain mark
+    // and the manager picker both need it, and it can never blank the page.
+    const directory = settle(() => fetchMembers(token, request.signal));
+    // The not-found return below never awaits this slice. `settle` re-throws a
+    // dead session, and an unobserved rejection here would hide that redirect.
+    void directory.catch(() => undefined);
     // The header member read is the page's spine — a stale or foreign id is
     // its own honest state ("nobody here"), not a failed page. A malformed
     // id never reaches the member query (the BE's ParseUUIDPipe answers 400
@@ -134,6 +135,7 @@ export async function employeeProfileLoader({
       }
       throw error;
     }
+    const roster = await directory;
 
     switch (tab) {
       case "master": {
@@ -142,6 +144,7 @@ export async function employeeProfileLoader({
           selfUserId: me.id,
           tab,
           member,
+          directory: roster,
           employment: await settle(() => fetchEmployment(token, userId, request.signal)),
         };
       }
@@ -151,6 +154,7 @@ export async function employeeProfileLoader({
           selfUserId: me.id,
           tab,
           member,
+          directory: roster,
           jobs: await settle(() =>
             fetchJobsPage(token, { page: 1, pageSize: 50, technicianId: userId }, request.signal),
           ),
@@ -178,14 +182,32 @@ export async function employeeProfileLoader({
         const punches: Slice<PunchRow[]> = punchesResult.ok
           ? { ok: true, data: punchesResult.data.punches }
           : { ok: false };
-        return { state: "ok", selfUserId: me.id, tab, member, month, enrolment, office, punches };
+        return {
+          state: "ok",
+          selfUserId: me.id,
+          tab,
+          member,
+          directory: roster,
+          month,
+          enrolment,
+          office,
+          punches,
+        };
       }
       case "leave": {
         const [balances, requests] = await Promise.all([
           settle(() => fetchLeaveBalances(token, userId, request.signal)),
           settle(() => fetchEmployeeLeave(token, userId, request.signal)),
         ]);
-        return { state: "ok", selfUserId: me.id, tab, member, balances, requests };
+        return {
+          state: "ok",
+          selfUserId: me.id,
+          tab,
+          member,
+          directory: roster,
+          balances,
+          requests,
+        };
       }
       default: {
         // The payslips endpoint answers a whole month at once; the profile
@@ -208,6 +230,7 @@ export async function employeeProfileLoader({
           selfUserId: me.id,
           tab,
           member,
+          directory: roster,
           structures: await settleStructures(token, userId, request.signal),
           payslips,
         };
@@ -242,25 +265,39 @@ async function settleStructures(
   }
 }
 
-/** ── The profile's own action: park or reinstate the member ───────────── */
+/** ── The profile's own actions: park/reinstate, and the reporting manager ── */
 
 export type EmployeeActivateResult =
-  { state: "done"; status: string } | { state: "error"; message: string };
+  | { kind: "activate"; state: "done"; status: string }
+  | { kind: "activate"; state: "error"; message: string };
+
+export type EmployeeManagerResult =
+  | { kind: "manager"; state: "done"; userId: string; managerId: string | null }
+  | { kind: "manager"; state: "error"; message: string };
+
+export type EmployeeProfileActionResult = EmployeeActivateResult | EmployeeManagerResult;
 
 export async function employeeProfileAction({
   request,
   params,
-}: ActionFunctionArgs): Promise<EmployeeActivateResult> {
+}: ActionFunctionArgs): Promise<EmployeeProfileActionResult> {
   const form = await request.formData();
-  if (form.get("intent") !== "activate") {
-    return { state: "error", message: "We could not understand this request. Please try again." };
-  }
   const userId = params.userId ?? "";
+  if (form.get("intent") === "manager") {
+    return saveManager(request, userId, form);
+  }
+  if (form.get("intent") !== "activate") {
+    return {
+      kind: "activate",
+      state: "error",
+      message: "We could not understand this request. Please try again.",
+    };
+  }
   const active = form.get("active") === "true";
   try {
     const { token } = await requireConsoleRole(request, ["owner"]);
     const result = await setMemberActive(token, userId, active, request.signal);
-    return { state: "done", status: result.status };
+    return { kind: "activate", state: "done", status: result.status };
   } catch (error) {
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {
@@ -278,9 +315,45 @@ export async function employeeProfileAction({
     ) {
       const errBody = error.body as { message?: unknown } | undefined;
       if (errBody !== undefined && typeof errBody.message === "string" && errBody.message !== "") {
-        return { state: "error", message: errBody.message };
+        return { kind: "activate", state: "error", message: errBody.message };
       }
     }
-    return { state: "error", message: messageForError(error) };
+    return { kind: "activate", state: "error", message: messageForError(error) };
+  }
+}
+
+/** The manager save (Epic 24, CAP-6): "" clears the pointer, an id assigns.
+ *  Every refusal is mapped by `error_code` — the four tree codes have their
+ *  own sentences, so the dialog never shows a developer message. */
+async function saveManager(
+  request: Request,
+  userId: string,
+  form: FormData,
+): Promise<EmployeeManagerResult> {
+  const raw = form.get("managerId");
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (
+    trimmed !== "" &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed)
+  ) {
+    return {
+      kind: "manager",
+      state: "error",
+      message: "Please choose a reporting manager from the list.",
+    };
+  }
+  const managerId = trimmed === "" ? null : trimmed;
+  try {
+    const { token } = await requireConsoleRole(request, ["owner"]);
+    await setManager(token, userId, managerId, request.signal);
+    return { kind: "manager", state: "done", userId, managerId };
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (isAuthError(error)) {
+      clearSession();
+      throw redirect("/login");
+    }
+    if (request.signal.aborted) throw error;
+    return { kind: "manager", state: "error", message: messageForError(error) };
   }
 }

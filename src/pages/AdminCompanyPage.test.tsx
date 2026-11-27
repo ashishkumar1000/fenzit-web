@@ -134,6 +134,11 @@ const fullMembers: MemberRow[] = [
     createdAt: "2026-10-21T00:00:00Z",
     canCreateJobs: true,
     jobApprovalRequired: true,
+    managerId: null,
+    managerName: null,
+    chain: [],
+    headcount: 0,
+    directReports: 0,
   },
   {
     userId: "u-2",
@@ -146,6 +151,11 @@ const fullMembers: MemberRow[] = [
     createdAt: "2026-10-21T00:00:00Z",
     canCreateJobs: false,
     jobApprovalRequired: false,
+    managerId: null,
+    managerName: null,
+    chain: [],
+    headcount: 0,
+    directReports: 0,
   },
 ];
 

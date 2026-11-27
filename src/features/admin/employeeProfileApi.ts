@@ -1,5 +1,5 @@
 import { apiFetch } from "../../services/api";
-import type { LeaveRow, Page } from "./companyApi";
+import type { LeaveRow, MemberHierarchy, Page } from "./companyApi";
 
 /**
  * Clients for one employee's profile page (the `company/employees/:userId`
@@ -10,7 +10,7 @@ import type { LeaveRow, Page } from "./companyApi";
  */
 
 /** One member of the company, as GET /members/:userId answers (plus skills). */
-export interface EmployeeProfile {
+export interface EmployeeProfile extends MemberHierarchy {
   userId: string;
   name: string | null;
   email: string | null;

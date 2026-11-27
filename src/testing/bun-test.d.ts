@@ -7,6 +7,7 @@ declare module "bun:test" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Matchers<T = unknown> {
     toBeInTheDocument(): void;
+    toBeChecked(): void;
     toBeDisabled(): void;
     toBeEnabled(): void;
     toHaveAttribute(name: string, value?: unknown): void;

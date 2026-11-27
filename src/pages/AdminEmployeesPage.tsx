@@ -1,4 +1,4 @@
-import { Link, useLoaderData, useLocation, useNavigation } from "react-router";
+import { Link, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
 import type { adminEmployeesLoader } from "../features/admin/adminBrowseLoaders";
 import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
 import { MembersTable } from "../features/admin/components/MembersTable";
@@ -37,6 +37,7 @@ export function AdminEmployeesPage() {
   const data = useLoaderData<typeof adminEmployeesLoader>();
   const navigation = useNavigation();
   const location = useLocation();
+  const revalidator = useRevalidator();
 
   if (data.state === "failed") {
     return (
@@ -116,7 +117,14 @@ export function AdminEmployeesPage() {
           </p>
         </div>
         <div className={styles.pageActions}>
-          <AddEmployeeControl countries={countries} />
+          <AddEmployeeControl
+            countries={countries}
+            directory={data.directory.ok ? data.directory.data : []}
+            directoryFailed={!data.directory.ok}
+            retryDirectory={() => {
+              if (revalidator.state === "idle") void revalidator.revalidate();
+            }}
+          />
           <ExportCsvButton />
         </div>
       </header>
@@ -217,6 +225,7 @@ export function AdminEmployeesPage() {
                 sort={filters.sort}
                 filters={filters}
                 selfUserId={selfUserId}
+                directory={data.directory.ok ? data.directory.data : []}
               />
             </div>
             <footer className={styles.tableFooter}>

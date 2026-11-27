@@ -37,3 +37,57 @@
   display: grid;
   gap: var(--space-1);
 }
+
+/* Epic 24 — the optional reporting-manager row. It reads as one quiet field:
+   label, the current value as the control, then the hint. */
+.managerField {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.managerLabel {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.managerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-size: var(--font-size-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.managerRow:hover:not(:disabled) {
+  background: var(--color-surface-sunken);
+}
+
+.managerRow:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.managerRow:disabled {
+  color: var(--color-text-disabled);
+  background: var(--color-surface-sunken);
+  cursor: not-allowed;
+}
+
+.managerHint {
+  margin: 0;
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}

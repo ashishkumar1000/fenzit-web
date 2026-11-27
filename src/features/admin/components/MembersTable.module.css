@@ -172,6 +172,31 @@ a.name:hover {
   background: var(--color-surface-sunken);
 }
 
+/* The Reports-to cell (Epic 24): the chain wraps to two lines at most, and a
+   long branch name truncates with the full chain in the title. */
+.reportsTo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 14rem;
+}
+
+.reportsToValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.reportsToCount {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
 /* Status pills with the leading dot: Active emerald, Invited amber. */
 .statusPill {
   display: inline-flex;

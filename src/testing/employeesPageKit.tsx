@@ -42,6 +42,12 @@ export function row(
     createdAt: "2026-01-01T00:00:00Z",
     canCreateJobs,
     jobApprovalRequired,
+    // Epic 24 — the shipped hierarchy fields. Tests override them per case.
+    managerId: null as string | null,
+    managerName: null as string | null,
+    chain: [] as Array<{ userId: string; name: string }>,
+    headcount: 0,
+    directReports: 0,
   };
 }
 

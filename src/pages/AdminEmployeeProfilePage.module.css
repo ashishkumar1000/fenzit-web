@@ -172,13 +172,6 @@
   color: var(--color-text-body);
 }
 
-.dialog {
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: 0;
-  background: var(--color-surface-card);
-}
-
-.dialog::backdrop {
-  background: var(--color-backdrop-dark);
-}
+/* The employment dialog reuses the console's one dialog chrome
+   (JobSettingsDialog.module.css `.dialog` + the payroll `.wideDialog`), so a
+   page-local copy can never drift out of centring again. */

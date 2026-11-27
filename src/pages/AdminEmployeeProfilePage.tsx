@@ -17,6 +17,8 @@ import {
   EMPLOYMENT_RESOURCE_PATH,
   EmploymentDialog,
 } from "../features/admin/components/payroll/EmploymentDialog";
+import dialogStyles from "../features/admin/components/JobSettingsDialog.module.css";
+import employmentDialogStyles from "../features/admin/components/payroll/EmploymentDialog.module.css";
 import { Tabs } from "../features/admin/components/Tabs";
 import { Avatar } from "../features/admin/components/Avatar";
 import { Badge } from "../features/admin/components/Badge";
@@ -24,6 +26,7 @@ import { StatusBadge } from "../features/admin/components/Badge";
 import { Button } from "../components/ui/Button";
 import { LinkButton } from "../components/ui/LinkButton";
 import { MasterRecordPanel } from "../features/admin/components/employee/MasterRecordPanel";
+import { ReportingBlock } from "../features/admin/components/employee/ReportingBlock";
 import { ProfileJobsPanel } from "../features/admin/components/employee/ProfileJobsPanel";
 import { ProfileAttendancePanel } from "../features/admin/components/employee/ProfileAttendancePanel";
 import { ProfileLeavePanel } from "../features/admin/components/employee/ProfileLeavePanel";
@@ -92,7 +95,10 @@ export function AdminEmployeeProfilePage() {
   const { member, selfUserId } = data;
   const basePath = `/admin/company/employees/${member.userId}`;
   const activateBusy = activate.state !== "idle";
-  const activateError = activate.data?.state === "error" ? activate.data.message : null;
+  const activateError =
+    activate.data?.kind === "activate" && activate.data.state === "error"
+      ? activate.data.message
+      : null;
   // The panel region's load: the route refetches only when the addressed
   // tab or month moved (the route's shouldRevalidate serves everything
   // else), so only those moves stand the panel below the tab strip in —
@@ -135,6 +141,14 @@ export function AdminEmployeeProfilePage() {
                 + Add Job Title
               </button>
             </p>
+            <ReportingBlock
+              member={member}
+              directory={data.directory}
+              selfUserId={selfUserId}
+              retryRoster={() => {
+                if (revalidator.state === "idle") void revalidator.revalidate();
+              }}
+            />
             <div className={styles.badges}>
               {member.canCreateJobs ? <Badge label="Can Create Jobs" tone="primary" /> : null}
               {member.jobApprovalRequired ? (
@@ -246,7 +260,7 @@ export function AdminEmployeeProfilePage() {
       </SkeletonSlot>
       <dialog
         ref={dialogRef}
-        className={styles.dialog}
+        className={`${dialogStyles.dialog} ${employmentDialogStyles.wideDialog}`}
         aria-label={`Employment details for ${member.name ?? "employee"}`}
         onCancel={(event) => {
           if (dialogLocked) event.preventDefault();

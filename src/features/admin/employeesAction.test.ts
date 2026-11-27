@@ -20,6 +20,26 @@ function post(fields: Record<string, string>): ActionArgs {
 beforeEach(() => installFetchMock());
 afterEach(() => restoreFetchMock());
 
+describe("adminEmployeesAction: the invite's manager shape", () => {
+  const invite = {
+    intent: "invite",
+    name: "Meera",
+    countryCode: "+91",
+    phoneNumber: "9812345678",
+  };
+
+  it("refuses a managerId that is not an id, visibly and without a request", async () => {
+    const result = await adminEmployeesAction(post({ ...invite, managerId: "not-an-id" }));
+    expect(result).toMatchObject({
+      kind: "invite",
+      state: "error",
+      message: "Please choose a reporting manager from the list.",
+    });
+    // Never a silent drop: nothing left the browser with a mangled manager.
+    expect(sentRequests()).toHaveLength(0);
+  });
+});
+
 describe("adminEmployeesAction: the intent guard", () => {
   it.each([
     ["an unknown intent", { intent: "delete-everyone", userId: "u-b", canCreateJobs: "on" }],

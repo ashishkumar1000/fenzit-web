@@ -22,7 +22,27 @@ export interface PulseResponse {
   flags: { checkoutMissing: unknown[]; fakeLocationAttempt: unknown[] };
 }
 
-export interface MemberRow {
+/** One step up the reporting tree: the manager's id and their name. */
+export interface MemberChainLink {
+  userId: string;
+  name: string;
+}
+
+/**
+ * The hierarchy fields every member payload carries (Epic 24, CAP-1). `chain`
+ * is nearest-first ("Reports to Priya → Arjun (Owner)"); `headcount` counts
+ * everyone strictly below the member, `directReports` the immediate count —
+ * the re-parent confirmation needs that one.
+ */
+export interface MemberHierarchy {
+  managerId: string | null;
+  managerName: string | null;
+  chain: MemberChainLink[];
+  headcount: number;
+  directReports: number;
+}
+
+export interface MemberRow extends MemberHierarchy {
   userId: string;
   name: string | null;
   /** The linked login email, or null — shown under the name in the table. */
@@ -38,6 +58,24 @@ export interface MemberRow {
   /** Job switches (Epic 22, CAP-1) — meaningful for employees. */
   canCreateJobs: boolean;
   jobApprovalRequired: boolean;
+}
+
+/**
+ * Set who a member reports to (Epic 24, CAP-6). `null` clears the pointer and
+ * routes their filings to the admins; an admin can never be assigned one.
+ */
+export function setManager(
+  token: string,
+  userId: string,
+  managerId: string | null,
+  signal?: AbortSignal,
+): Promise<MemberRow> {
+  return apiFetch<MemberRow>(`/api/v1/members/${encodeURIComponent(userId)}/manager`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ managerId }),
+    signal,
+  });
 }
 
 /**
@@ -70,12 +108,19 @@ export interface InviteMemberResult {
 
 /** Invite one person to the company (POST /auth/invite): the backend creates
  *  the membership with its employee code and sends the invite SMS. The same
- *  endpoint the mobile app's add-employee screen uses. */
+ *  endpoint the mobile app's add-employee screen uses. `managerId` rides only
+ *  when chosen — an absent key leaves the new member unassigned. */
 export function inviteMember(
   token: string,
-  input: { countryCode: string; phoneNumber: string; name: string },
+  input: { countryCode: string; phoneNumber: string; name: string; managerId?: string },
   signal?: AbortSignal,
 ): Promise<InviteMemberResult> {
+  const body: { countryCode: string; phoneNumber: string; name: string; managerId?: string } = {
+    countryCode: input.countryCode,
+    phoneNumber: input.phoneNumber,
+    name: input.name,
+  };
+  if (input.managerId !== undefined && input.managerId !== "") body.managerId = input.managerId;
   return apiFetch<{
     invite_id: string;
     employee_code?: string | null;
@@ -83,7 +128,7 @@ export function inviteMember(
   }>("/api/v1/auth/invite", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(body),
     signal,
   }).then((row) => ({
     inviteId: row.invite_id,

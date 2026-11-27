@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { Info } from "lucide-react";
 import styles from "./TextInput.module.css";
 
@@ -26,6 +26,9 @@ type TextInputProps = {
   maxLength?: number;
   /** Keeps the label for screen readers only, when the screen already shows what the field is. */
   hideLabel?: boolean;
+  /** Extra key handling, e.g. stopping Enter in a search field from submitting
+   *  an enclosing form (the invite dialog's manager picker). */
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
 /**
@@ -51,6 +54,7 @@ export function TextInput({
   disabled = false,
   maxLength,
   hideLabel = false,
+  onKeyDown,
 }: TextInputProps) {
   const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null]
     .filter((part): part is string => part !== null)
@@ -80,6 +84,7 @@ export function TextInput({
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onKeyDown={onKeyDown}
           disabled={disabled}
           maxLength={maxLength}
           aria-invalid={error ? true : undefined}

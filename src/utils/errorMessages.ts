@@ -31,6 +31,22 @@ const MESSAGES_BY_CODE = new Map<string, string>([
   ],
   ["LEAVE_NOT_REVOKABLE", "Only leave that has not started yet can be revoked."],
   ["LEAVE_INVALID_TRANSITION", "That request has already moved on. The list has been refreshed."],
+  // Epic 24 — the reporting tree's refusals (CAP-1/CAP-6). The BE speaks these
+  // as plain English already, but the console maps the code so the invite and
+  // the profile dialog say the same thing (standards §6: never the raw text).
+  ["MEMBER_IS_ADMIN", "An owner sits at the top of the team and cannot report to anyone."],
+  [
+    "MANAGER_NOT_ACTIVE",
+    "That person is not an active member of the company, so they cannot be a reporting manager.",
+  ],
+  [
+    "HIERARCHY_CYCLE",
+    "That person already reports to this person, directly or through someone else.",
+  ],
+  [
+    "HIERARCHY_DEPTH",
+    "That would make the team more than 20 levels deep. Pick a manager higher up.",
+  ],
 ]);
 
 export const NO_COMPANY_MESSAGE =

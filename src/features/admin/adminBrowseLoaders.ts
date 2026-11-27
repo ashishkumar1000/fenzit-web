@@ -28,6 +28,7 @@ import {
   type MembersSort,
   type MembersStatusFilter,
   type MembersJobSettingFilter,
+  type MemberRow,
   type MonthlyEmployeeRow,
 } from "./companyApi";
 import {
@@ -621,6 +622,10 @@ export type EmployeesData =
       selfName: string | null;
       /** Country choices for the add-employee dialog's phone field. */
       countries: CountryCode[];
+      /** The whole roster (settled, never fatal): the `(Owner)` mark on a chain
+       *  and the invite's reporting-manager picker both need people outside
+       *  the current page. */
+      directory: Slice<MemberRow[]>;
     }
   | BrowseFail;
 
@@ -682,7 +687,7 @@ export async function adminEmployeesLoader({
   try {
     const { token, me } = await requireConsoleRole(request, ["owner"]);
     const filters = readEmployeesFilters(new URL(request.url));
-    const [result, countries] = await Promise.all([
+    const [result, countries, directory] = await Promise.all([
       fetchMembersPage(
         token,
         {
@@ -697,8 +702,19 @@ export async function adminEmployeesLoader({
         request.signal,
       ),
       loadCountries(request),
+      // Settled: the table's chain mark and the invite picker degrade without
+      // it, but the page must never blank because the roster read failed.
+      settle(() => fetchMembers(token, request.signal)),
     ]);
-    return { state: "ok", result, filters, selfUserId: me.id, selfName: me.name, countries };
+    return {
+      state: "ok",
+      result,
+      filters,
+      selfUserId: me.id,
+      selfName: me.name,
+      countries,
+      directory,
+    };
   } catch (error) {
     if (error instanceof Response) throw error;
     if (isAuthError(error)) {
@@ -754,9 +770,33 @@ export async function adminEmployeesAction({
           "Please enter the employee's name and a valid phone number (6 to 15 digits) before sending the invitation.",
       };
     }
+    // The optional reporting manager (Epic 24, CAP-6). A value that is not an
+    // id is refused visibly — never silently dropped, so the owner knows the
+    // invite that went out carries no manager.
+    const rawManagerId = form.get("managerId");
+    const managerId = typeof rawManagerId === "string" ? rawManagerId.trim() : "";
+    if (
+      managerId !== "" &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(managerId)
+    ) {
+      return {
+        kind: "invite",
+        state: "error",
+        message: "Please choose a reporting manager from the list.",
+      };
+    }
     try {
       const { token } = await requireConsoleRole(request, ["owner"]);
-      const result = await inviteMember(token, { countryCode, phoneNumber, name }, request.signal);
+      const result = await inviteMember(
+        token,
+        {
+          countryCode,
+          phoneNumber,
+          name,
+          ...(managerId !== "" ? { managerId } : {}),
+        },
+        request.signal,
+      );
       return {
         kind: "invite",
         state: "done",

@@ -1,0 +1,103 @@
+.root {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.group {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* The bounded box: a large roster scrolls here, never the whole dialog. */
+.list {
+  display: grid;
+  gap: var(--space-1);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.option:hover {
+  background: var(--color-surface-sunken);
+}
+
+.option:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.stale {
+  background: var(--color-surface-sunken);
+}
+
+.optionText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionName {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.optionMeta {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-3);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.notice {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.failed {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.failedText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

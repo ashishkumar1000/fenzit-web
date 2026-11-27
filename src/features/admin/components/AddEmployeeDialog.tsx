@@ -2,18 +2,31 @@ import { useFetcher } from "react-router";
 // eslint-disable-next-line no-restricted-imports -- the effect syncs the dialog lock (Esc/backdrop hold) while the save posts; no server reads here
 import { useEffect, useId, useRef, useState } from "react";
 import type { InviteResult } from "../adminBrowseLoaders";
+import type { MemberRow } from "../companyApi";
 import { smsOutcome } from "../smsOutcome";
 import { DEFAULT_DIAL_CODE, type CountryCode } from "../../../services/countryCodes";
 import { Spinner } from "../../../components/ui/Spinner";
 import { TextInput } from "../../../components/ui/TextInput";
 import { DialCodeSelect } from "../../../components/ui/DialCodeSelect";
+import { ManagerPicker } from "./ManagerPicker";
 import dialogStyles from "./JobSettingsDialog.module.css";
 import styles from "./AddEmployeeDialog.module.css";
 
 /** The top bar's "Invite employee" control. The dialog stays mounted so the
  *  click can always open it; the form inside remounts per open (the `key`),
  *  so a reopened dialog never shows the previous invite's result. */
-export function AddEmployeeControl({ countries }: { countries: CountryCode[] | undefined }) {
+export function AddEmployeeControl({
+  countries,
+  directory,
+  directoryFailed,
+  retryDirectory,
+}: {
+  countries: CountryCode[] | undefined;
+  /** The whole roster — the optional reporting manager's candidates. */
+  directory: MemberRow[];
+  directoryFailed: boolean;
+  retryDirectory: () => void;
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [openCount, setOpenCount] = useState(0);
   // Mid-send the dialog locks (CAP-5): a backdrop click or Esc cannot dismiss
@@ -48,6 +61,9 @@ export function AddEmployeeControl({ countries }: { countries: CountryCode[] | u
           <AddEmployeeForm
             key={openCount}
             countries={countries}
+            directory={directory}
+            directoryFailed={directoryFailed}
+            retryDirectory={retryDirectory}
             close={() => dialogRef.current?.close()}
             setLocked={setLocked}
           />
@@ -63,10 +79,16 @@ export function AddEmployeeControl({ countries }: { countries: CountryCode[] | u
  *  as Invited. */
 function AddEmployeeForm({
   countries,
+  directory,
+  directoryFailed,
+  retryDirectory,
   close,
   setLocked,
 }: {
   countries: CountryCode[];
+  directory: MemberRow[];
+  directoryFailed: boolean;
+  retryDirectory: () => void;
   close: () => void;
   setLocked: (locked: boolean) => void;
 }) {
@@ -75,6 +97,11 @@ function AddEmployeeForm({
   const [dialCode, setDialCode] = useState(DEFAULT_DIAL_CODE);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  // Epic 24, CAP-6 — the optional reporting manager. The id rides the POST
+  // only when chosen; the row opens the same picker the member record uses.
+  const [managerId, setManagerId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const managerName = directory.find((member) => member.userId === managerId)?.name ?? null;
   const busy = fetcher.state !== "idle";
   // The dialog's dismissals (backdrop, Esc) hold while the invite posts; the
   // unmount cleanup releases the lock when the form remounts per open.
@@ -154,6 +181,44 @@ function AddEmployeeForm({
               />
             }
           />
+          <div className={styles.managerField}>
+            <span className={styles.managerLabel}>Reports to</span>
+            <button
+              type="button"
+              className={styles.managerRow}
+              onClick={() => setPickerOpen((open) => !open)}
+              aria-expanded={pickerOpen}
+              aria-controls={`${titleId}-manager-picker`}
+              aria-describedby={`${titleId}-manager-hint`}
+              disabled={busy}
+            >
+              {managerName ?? "Not set"}
+            </button>
+            <p id={`${titleId}-manager-hint`} className={styles.managerHint}>
+              {directoryFailed
+                ? "Reports to can't be set right now."
+                : pickerOpen
+                  ? "Choose who this person reports to."
+                  : "Optional. You can change this later."}
+            </p>
+            {pickerOpen ? (
+              <div id={`${titleId}-manager-picker`}>
+                <ManagerPicker
+                  members={directory}
+                  memberId={null}
+                  selectedId={managerId}
+                  managerName={managerName}
+                  onSelect={setManagerId}
+                  // The picker owns the failed state (and its Try Again), so an
+                  // owner whose roster read failed can recover without closing
+                  // the dialog.
+                  rosterFailed={directoryFailed}
+                  onRetry={retryDirectory}
+                />
+              </div>
+            ) : null}
+          </div>
+          <input type="hidden" name="managerId" value={managerId ?? ""} />
           {error ? (
             <p className={dialogStyles.dialogError} role="alert">
               {error}
