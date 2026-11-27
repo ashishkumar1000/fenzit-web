@@ -123,7 +123,7 @@ export function sameManager(a: string | null, b: string | null): boolean {
 /**
  * What the pick changes before it saves (CAP-6). Only a member with direct
  * reports has a subtree whose routing moves with them; null otherwise.
- * Assigning says where it goes, clearing says who decides afterwards.
+ * Assigning says where it goes; the owner default is named for what it is.
  */
 export function reparentNotice(input: {
   memberName: string | null;
@@ -138,8 +138,9 @@ export function reparentNotice(input: {
   if (!Number.isFinite(directReports) || directReports <= 0) return null;
   const name = firstName(memberName);
   const reports = directReports === 1 ? "1 direct report" : `${directReports} direct reports`;
+  // Story 24-8: no manager is not a state — the company owner takes them.
   if (managerId === null) {
-    return `${name} will have no reporting manager, so their team's requests go to the company admins.`;
+    return `${name}'s ${reports} will now report to the company owner.`;
   }
   const target = managerId === selfUserId ? "you" : (managerName ?? "the chosen manager");
   return `${name}'s ${reports} will now report to ${target}.`;

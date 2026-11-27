@@ -276,19 +276,19 @@ describe("Employee profile: the Reporting-manager dialog", () => {
     expect(await screen.findByText("Ravi Kumar (Owner)")).toBeInTheDocument();
   });
 
-  it("explains the clear path and sends an explicit null", async () => {
+  it("sends the owner default as an explicit null, and says the team moves", async () => {
     renderProfile();
     await screen.findByText("Reports to");
     const dialog = openDialog();
-    fireEvent.click(within(dialog).getByLabelText(/No reporting manager/));
+    // Story 24-8: the no-manager choice is gone; the owner is the default.
+    fireEvent.click(within(dialog).getByLabelText(/The company owner/));
     fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     expect(
-      within(dialog).getByText(
-        "Asha will have no reporting manager, so their team's requests go to the company admins.",
-      ),
+      within(dialog).getByText("Asha's 2 direct reports will now report to the company owner."),
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm" }));
     await waitFor(() => expect(sentRequests().some((r) => r.method === "PATCH")).toBe(true));
+    // Null on the wire is the default request: the server resolves the owner.
     expect(sentRequests().find((r) => r.method === "PATCH")?.body).toEqual({ managerId: null });
   });
 

@@ -11,8 +11,8 @@ import { Button } from "../../../components/ui/Button";
 import styles from "./ManagerPicker.module.css";
 
 /**
- * The Reports-to picker (Epic 24, CAP-6): a search over the active roster, a
- * "No reporting manager" choice, and one radio per candidate. Candidates
+ * The Reports-to picker (Epic 24, CAP-6): a search over the active roster, the
+ * company-owner default, and one radio per candidate. Candidates
  * exclude the member themselves and everyone below them (the server's own
  * cycle rule); a stored manager who is no longer active stays visible as a
  * selected, non-selectable row so a save cannot silently clear the pointer.
@@ -86,7 +86,7 @@ export function ManagerPicker({
         onKeyDown={(event) => {
           if (event.key === "Enter") event.preventDefault();
         }}
-      />
+      />{" "}
       <fieldset
         className={styles.group}
         // The picker also renders inside the invite form; Enter anywhere in the
@@ -105,8 +105,8 @@ export function ManagerPicker({
               onChange={() => onSelect(null)}
             />
             <span className={styles.optionText}>
-              <span className={styles.optionName}>No reporting manager</span>
-              <span className={styles.optionMeta}>Their requests go to the company admins.</span>
+              <span className={styles.optionName}>The company owner</span>
+              <span className={styles.optionMeta}>The default when nobody else is chosen.</span>
             </span>
           </label>
           {stale !== null ? (

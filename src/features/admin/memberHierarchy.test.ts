@@ -214,9 +214,9 @@ describe("memberHierarchy: the re-parent confirmation", () => {
     ).toBe("Priya's 1 direct report will now report to Ravi Kumar.");
   });
 
-  it("explains where requests go when the pointer is cleared", () => {
+  it("says the team moves to the company owner when the pointer is cleared", () => {
     expect(reparentNotice({ ...base, managerId: null, managerName: null, directReports: 3 })).toBe(
-      "Priya will have no reporting manager, so their team's requests go to the company admins.",
+      "Priya's 3 direct reports will now report to the company owner.",
     );
   });
 

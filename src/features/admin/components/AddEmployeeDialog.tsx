@@ -192,14 +192,14 @@ function AddEmployeeForm({
               aria-describedby={`${titleId}-manager-hint`}
               disabled={busy}
             >
-              {managerName ?? "Not set"}
+              {managerName ?? "The company owner"}
             </button>
             <p id={`${titleId}-manager-hint`} className={styles.managerHint}>
               {directoryFailed
                 ? "Reports to can't be set right now."
                 : pickerOpen
                   ? "Choose who this person reports to."
-                  : "Optional. You can change this later."}
+                  : "Default. You can change this later."}
             </p>
             {pickerOpen ? (
               <div id={`${titleId}-manager-picker`}>

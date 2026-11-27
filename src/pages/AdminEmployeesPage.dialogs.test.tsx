@@ -148,8 +148,8 @@ describe("Employees: the invite dialog's optional reporting manager", () => {
     setRespond((url) => (url.endsWith("/auth/invite") ? INVITE_OK : standard(url)));
     const dialog = await openInvite();
     // Before picking, the field reads its honest default and the helper says why.
-    expect(within(dialog).getByRole("button", { name: "Not set" })).toBeInTheDocument();
-    expect(within(dialog).getByText("Optional. You can change this later.")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "The company owner" })).toBeInTheDocument();
+    expect(within(dialog).getByText("Default. You can change this later.")).toBeInTheDocument();
     fill(dialog);
     fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
     await waitFor(() => expect(sentInvite()).toBeDefined());
@@ -163,7 +163,7 @@ describe("Employees: the invite dialog's optional reporting manager", () => {
     team.rows = [...team.rows.filter((r) => r.userId !== "u-v"), vikas];
     setRespond((url) => (url.endsWith("/auth/invite") ? INVITE_OK : standard(url)));
     const dialog = await openInvite();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "The company owner" }));
     const search = within(dialog).getByLabelText("Search your team");
     fireEvent.change(search, { target: { value: "Vikas" } });
     // The viewer is offered with the role word, never a database slug.
@@ -192,7 +192,7 @@ describe("Employees: the invite dialog's optional reporting manager", () => {
       return standard(url);
     });
     const dialog = await openInvite();
-    const row = within(dialog).getByRole("button", { name: "Not set" });
+    const row = within(dialog).getByRole("button", { name: "The company owner" });
     // The row stays reachable so the picker's own Try Again can be used; the
     // hint still says why the roster is missing.
     expect(row).toBeEnabled();
@@ -217,7 +217,7 @@ describe("Employees: the invite dialog's optional reporting manager", () => {
       return standard(url);
     });
     const dialog = await openInvite();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "The company owner" }));
     fireEvent.click(within(dialog).getByLabelText(/Vikas T/));
     fill(dialog);
     fireEvent.click(within(dialog).getByRole("button", { name: "Send Invitation" }));
@@ -235,7 +235,7 @@ describe("Employees: the invite dialog's optional reporting manager", () => {
     // Fill the form first: without a name and a phone the send button is
     // disabled, so an empty form could never prove anything about Enter.
     fill(dialog);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Not set" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "The company owner" }));
     const search = within(dialog).getByLabelText("Search your team");
     fireEvent.change(search, { target: { value: "Vikas" } });
     // The search filtered, so this is a live list and not an empty one.
