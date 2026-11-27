@@ -1,0 +1,173 @@
+/* The employment form's rail, scrolling body and pinned footer. The dialog
+   box itself stays with JobSettingsDialog.module.css; this file carries only
+   the form's own layout. Tokens only — no raw colours, radii or spacing. */
+
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+/* One accent throughout: the active tab is the design system's soft tint
+   (primary-soft background, primary border, primary label), never a solid
+   fill — solid primary stays reserved for the primary action. */
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--color-text-strong);
+  border-color: var(--color-border-default);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--color-primary-soft);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  color: var(--color-primary);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.tabIcon {
+  flex: 0 0 auto;
+}
+
+/* The unsaved count on a tab. A tinted chip, not a solid primary badge:
+   counts are information, not actions. */
+.tabCount {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Only this row scrolls; the header, rail and footer stay in place. */
+.body {
+  overflow-y: auto;
+  min-height: 0;
+  padding: 0 var(--space-5) var(--space-5);
+  overscroll-behavior: contain;
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
+}
+
+.footerText {
+  display: grid;
+  flex: 1 1 100%;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* At counter widths the note takes its own line and the buttons sit below
+   it; from 560px they share the row. */
+@media (min-width: 560px) {
+  .footerText {
+    flex: 1 1 auto;
+  }
+}
+
+.footerNote {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.footerProblem {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-danger);
+}
+
+.confirmText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* The footer's actions are the form's primary controls on a phone; the
+   shared 36px button is below the touch minimum. */
+.footerActions .footerButton {
+  min-height: var(--touch-min);
+}
+
+.discardButton {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  color: var(--color-danger);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.discardButton:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.notFound {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}

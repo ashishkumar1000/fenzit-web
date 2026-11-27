@@ -13,10 +13,9 @@ import type {
   employeeProfileLoader,
 } from "../features/admin/employeeProfileLoaders";
 import type { payrollEmploymentLoader } from "../features/admin/payrollLoaders";
-import {
-  EMPLOYMENT_RESOURCE_PATH,
-  EmploymentDialog,
-} from "../features/admin/components/payroll/EmploymentDialog";
+import { EmploymentDialog } from "../features/admin/components/payroll/EmploymentDialog";
+import { EMPLOYMENT_RESOURCE_PATH } from "../features/admin/employmentResource";
+import type { EmploymentSection } from "../features/admin/employmentSections";
 import dialogStyles from "../features/admin/components/JobSettingsDialog.module.css";
 import employmentDialogStyles from "../features/admin/components/payroll/EmploymentDialog.module.css";
 import { Tabs } from "../features/admin/components/Tabs";
@@ -55,6 +54,9 @@ export function AdminEmployeeProfilePage() {
   const employment = useFetcher<typeof payrollEmploymentLoader>();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [dialogOpenCount, setDialogOpenCount] = useState(0);
+  // The rail opens on the section the clicked link points at — the master
+  // record's Add links and the setup banner land on the field they name.
+  const [employmentSection, setEmploymentSection] = useState<EmploymentSection>("job");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   // Mid-save the employment dialog locks (CAP-5): backdrop click and Esc
   // cannot dismiss it while the details post.
@@ -116,7 +118,8 @@ export function AdminEmployeeProfilePage() {
   const regionPending =
     navSearch !== null &&
     (pendingTab !== currentParams.get("tab") || pendingMonth !== currentParams.get("month"));
-  const openEmployment = () => {
+  const openEmployment = (section: EmploymentSection = "job") => {
+    setEmploymentSection(section);
     setDialogOpenCount((count) => count + 1);
     employment.load(`${EMPLOYMENT_RESOURCE_PATH}?userId=${member.userId}`);
     dialogRef.current?.showModal();
@@ -137,7 +140,7 @@ export function AdminEmployeeProfilePage() {
             <p className={styles.meta}>
               Joined {fmtIstDay(member.createdAt)} ·{" "}
               {fmtPhone(member.countryCode, member.phoneNumber)}
-              <button type="button" className={styles.quietAction} onClick={openEmployment}>
+              <button type="button" className={styles.quietAction} onClick={() => openEmployment()}>
                 + Add Job Title
               </button>
             </p>
@@ -163,7 +166,7 @@ export function AdminEmployeeProfilePage() {
           <LinkButton to={`/admin/company/jobs/new?technician=${member.userId}`} variant="primary">
             Assign Job
           </LinkButton>
-          <Button variant="secondary" onClick={openEmployment}>
+          <Button variant="secondary" onClick={() => openEmployment()}>
             Edit Profile
           </Button>
           {member.userId !== selfUserId && member.status !== "invited" ? (
@@ -260,7 +263,7 @@ export function AdminEmployeeProfilePage() {
       </SkeletonSlot>
       <dialog
         ref={dialogRef}
-        className={`${dialogStyles.dialog} ${employmentDialogStyles.wideDialog}`}
+        className={`${dialogStyles.dialog} ${dialogStyles.dialogRail} ${employmentDialogStyles.wideDialog}`}
         aria-label={`Employment details for ${member.name ?? "employee"}`}
         onCancel={(event) => {
           if (dialogLocked) event.preventDefault();
@@ -275,6 +278,8 @@ export function AdminEmployeeProfilePage() {
             result={employment.data ?? { state: "loading" }}
             close={() => dialogRef.current?.close()}
             setLocked={setDialogLocked}
+            name={member.name}
+            initialSection={employmentSection}
           />
         ) : null}
       </dialog>

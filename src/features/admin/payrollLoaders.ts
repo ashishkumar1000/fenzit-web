@@ -4,6 +4,7 @@ import { clearSession } from "../../services/session";
 import { messageForError } from "../../utils/errorMessages";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
 import { fetchMembers, type MemberRow } from "./companyApi";
+import { EMPLOYMENT_FIELDS } from "./employmentSections";
 import { settle, type Slice } from "./slice";
 import {
   fetchCalendar,
@@ -258,24 +259,6 @@ export type EmploymentSaveResult =
   | { state: "done"; employment: EmploymentView }
   | { state: "error"; message: string }
   | { state: "not-found" };
-
-const EMPLOYMENT_FIELDS = [
-  "employeeCode",
-  "joinDate",
-  "exitDate",
-  "pan",
-  "dateOfBirth",
-  "fatherName",
-  "motherName",
-  "spouseName",
-  "pfAccountNumber",
-  "uanNumber",
-  "designation",
-  "department",
-  "bankAccountNumber",
-  "ifscCode",
-  "bankName",
-] as const;
 
 export async function payrollEmploymentAction({
   request,

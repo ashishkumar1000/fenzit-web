@@ -13,3 +13,7 @@ dist-server
 # Vendored agent tooling — keep as-is (same reasoning as the ports above).
 .claude/
 .zcode/
+
+# Local critique snapshots are generated and git-ignored; they are not part
+# of the app, and formatting them on every commit is noise.
+.impeccable/critique/

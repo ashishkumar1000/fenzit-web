@@ -1,6 +1,6 @@
-/* The Employment dialog: grouped fieldsets over the shared dialog chrome.
-   The dialog box itself (JobSettingsDialog.module.css) is imported by the
-   component; this file carries only the form's own layout. */
+/* The Employment dialog's frame: the box (JobSettingsDialog.module.css) is
+   imported by the component; this file carries the shell that keeps the
+   title, the rail and the footer fixed while only the body scrolls. */
 
 .wideDialog {
   /* The fifteen-field form needs more width than the shared 420px box. */
@@ -21,33 +21,60 @@
   text-decoration: underline;
 }
 
-.loadingBlock {
+/* Four rows: header, rail, scrolling body, pinned footer. The host's dialog
+   carries `dialogRail` (overflow: hidden) so this box owns the only scroll. */
+.shell {
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  max-height: 85dvh;
+  min-height: 0;
+  background: var(--color-surface-card);
+}
+
+/* Loading, not-found and failed have no rail: header, body, footer. */
+.shell[data-rail="false"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.header {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-5) var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-text-strong);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.simpleBody {
+  display: grid;
+  align-content: start;
   justify-items: center;
   gap: var(--space-3);
-  padding: var(--space-6) 0;
+  padding: var(--space-6) var(--space-5);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  text-align: center;
 }
 
-.group {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+.simpleNote {
   margin: 0;
-  display: grid;
-  gap: var(--space-3);
 }
 
-.group legend {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-strong);
-  padding: 0 var(--space-2);
-}
-
-.fieldGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-3);
+.simpleFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-card);
 }

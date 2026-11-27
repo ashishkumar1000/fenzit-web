@@ -1,4 +1,5 @@
 import type { EmploymentView } from "../../payrollViews";
+import { sectionForMasterField, type EmploymentSection } from "../../employmentSections";
 import type { Slice } from "../../slice";
 import { SectionCard } from "../SectionCard";
 import { MASTER_RECORD_FIELDS } from "../../employeeProfileLabels";
@@ -20,7 +21,9 @@ export function MasterRecordPanel({
 }: {
   employment: Slice<EmploymentView>;
   skills: Array<{ id: string; name: string }>;
-  openEmployment: () => void;
+  /** Opens the editor on the section holding the clicked field — the banner
+   *  lands on its first missing field, an Add link on its own. */
+  openEmployment: (section?: EmploymentSection) => void;
 }) {
   const missingStatutory = employment.ok
     ? MASTER_RECORD_FIELDS.filter(
@@ -40,7 +43,11 @@ export function MasterRecordPanel({
                   Some details are missing. Please add the following information:{" "}
                   {missingStatutory.map((f) => f.label).join(", ")}
                 </p>
-                <button type="button" className={styles.bannerAction} onClick={openEmployment}>
+                <button
+                  type="button"
+                  className={styles.bannerAction}
+                  onClick={() => openEmployment(sectionForMasterField(missingStatutory[0]?.key))}
+                >
                   Complete Employee Details
                 </button>
               </div>
@@ -53,7 +60,11 @@ export function MasterRecordPanel({
                     <dt className={styles.label}>{field.label}</dt>
                     <dd className={styles.value}>
                       {isEmpty(value) ? (
-                        <button type="button" className={styles.addButton} onClick={openEmployment}>
+                        <button
+                          type="button"
+                          className={styles.addButton}
+                          onClick={() => openEmployment(sectionForMasterField(field.key))}
+                        >
                           + Add
                         </button>
                       ) : (
@@ -68,7 +79,7 @@ export function MasterRecordPanel({
         ) : (
           <p className={styles.failed} role="alert">
             We could not load the employee details.{" "}
-            <button type="button" className={styles.retryLink} onClick={openEmployment}>
+            <button type="button" className={styles.retryLink} onClick={() => openEmployment()}>
               Open Anyway
             </button>
           </p>

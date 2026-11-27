@@ -658,12 +658,43 @@ describe("Employee profile: the employment dialog", () => {
       sentRequests().filter((r) => r.method === "GET" && r.url.includes("/members/u-a/employment"));
     const before = reads().length;
     fireEvent.click(screen.getByRole("button", { name: "Edit Profile" }));
-    await screen.findByText("Employment details — EMP-002");
+    await screen.findByRole("heading", { name: "Employment details" });
     expect(
       (screen.getByRole("dialog", { name: "Employment details for Asha V" }) as HTMLDialogElement)
         .open,
     ).toBe(true);
     // A fresh read rides every open, never the page load's stale answer.
     await waitFor(() => expect(reads().length).toBe(before + 1));
+  });
+
+  it("opens on the section the profile's link points at", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    // The setup banner names its first missing statutory field — DOB here —
+    // and the rail opens where that field lives, not on Job.
+    fireEvent.click(screen.getByRole("button", { name: "Complete Employee Details" }));
+    await screen.findByRole("tab", { name: /^Personal/ });
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog)
+        .getByRole("tab", { name: /^Personal/ })
+        .getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(within(dialog).getByLabelText("Date of birth")).toBeTruthy();
+  });
+
+  it("opens Statutory IDs from the PAN row's Add link", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    const panRow = screen.getByText("PAN Number").closest("div")!;
+    fireEvent.click(within(panRow).getByRole("button", { name: "+ Add" }));
+    await screen.findByRole("tab", { name: /^Statutory IDs/ });
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog)
+        .getByRole("tab", { name: /^Statutory IDs/ })
+        .getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(within(dialog).getByLabelText("PAN")).toBeTruthy();
   });
 });
