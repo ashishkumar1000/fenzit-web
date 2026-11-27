@@ -26,7 +26,7 @@ export const DEFAULT_EMPLOYMENT_SECTION: EmploymentSection = "job";
 export const SECTION_LABELS: Record<EmploymentSection, string> = {
   job: "Job",
   personal: "Personal",
-  statutory: "Statutory IDs",
+  statutory: "Govt IDs",
   bank: "Bank",
 };
 
@@ -61,6 +61,8 @@ const MASTER_FIELD_SECTIONS: Record<string, EmploymentSection> = {
   ifscCode: "bank",
   bankAccountNumber: "bank",
   department: "job",
+  designation: "job",
+  joinDate: "job",
 };
 
 export function sectionForMasterField(key: string | undefined): EmploymentSection {

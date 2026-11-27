@@ -26,6 +26,9 @@ type TextInputProps = {
   maxLength?: number;
   /** Keeps the label for screen readers only, when the screen already shows what the field is. */
   hideLabel?: boolean;
+  /** `floating` puts the label on the input's top border (outlined field);
+   *  the default stacks it above. */
+  variant?: "stacked" | "floating";
   /** Extra key handling, e.g. stopping Enter in a search field from submitting
    *  an enclosing form (the invite dialog's manager picker). */
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -54,6 +57,7 @@ export function TextInput({
   disabled = false,
   maxLength,
   hideLabel = false,
+  variant = "stacked",
   onKeyDown,
 }: TextInputProps) {
   const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null]
@@ -62,7 +66,16 @@ export function TextInput({
 
   return (
     <div className={styles.field}>
-      <label className={hideLabel ? styles.hiddenLabel : styles.label} htmlFor={id}>
+      <label
+        className={
+          hideLabel
+            ? styles.hiddenLabel
+            : variant === "floating"
+              ? styles.labelFloating
+              : styles.label
+        }
+        htmlFor={id}
+      >
         {label}
         {labelHint ? <span className={styles.labelHint}>{labelHint}</span> : null}
       </label>
@@ -74,6 +87,7 @@ export function TextInput({
           className={[
             prefix ? styles.inBox : null,
             trailing ? styles.withTrailing : null,
+            variant === "floating" && !prefix ? styles.inputFloating : null,
             styles.input,
           ]
             .filter((name) => name !== null)

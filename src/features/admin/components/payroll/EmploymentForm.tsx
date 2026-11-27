@@ -87,6 +87,9 @@ export function EmploymentForm({
   const dirtyFor = (key: EmploymentSection): number =>
     SECTION_FIELDS[key].filter((field) => dirtyFields.includes(field)).length;
   const codeCleared = employment.employeeCode !== "" && values.employeeCode.trim() === "";
+  // Only warn when the change is real: an employee who never had a joining
+  // date is not being taken out of payroll by this edit.
+  const joinDateCleared = asText(employment.joinDate) !== "" && values.joinDate.trim() === "";
 
   // The host dialog holds its backdrop/Esc while a save posts or edits are
   // unsaved — a dismiss must never silently drop a change.
@@ -285,11 +288,13 @@ export function EmploymentForm({
           <>
             <div className={styles.footerText}>
               {error !== null ? (
-                <p className={styles.footerProblem} role="alert">
+                <p id={`${baseId}-save-problem`} className={styles.footerProblem} role="alert">
                   {error}
                 </p>
               ) : codeCleared ? (
-                <p className={styles.footerProblem}>Add an employee code to save.</p>
+                <p id={`${baseId}-save-problem`} className={styles.footerProblem}>
+                  The employee code cannot be cleared.
+                </p>
               ) : (
                 <p
                   id={`${baseId}-save-note`}
@@ -318,7 +323,7 @@ export function EmploymentForm({
                   disabled={busy || codeCleared || dirtyTotal === 0}
                   aria-busy={busy ? true : undefined}
                   aria-describedby={
-                    error === null && !codeCleared ? `${baseId}-save-note` : undefined
+                    error !== null || codeCleared ? `${baseId}-save-problem` : `${baseId}-save-note`
                   }
                 >
                   {busy ? <Spinner size={13} /> : null}
@@ -339,23 +344,25 @@ export function EmploymentForm({
           <>
             <TextInput
               id={`${baseId}-code`}
+              variant="floating"
               label="Employee code"
               value={values.employeeCode}
               onChange={(value) => set("employeeCode", value)}
               maxLength={EMPLOYMENT_FIELD_RULES.employeeCode.maxLength}
-              hint="Unique in the company; it cannot be cleared."
               error={codeCleared ? "The employee code cannot be cleared." : undefined}
             />
             <TextInput
               id={`${baseId}-join`}
+              variant="floating"
               label="Joining date"
               type={fieldType("joinDate")}
               value={values.joinDate}
               onChange={(value) => set("joinDate", value)}
-              hint="Clear it to leave this employee out of salary runs."
+              hint={joinDateCleared ? "This employee will be left out of salary runs." : undefined}
             />
             <TextInput
               id={`${baseId}-exit`}
+              variant="floating"
               label="Leaving date"
               type={fieldType("exitDate")}
               value={values.exitDate}
@@ -363,6 +370,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-designation`}
+              variant="floating"
               label="Designation"
               value={values.designation}
               onChange={(value) => set("designation", value)}
@@ -371,6 +379,7 @@ export function EmploymentForm({
             <div className={styles.fieldWide}>
               <TextInput
                 id={`${baseId}-department`}
+                variant="floating"
                 label="Department"
                 value={values.department}
                 onChange={(value) => set("department", value)}
@@ -384,6 +393,7 @@ export function EmploymentForm({
           <>
             <TextInput
               id={`${baseId}-dob`}
+              variant="floating"
               label="Date of birth"
               type={fieldType("dateOfBirth")}
               value={values.dateOfBirth}
@@ -391,6 +401,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-father`}
+              variant="floating"
               label="Father's name"
               value={values.fatherName}
               onChange={(value) => set("fatherName", value)}
@@ -398,6 +409,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-mother`}
+              variant="floating"
               label="Mother's name"
               value={values.motherName}
               onChange={(value) => set("motherName", value)}
@@ -405,6 +417,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-spouse`}
+              variant="floating"
               label="Spouse's name"
               value={values.spouseName}
               onChange={(value) => set("spouseName", value)}
@@ -417,6 +430,7 @@ export function EmploymentForm({
           <>
             <TextInput
               id={`${baseId}-pan`}
+              variant="floating"
               label="PAN"
               value={values.pan}
               onChange={(value) => set("pan", value.toUpperCase())}
@@ -425,6 +439,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-uan`}
+              variant="floating"
               label="UAN"
               value={values.uanNumber}
               onChange={(value) => set("uanNumber", value)}
@@ -434,6 +449,7 @@ export function EmploymentForm({
             <div className={styles.fieldWide}>
               <TextInput
                 id={`${baseId}-pf`}
+                variant="floating"
                 label="PF account number"
                 value={values.pfAccountNumber}
                 onChange={(value) => set("pfAccountNumber", value)}
@@ -449,6 +465,7 @@ export function EmploymentForm({
             <div className={styles.fieldWide}>
               <TextInput
                 id={`${baseId}-account`}
+                variant="floating"
                 label="Account number"
                 value={values.bankAccountNumber}
                 onChange={(value) => set("bankAccountNumber", value)}
@@ -457,6 +474,7 @@ export function EmploymentForm({
             </div>
             <TextInput
               id={`${baseId}-ifsc`}
+              variant="floating"
               label="IFSC"
               value={values.ifscCode}
               onChange={(value) => set("ifscCode", value.toUpperCase())}
@@ -465,6 +483,7 @@ export function EmploymentForm({
             />
             <TextInput
               id={`${baseId}-bank`}
+              variant="floating"
               label="Bank name"
               value={values.bankName}
               onChange={(value) => set("bankName", value)}

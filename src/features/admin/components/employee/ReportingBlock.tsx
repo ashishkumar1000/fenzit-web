@@ -44,14 +44,16 @@ export function ReportingBlock({
     <div className={styles.block}>
       <div className={styles.facts}>
         <span className={styles.label}>Reports to</span>
-        <span className={styles.value}>{reportsToLine(member, roles)}</span>
+        <span className={styles.value}>
+          <ReportsValue line={reportsToLine(member, roles)} />
+        </span>
         {reports !== null ? <span className={styles.muted}>{reports}</span> : null}
       </div>
       {canEdit ? (
         directory.ok ? (
-          <Button variant="secondary" size="compact" onClick={open}>
+          <button type="button" className={styles.changeButton} onClick={open}>
             Change
-          </Button>
+          </button>
         ) : (
           <div className={styles.unavailable}>
             <span className={styles.muted}>
@@ -87,5 +89,16 @@ export function ReportingBlock({
         ) : null}
       </dialog>
     </div>
+  );
+}
+
+/** The roster's "(Owner)" mark is quieter than the manager's name. */
+function ReportsValue({ line }: { line: string }) {
+  const mark = " (Owner)";
+  if (!line.endsWith(mark)) return <>{line}</>;
+  return (
+    <>
+      {line.slice(0, -mark.length)} <span className={styles.ownerMark}>(Owner)</span>
+    </>
   );
 }

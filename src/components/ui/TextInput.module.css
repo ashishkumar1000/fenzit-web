@@ -1,4 +1,8 @@
 .field {
+  /* The floating label paints itself in two halves: the surface above the
+     border and the fill below it. One variable keeps both in step with the
+     input, so the patch can never show as a tab inside the field. */
+  --field-fill: var(--color-surface-card);
   position: relative;
   display: grid;
   gap: var(--space-2);
@@ -12,6 +16,33 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-body);
+}
+
+/* Outlined field: the label sits on the input's top border and cuts it.
+   The patch is two surfaces in one box — the panel colour above the border
+   (the form sets --field-label-bg; a card is the default) and the input fill
+   below it. A single flat colour would paint a grey tab inside the white
+   field, and a 1px opaque band covers the border line itself, which is the
+   cut. This is a deliberate local exception to the console's stacked label,
+   used only by the employment form; it is documented there, not in the
+   generated design-system guide. */
+.labelFloating {
+  position: absolute;
+  top: 0;
+  left: calc(var(--space-4) - var(--space-1));
+  z-index: 1;
+  transform: translateY(-50%);
+  padding: 0 var(--space-1);
+  background: linear-gradient(
+    to bottom,
+    var(--field-label-bg, var(--field-fill)) 0 calc(50% + 1px),
+    var(--field-fill) calc(50% + 1px)
+  );
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .labelHint {
@@ -47,7 +78,7 @@
   font-family: inherit;
   font-size: var(--font-size-base);
   color: var(--color-text-strong);
-  background: var(--color-surface-card);
+  background: var(--field-fill);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
 }
@@ -61,13 +92,36 @@
   outline-offset: 2px;
 }
 
+/* The floating label's notch already interrupts the border, so the ring has
+   to run on the border itself. Set 2px out, the ring would pass above the
+   label and disappear behind it, reading as a broken rectangle. */
+.inputFloating:focus-visible {
+  outline-offset: 0;
+}
+
 .input:disabled {
   color: var(--color-text-disabled);
   background: var(--color-surface-sunken);
 }
 
+/* A disabled field greys out, so its floating label must grey with it. */
+.field:has(.input:disabled) {
+  --field-fill: var(--color-surface-sunken);
+}
+
 .input[aria-invalid="true"] {
   border-color: var(--color-danger);
+}
+
+/* One alarm, not two: an invalid field that also has focus keeps the red
+   ring instead of stacking a blue one outside the red border. */
+.input[aria-invalid="true"]:focus-visible {
+  outline-color: var(--color-danger);
+}
+
+/* The strongest element on the field joins the error state. */
+.field:has(.input[aria-invalid="true"]) .labelFloating {
+  color: var(--color-danger);
 }
 
 .hint {

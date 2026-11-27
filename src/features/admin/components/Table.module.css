@@ -30,6 +30,14 @@
   min-width: 0;
 }
 
+/* The first cell is a row header: same box as a data cell, without the
+   browser's bold, centred default. */
+.rowHead {
+  composes: td;
+  text-align: left;
+  font-weight: var(--font-weight-regular);
+}
+
 .cell {
   color: var(--color-text-body);
   overflow-wrap: anywhere;
@@ -46,7 +54,6 @@
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
-  font-style: italic;
 }
 
 /* The table skeleton's shimmer moved to the shared skeleton primitives

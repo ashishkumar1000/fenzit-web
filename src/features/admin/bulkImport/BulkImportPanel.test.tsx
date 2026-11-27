@@ -112,7 +112,7 @@ describe("states before any file", () => {
 
   it("shows the format's required and optional columns, with address_details named as the sheet names it", () => {
     renderPanel(<BulkImportPanel companyId={COMPANY} countries={COUNTRIES} />);
-    expect(screen.getByRole("cell", { name: "address_details" })).toBeTruthy();
+    expect(screen.getByRole("rowheader", { name: "address_details" })).toBeTruthy();
     // name, address and phone are the three required columns.
     expect(screen.getAllByRole("cell", { name: "Yes" })).toHaveLength(3);
     expect(screen.getAllByRole("cell", { name: "No" })).toHaveLength(6);

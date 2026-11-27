@@ -12,6 +12,8 @@ type ButtonProps = {
   describedBy?: string;
   /** Moves focus here when the element mounts — the confirm stage of a flow. */
   autoFocus?: boolean;
+  /** Extra classes from the calling component's module (spacing, hit area). */
+  className?: string;
   children: ReactNode;
 };
 
@@ -24,6 +26,7 @@ export function Button({
   onClick,
   describedBy,
   autoFocus = false,
+  className,
   children,
 }: ButtonProps) {
   const variantClass = variant === "primary" ? styles.primary : styles.secondary;
@@ -31,7 +34,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`${styles.base} ${variantClass} ${sizeClass}`}
+      className={`${styles.base} ${variantClass} ${sizeClass}${className === undefined ? "" : ` ${className}`}`}
       disabled={disabled}
       onClick={onClick}
       aria-describedby={describedBy}

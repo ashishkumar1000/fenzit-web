@@ -11,7 +11,22 @@ import {
   useRevalidator,
   useRouteLoaderData,
 } from "react-router";
-import { Flag, Palmtree } from "lucide-react";
+// The phone menu closes when the address changes. That is UI state synced
+// to a navigation, not server data — the router loader owns the data, and
+// no fetch happens here.
+// eslint-disable-next-line no-restricted-imports -- UI-only navigation sync; no data fetched
+import { useEffect, useRef, useState } from "react";
+import {
+  CircleQuestionMark,
+  Flag,
+  LogOut,
+  Menu as MenuIcon,
+  Palmtree,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
+  X,
+} from "lucide-react";
 import { CLIENT_ONLY_TITLES } from "../app/pageMeta";
 import { Button } from "../components/ui/Button";
 import { Container } from "../components/ui/Container";
@@ -68,6 +83,16 @@ function GlyphLeave({ size = 20 }: { size?: number }) {
   return <Palmtree size={size} strokeWidth={1.75} aria-hidden="true" />;
 }
 
+/** Help & Support uses the lucide question circle, the same family. */
+function GlyphHelp({ size = 20 }: { size?: number }) {
+  return <CircleQuestionMark size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
+
+/** The design's Settings row: a gear, shown disabled until the screen ships. */
+function GlyphSettings({ size = 20 }: { size?: number }) {
+  return <Settings size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
+
 const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = {
   "/admin/inspect": GlyphInspect,
   "/admin/account": GlyphAccount,
@@ -84,6 +109,8 @@ const GLYPHS: Record<string, (props: { size?: number }) => React.JSX.Element> = 
   "/admin/company/leave": GlyphLeave,
   "/admin/company/attendance": GlyphAttendance,
   "/admin/me": GlyphMe,
+  "/admin/help": GlyphHelp,
+  "/admin/settings": GlyphSettings,
 };
 
 const ROLE_CAPTION: Record<ConsoleRole, string> = {
@@ -91,6 +118,17 @@ const ROLE_CAPTION: Record<ConsoleRole, string> = {
   owner: "Company Owner",
   member: "Team Member",
 };
+
+/** The rail's expanded/collapsed choice, remembered between visits. */
+const SIDEBAR_STATE_KEY = "fenzit.console.sidebar";
+
+function readSidebarCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_STATE_KEY) === "collapsed";
+  } catch {
+    return false;
+  }
+}
 
 function BrandMark() {
   return (
@@ -112,23 +150,42 @@ function BrandMark() {
   );
 }
 
+/** The initials on the collapsed rail's avatar: the last two words of the
+ *  name ("PQA Owner Ashok Rao" → "AR"), because the first words can be the
+ *  company. One word gives its first letter. */
+function initialsFor(name: string): string {
+  const words = name.trim().split(/\s+/);
+  const picked = words.length > 1 ? words.slice(-2) : words;
+  return picked.map((word) => word[0]?.toUpperCase() ?? "").join("");
+}
+
 function UserChip({ name, role }: { name: string | null; role?: ConsoleRole }) {
   // A missing name shows the role as the chip's first line — never a
   // "(no name)" placeholder.
   // A blank or whitespace-only name counts as missing.
   const label = name !== null && name.trim() !== "" ? name : null;
   const primary = label ?? (role !== undefined ? ROLE_CAPTION[role] : "Signed In");
+  const initials = label === null ? null : initialsFor(label);
   return (
-    <span className={styles.chip}>
+    <span
+      className={styles.chip}
+      title={role !== undefined ? `${primary} (${ROLE_CAPTION[role]})` : primary}
+    >
       <span className={styles.chipGlyph} aria-hidden="true">
         <GlyphMe size={15} />
       </span>
+      {initials !== null ? (
+        <span className={styles.chipInitials} aria-hidden="true">
+          {initials}
+        </span>
+      ) : null}
       <span className={styles.chipText}>
         <span className={styles.chipName}>{primary}</span>
         {label !== null && role !== undefined ? (
           <span className={styles.chipRole}>{ROLE_CAPTION[role]}</span>
         ) : null}
       </span>
+      <span className={styles.chipStatus} aria-hidden="true" />
     </span>
   );
 }
@@ -137,13 +194,15 @@ function NavLinks({
   role,
   landing,
   pendingLeaves,
+  collapsed,
 }: {
   role: ConsoleRole;
   landing: boolean;
   pendingLeaves: number | null;
+  collapsed: boolean;
 }) {
   return (
-    <nav className={styles.nav} aria-label="Console Menu">
+    <nav id="console-nav" className={styles.nav} aria-label="Console Menu">
       {sectionGroupsFor(role).map((group, groupIndex) => (
         <div key={group.caption ?? `group-${groupIndex}`} className={styles.navGroup}>
           {group.caption !== null ? <p className={styles.navCaption}>{group.caption}</p> : null}
@@ -162,11 +221,37 @@ function NavLinks({
             // Landing sections own their address exactly: Overview must not stay
             // lit on /admin/company/jobs or any other sub-list.
             const exact = section.to === "/admin/company";
+            if (section.disabled) {
+              return (
+                <span
+                  key={section.to}
+                  className={`${styles.navLink} ${styles.navLinkDisabled}`}
+                  role="link"
+                  aria-disabled="true"
+                  aria-label={section.label}
+                  aria-describedby="console-settings-note"
+                  tabIndex={0}
+                  title={`${section.label} is coming soon.`}
+                >
+                  <span className={styles.navGlyph} aria-hidden="true">
+                    <Glyph size={18} />
+                  </span>
+                  <span className={styles.navLabel}>{section.label}</span>
+                  {/* Phones have no hover: the reason rides in the row. On
+                      wide screens it is still the row's description, just
+                      visually quiet. */}
+                  <span id="console-settings-note" className={styles.navNote}>
+                    Coming soon
+                  </span>
+                </span>
+              );
+            }
             return (
               <NavLink
                 key={section.to}
                 to={section.to}
                 end={exact}
+                title={collapsed ? section.label : undefined}
                 aria-label={
                   pendingBadge !== null
                     ? `Leave – ${pendingBadge} ${pendingBadge === 1 ? "request" : "requests"} waiting`
@@ -181,7 +266,7 @@ function NavLinks({
                 <span className={styles.navGlyph} aria-hidden="true">
                   <Glyph size={18} />
                 </span>
-                {section.label}
+                <span className={styles.navLabel}>{section.label}</span>
                 {pendingBadge !== null ? (
                   <span className={styles.navBadge} aria-hidden="true">
                     {pendingBadge}
@@ -203,6 +288,36 @@ export function AdminLayout() {
   const revalidator = useRevalidator();
   const navigate = useNavigate();
   const location = useLocation();
+  // The rail's two design states: the full 280px navigation and the 72px
+  // icon-only rail. Phones keep their top bar either way.
+  const [railCollapsed, setRailCollapsed] = useState(readSidebarCollapsed);
+  // Phones: the ten-section nav would wrap into five rows above every page,
+  // so it waits behind one Menu control. Desktop ignores this state — the
+  // rail is always visible there.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement | null>(null);
+  // A navigation is the menu's job done: the panel closes behind the tap.
+  // Closing in the link's own click handler would detach the anchor before
+  // the browser follows it; the address change is the honest signal. The
+  // location key rather than the path, because a tab or month change is a
+  // navigation too and the panel must not sit over the page it opened.
+  const menuLocationKey = useRef(location.key);
+  useEffect(() => {
+    if (menuLocationKey.current === location.key) return;
+    menuLocationKey.current = location.key;
+    setMenuOpen(false);
+  }, [location.key]);
+  const toggleRail = () => {
+    setRailCollapsed((wasCollapsed) => {
+      const next = !wasCollapsed;
+      try {
+        window.localStorage.setItem(SIDEBAR_STATE_KEY, next ? "collapsed" : "expanded");
+      } catch {
+        // A private-mode quota failure only costs the memory of the choice.
+      }
+      return next;
+    });
+  };
   // The inspect page uses the whole width: its import table is wide.
   const wide = location.pathname.startsWith("/admin/inspect");
   // A trailing slash is the same page, so it gets the same header rule.
@@ -259,24 +374,77 @@ export function AdminLayout() {
   }
 
   return (
-    <div className={styles.page}>
+    <div
+      className={railCollapsed ? `${styles.page} ${styles.pageRail}` : styles.page}
+      onKeyDown={(event) => {
+        // Any focus inside the shell closes the phone menu — the panel is a
+        // disclosure, not a modal, so Escape must work from the page too.
+        if (event.key !== "Escape" || !menuOpen) return;
+        setMenuOpen(false);
+        menuToggleRef.current?.focus();
+      }}
+    >
       <title>{CLIENT_ONLY_TITLES["/admin"]}</title>
-      <aside className={styles.sidebar}>
-        <BrandMark />
+      <a href="#console-content" className={styles.skipLink}>
+        Skip to content
+      </a>
+      <aside
+        id="console-sidebar"
+        className={styles.sidebar}
+        data-collapsed={railCollapsed ? "true" : "false"}
+        data-menu={menuOpen ? "open" : "closed"}
+      >
+        <div className={styles.sidebarHead}>
+          <BrandMark />
+          <div className={styles.sidebarActions}>
+            <button
+              type="button"
+              className={styles.railToggle}
+              onClick={toggleRail}
+              aria-label={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!railCollapsed}
+              aria-controls="console-sidebar"
+              title={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {railCollapsed ? (
+                <PanelLeftOpen size={16} aria-hidden="true" />
+              ) : (
+                <PanelLeftClose size={16} aria-hidden="true" />
+              )}
+            </button>
+            <button
+              ref={menuToggleRef}
+              type="button"
+              className={styles.menuToggle}
+              onClick={() => setMenuOpen((wasOpen) => !wasOpen)}
+              aria-expanded={menuOpen}
+              aria-controls="console-nav"
+            >
+              {menuOpen ? (
+                <X size={18} aria-hidden="true" />
+              ) : (
+                <MenuIcon size={18} aria-hidden="true" />
+              )}
+              <span>Menu</span>
+            </button>
+          </div>
+        </div>
         <NavLinks
           role={data.role}
           landing={location.pathname.replace(/\/+$/, "") === "/admin"}
           pendingLeaves={data.pendingLeaves}
+          collapsed={railCollapsed}
         />
         <div className={styles.sidebarFoot}>
           <UserChip name={data.name} role={data.role} />
-          <Button variant="secondary" onClick={logOut}>
-            Log Out
+          <Button variant="secondary" className={styles.logOut} onClick={logOut}>
+            <LogOut className={styles.logOutIcon} size={16} aria-hidden="true" />
+            <span className={styles.logOutText}>Log Out</span>
           </Button>
         </div>
       </aside>
       <div className={wide ? styles.contentWide : styles.content}>
-        <main className={styles.main}>
+        <main id="console-content" tabIndex={-1} className={styles.main}>
           {ownHeader ? null : (
             <h1 className={styles.heading}>
               {data.name === null ? "Hello" : `Hello, ${data.name}`}
@@ -391,6 +559,7 @@ const PAGES_WITH_OWN_HEADER = new Set([
   "/admin/company/holidays",
   "/admin/company/holidays/schedule",
   "/admin/company/holidays/upload",
+  "/admin/help",
 ]);
 
 /** One plain-English line per section, shown under its name on the landing
@@ -411,6 +580,7 @@ const SECTION_BLURBS: Record<string, string> = {
   "/admin/company/holidays/schedule": "See every holiday of the year in one table.",
   "/admin/company/leave": "Manage leave types and employee leave requests.",
   "/admin/company/attendance": "See who checked in, where they checked in and at what time.",
+  "/admin/help": "Answers to common questions and a direct line to the Fenzit team.",
 };
 
 /** Members never reach the index: AdminHome sends them to Me first. */

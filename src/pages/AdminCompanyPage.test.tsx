@@ -414,13 +414,14 @@ describe("AdminCompanyPage: the report numbers (CAP-8)", () => {
     const table = within(card("Per employee"));
     // The cells in order pin the column mapping — a Created↔Approved swap
     // would otherwise still contain every number.
-    const firstRow = table.getByRole("cell", { name: "Priya" }).closest("tr");
+    const firstRow = table.getByRole("rowheader", { name: "Priya" }).closest("tr");
+    expect(table.getByRole("rowheader", { name: "Priya" }).textContent).toBe("Priya");
     expect(
       within(firstRow as HTMLElement)
         .getAllByRole("cell")
         .map((cell) => cell.textContent),
-    ).toEqual(["Priya", "8", "6", "1", "1", "1", "67%"]);
-    expect(table.getByRole("cell", { name: "(no name)" })).toBeInTheDocument();
+    ).toEqual(["8", "6", "1", "1", "1", "67%"]);
+    expect(table.getByRole("rowheader", { name: "(no name)" })).toBeInTheDocument();
   });
 
   it("lists the employees with permission who created nothing", async () => {

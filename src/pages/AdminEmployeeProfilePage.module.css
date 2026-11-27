@@ -7,6 +7,7 @@
 
 .crumbs {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--font-size-sm);
@@ -27,45 +28,117 @@
 }
 
 .crumbHere {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.crumbPerson {
   color: var(--color-text-strong);
+  overflow-wrap: anywhere;
 }
 
 .pageHead {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--space-4) var(--space-6);
-  align-items: start;
   padding-block-end: var(--space-5);
 }
 
-.identity {
+/* The identity card (Stitch profile screen, 2026-11-27): one white card
+   holding the person and their actions, stacked on a phone and side by side
+   once the console's sidebar leaves enough room. */
+.profileCard {
   display: flex;
+  flex-direction: column;
   gap: var(--space-5);
-  align-items: center;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .profileCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "identity actions"
+      "subrow subrow";
+    align-items: start;
+    column-gap: var(--space-5);
+    row-gap: var(--space-3);
+  }
+
+  .profileMain {
+    grid-area: identity;
+  }
+
+  .subRow {
+    grid-area: subrow;
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+}
+
+.profileMain {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+@media (min-width: 560px) {
+  .profileMain {
+    gap: var(--space-5);
+  }
+}
+
+.avatarWrap {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.avatarDot {
+  position: absolute;
+  right: calc(var(--space-1) / -2);
+  bottom: calc(var(--space-1) / -2);
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-surface-card);
+  background: var(--color-status-done-solid);
 }
 
 .identityText {
   display: grid;
   gap: var(--space-2);
+  min-width: 0;
 }
 
-.heading {
+.identityLine {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+}
+
+.heading {
   margin: 0;
   font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
   color: var(--color-text-strong);
+  overflow-wrap: anywhere;
 }
 
 .codeChip {
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-page);
-  color: var(--color-text-muted);
+  padding: 2px var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-body);
   font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
 }
@@ -75,23 +148,55 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
-.quietAction {
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-link);
-  cursor: pointer;
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
-.quietAction:hover {
-  text-decoration: underline;
+.metaIcon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.phone {
+  color: var(--color-text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.metaSep {
+  display: none;
+  color: var(--color-border-strong);
+}
+
+@media (min-width: 560px) {
+  .metaSep {
+    display: inline;
+  }
+}
+
+.subRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block-start: var(--space-1);
+}
+
+/* From 560px the pills line up under the name, clear of the avatar, as the
+   Stitch profile card does. Phones keep the full width for tap targets. */
+@media (min-width: 560px) {
+  .subRow {
+    padding-inline-start: calc(var(--space-20) + var(--space-5));
+  }
 }
 
 .badges {
@@ -100,11 +205,60 @@
   gap: var(--space-2);
 }
 
+/* The header's pills are the larger, rounder console pills the profile
+   screen uses; the table badges keep the compact default. */
+.profileBadge {
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
+}
+
+/* The status chip beside the employee code is the same compact height as
+   the code chip, so the identity line reads as one row. */
+.statusChip {
+  font-size: var(--font-size-xs);
+}
+
+/* The tab's own heading, read by assistive tech so the outline runs
+   H1 → H2 → the cards' H3 without adding a visible line. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: center;
+}
+
+@media (min-width: 1200px) {
+  .actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+}
+
+.actionIcon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+}
+
+/* The header's three actions use the Stitch button scale: 14px text and
+   tighter side padding, while keeping the 48px touch height. */
+.headerAction {
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
 }
 
 .confirmPair {
@@ -145,8 +299,7 @@
 }
 
 .actionError {
-  grid-column: 1 / -1;
-  margin: 0;
+  margin: var(--space-2) 0 0;
   color: var(--color-danger);
   font-size: var(--font-size-sm);
 }

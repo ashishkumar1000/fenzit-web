@@ -1,9 +1,15 @@
+/* The reporting line sits in the profile header as a quiet bordered pill. */
 .block {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-status-progress-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
   min-width: 0;
+  max-width: 100%;
 }
 
 .facts {
@@ -22,10 +28,22 @@
   color: var(--color-text-muted);
 }
 
+/* The design's "REPORTS TO:" colon is decoration, so it stays out of the
+   accessible name (and the copy contract's exact "Reports to"). */
+.label::after {
+  content: ":";
+}
+
 .value {
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-strong);
   overflow-wrap: anywhere;
+}
+
+.ownerMark {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
 }
 
 .muted {
@@ -38,4 +56,35 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* A text control, not a second button: it sits inside the pill. It keeps the
+   44px hit area on touch and tightens to one line where a mouse is used. */
+.changeButton {
+  border: none;
+  background: none;
+  padding: 0 var(--space-1);
+  min-height: var(--touch-min);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.changeButton:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.changeButton:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (pointer: fine) {
+  .changeButton {
+    min-height: 1.75rem;
+  }
 }

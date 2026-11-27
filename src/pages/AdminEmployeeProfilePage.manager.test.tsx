@@ -273,7 +273,11 @@ describe("Employee profile: the Reporting-manager dialog", () => {
     expect(await within(dialog).findByText("Reporting manager updated.")).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     // The route revalidated: the header reads the manager that was saved.
-    expect(await screen.findByText("Ravi Kumar (Owner)")).toBeInTheDocument();
+    // The "(Owner)" mark is its own span for the quieter colour, so match on
+    // the line's full text rather than one text node.
+    expect(
+      await screen.findByText((_, element) => element?.textContent === "Ravi Kumar (Owner)"),
+    ).toBeInTheDocument();
   });
 
   it("sends the owner default as an explicit null, and says the team moves", async () => {

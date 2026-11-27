@@ -71,10 +71,19 @@
   overscroll-behavior: contain;
 }
 
+/* The outlined field is a local exception to the console's stacked label,
+   chosen for this 15-field record form and used only here. Contract with
+   TextInput: the panel supplies --field-label-bg (so the label patch matches
+   the surface above the border) and the field's --field-fill matches the
+   input's fill below it. Do not copy the variant to other screens without
+   moving it into the design system first. */
 .panel {
+  --field-label-bg: var(--color-surface-sunken);
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-4);
+  /* Floating labels overhang the field's top edge, so the panel needs one
+     extra step above the first row to keep the gap even. */
+  padding: calc(var(--space-4) + var(--space-2)) var(--space-4) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-surface-sunken);
 }

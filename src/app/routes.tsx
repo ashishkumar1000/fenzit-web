@@ -186,6 +186,13 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            // The console's Help & Support page: static content, no loader —
+            // the shell already carries identity and the sidebar.
+            path: "help",
+            lazy: () =>
+              import("../pages/AdminHelpPage").then((m) => ({ Component: m.AdminHelpPage })),
+          },
+          {
             path: "company",
             lazy: async () => {
               const [page, loaderModule] = await Promise.all([

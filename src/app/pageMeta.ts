@@ -290,6 +290,7 @@ export const CLIENT_ONLY_TITLES: Record<string, string> = {
   "/admin/company/holidays": "Console · Fenzit",
   "/admin/company/leave": "Console · Fenzit",
   "/admin/company/attendance": "Console · Fenzit",
+  "/admin/help": "Console · Fenzit",
   "/admin/me": "Console · Fenzit",
   "/admin/deletion-requests": "Console · Fenzit",
   "404": "Page not found · Fenzit",

@@ -43,10 +43,11 @@ export function ProfileAttendancePanel({
 }) {
   const assigned = enrolment.ok ? enrolment.data : null;
   const rules = office.ok && office.data !== null ? currentRule(office.data) : null;
+  const ruleRevisions = office.ok && office.data !== null ? office.data.rules : null;
   return (
     <div className={styles.stack}>
       <div className={styles.topRow}>
-        <SectionCard title="Assigned Office" meta="Office location and attendance area.">
+        <SectionCard title="Assigned Office">
           {!enrolment.ok ? (
             <p className={styles.failed} role="alert">
               We could not load the office details. Please try opening this page again.
@@ -74,10 +75,7 @@ export function ProfileAttendancePanel({
             </>
           )}
         </SectionCard>
-        <SectionCard
-          title="Work Timings"
-          meta="These settings decide whether the employee has completed a full day, half day or arrived late."
-        >
+        <SectionCard title="Work Timings">
           {rules !== null ? (
             <dl className={styles.rules}>
               <div className={styles.ruleRow}>
@@ -121,13 +119,13 @@ export function ProfileAttendancePanel({
               to={`${basePath}?tab=attendance&month=${shiftMonth(month, -1)}`}
               className={styles.monthLink}
             >
-              ‹ Previous Month
+              <span aria-hidden="true">‹</span> Previous Month
             </Link>
             <Link
               to={`${basePath}?tab=attendance&month=${shiftMonth(month, 1)}`}
               className={styles.monthLink}
             >
-              Next Month ›
+              Next Month <span aria-hidden="true">›</span>
             </Link>
           </nav>
         }
@@ -147,7 +145,11 @@ export function ProfileAttendancePanel({
               "Distance at Check-out",
               "Status",
             ]}
-            rows={punchRows(punches.data)}
+            rows={punchRows(
+              punches.data,
+              ruleRevisions,
+              office.ok && office.data !== null ? office.data.id : null,
+            )}
             empty={`Attendance details will appear here once ${memberName} checks in${assigned?.officeName != null ? ` at ${assigned.officeName}` : ""}.`}
           />
         )}
@@ -156,10 +158,17 @@ export function ProfileAttendancePanel({
   );
 }
 
-function punchRows(punches: PunchRow[]): TableCell[][] {
+function punchRows(
+  punches: PunchRow[],
+  rules: WorkRule[] | null,
+  officeId: string | null,
+): TableCell[][] {
   return punches.map((punch) => [
     { text: fmtDay(punch.workDate) },
-    { text: punch.checkinAt === null ? "—" : punch.checkinAt.slice(11, 16) },
+    {
+      node: <CheckInCell at={punch.checkinAt} lateBy={lateBy(punch, rules, officeId)} />,
+      text: punch.checkinAt === null ? "—" : checkinTime(punch.checkinAt),
+    },
     { text: punch.checkoutAt === null ? "—" : punch.checkoutAt.slice(11, 16) },
     { text: fmtDistance(punch.checkinDistanceM), quiet: true },
     { text: fmtDistance(punch.checkoutDistanceM), quiet: true },
@@ -167,14 +176,64 @@ function punchRows(punches: PunchRow[]): TableCell[][] {
   ]);
 }
 
-/** The rule governing today: of the revisions whose window covers today
- *  (IST) — started on or before it, not ended before it — the newest one.
- *  A future-dated or already-retired rule never stands in for today's, the
- *  same pick the backend's day grading uses. */
-function currentRule(office: OfficeDetail): OfficeDetail["rules"][number] | null {
-  const today = istToday();
-  const current = office.rules.filter(
-    (rule) => rule.validFrom <= today && (rule.validTo === null || today < rule.validTo),
+type WorkRule = OfficeDetail["rules"][number];
+
+/** The punch's check-in time, with the rule's late grade when the punch
+ *  crossed it — the Work Timings card explains the rule, so the history
+ *  must apply it, not just print "Present". */
+function CheckInCell({ at, lateBy }: { at: string | null; lateBy: number | null }) {
+  if (at === null) return <span className={styles.muted}>—</span>;
+  return (
+    <span className={styles.checkinCell}>
+      {checkinTime(at)}
+      {lateBy !== null ? <span className={styles.late}>Late {lateBy} min</span> : null}
+    </span>
   );
-  return current.length === 0 ? null : current[current.length - 1];
+}
+
+function checkinTime(at: string): string {
+  return at.slice(11, 16);
+}
+
+/** Minutes past the rule that governed that day's late threshold (start +
+ *  cut-off), or null when the punch is on time, has no check-in, or no rule
+ *  covers the day. The wire's timestamps carry the tenant offset, so the
+ *  clock digits compare directly.
+ *
+ *  Only the assigned office's rule revisions are at hand, so a punch taken
+ *  at another office (before a transfer, or a different site) stays ungraded
+ *  rather than borrowing a rule that never applied to it. */
+function lateBy(punch: PunchRow, rules: WorkRule[] | null, officeId: string | null): number | null {
+  if (rules === null || punch.checkinAt === null) return null;
+  if (officeId === null || punch.officeId !== officeId) return null;
+  const rule = ruleOn(rules, punch.workDate);
+  if (rule === null) return null;
+  const checkin = toMinutes(checkinTime(punch.checkinAt));
+  const start = toMinutes(rule.startTime);
+  if (checkin === null || start === null) return null;
+  const late = checkin - (start + rule.lateCutoffMinutes);
+  return late > 0 ? late : null;
+}
+
+function toMinutes(time: string): number | null {
+  const [hours, minutes] = time.split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+/** The rule governing today (IST). The late flag asks for the rule covering
+ *  each punch's own day instead. */
+function currentRule(office: OfficeDetail): WorkRule | null {
+  return ruleOn(office.rules, istToday());
+}
+
+/** The rule covering one day: of the revisions whose window includes it —
+ *  started on or before it, not ended before it — the newest one. A
+ *  future-dated or already-retired rule never stands in, the same pick the
+ *  backend's day grading uses. */
+function ruleOn(rules: WorkRule[], day: string): WorkRule | null {
+  const covering = rules.filter(
+    (rule) => rule.validFrom <= day && (rule.validTo === null || day < rule.validTo),
+  );
+  return covering.length === 0 ? null : covering[covering.length - 1];
 }

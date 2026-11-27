@@ -27,9 +27,9 @@ export function ProfileJobsPanel({ jobs }: { jobs: Slice<JobsPageResult> }) {
   const data = jobs.data;
   const chips = [
     { label: "Total Jobs", value: data.stats.total, tone: styles.chipPrimary },
-    { label: "In progress", value: data.stats.inProgress, tone: styles.chip },
+    { label: "In Progress", value: data.stats.inProgress, tone: styles.chip },
     { label: "Scheduled", value: data.stats.scheduled, tone: styles.chip },
-    { label: "Completed", value: data.stats.completed, tone: styles.chipDone },
+    { label: "Done", value: data.stats.completed, tone: styles.chipDone },
   ];
   const rows: TableCell[][] = data.data.map((job) => [
     {

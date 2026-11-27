@@ -13,6 +13,7 @@ import {
   useApiBase,
 } from "../testing/fetchMock";
 import { resetLeaveSummaryCacheForTests } from "../features/admin/leaveSummaryCache";
+import { MASTER_RECORD_FIELDS } from "../features/admin/employeeProfileLabels";
 
 /**
  * The employee profile page's contract: the address's tab picks the section
@@ -240,9 +241,12 @@ afterEach(() => {
 });
 
 describe("Employee profile: the tabs fetch only their own section", () => {
-  it("opens on Personal Details and asks only for the member and their employment", async () => {
+  it("opens on Profile and asks only for the member and their employment", async () => {
     renderAt("/admin/company/employees/u-a");
     await screen.findByText("Date of Birth");
+    expect(document.title).toBe("Asha V · Profile · Fenzit");
+    expect(screen.getByRole("heading", { level: 2, name: "Profile" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Skip to content" })).toBeTruthy();
     expect(screen.getByText("Pipe Leak Repair")).toBeTruthy();
     expect(
       screen.getByText(
@@ -269,6 +273,36 @@ describe("Employee profile: the tabs fetch only their own section", () => {
     expect(reads.some((r) => r.url.includes("/payroll/payslips"))).toBe(false);
   });
 
+  it("puts the console title back when the record is left", async () => {
+    const router = renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    expect(document.title).toBe("Asha V · Profile · Fenzit");
+
+    await router.navigate("/admin/company/employees");
+    // The record's name must not follow the owner to the next screen.
+    await waitFor(() => expect(document.title).not.toContain("Asha V"));
+  });
+
+  it("shows the joining date and designation the record holds, not just the editor", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Joining Date");
+    expect(screen.getByText("Designation")).toBeTruthy();
+    expect(screen.getByText("Senior plumber")).toBeTruthy();
+    expect(screen.getByText("15 Jan 2026")).toBeTruthy();
+    expect(screen.getByText("Added 1 Jan 2026")).toBeTruthy();
+    expect(screen.getByText("+91 98000 00002")).toBeTruthy();
+  });
+
+  it("renders every field the record catalogue holds, in its group", async () => {
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("Date of Birth");
+    // The grid walks a hand-written group list, so the catalogue — not the
+    // list — is the contract: a field with no group would vanish silently.
+    for (const field of MASTER_RECORD_FIELDS) {
+      expect(screen.getAllByText(field.label).length).toBeGreaterThan(0);
+    }
+  });
+
   it("renders the statutory grid as honest Add affordances for empty fields", async () => {
     renderAt("/admin/company/employees/u-a");
     await screen.findByText("Date of Birth");
@@ -277,14 +311,148 @@ describe("Employee profile: the tabs fetch only their own section", () => {
     expect(addButtons.length).toBeGreaterThanOrEqual(9);
   });
 
+  it("copies a tax identifier and confirms it with a toast", async () => {
+    const writes: string[] = [];
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          writes.push(text);
+        },
+      },
+    });
+    setRespond((url) =>
+      url.endsWith("/members/u-a/employment")
+        ? jsonResponse({
+            ...employmentRow(),
+            pan: "ABCDE1234F",
+            pfAccountNumber: "PF-00000001",
+            uanNumber: "100000000001",
+            ifscCode: "PQAB0001234",
+            bankAccountNumber: "500100000000001",
+          })
+        : route(url),
+    );
+
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("ABCDE1234F");
+    fireEvent.click(screen.getByRole("button", { name: "Copy PAN Number" }));
+
+    expect(await screen.findByText("PAN Number copied.")).toBeTruthy();
+    await waitFor(() => expect(writes).toEqual(["ABCDE1234F"]));
+    // One announcement: the toast. The tile keeps its own name so a screen
+    // reader is not told the same copy twice.
+    expect(screen.getByRole("button", { name: "Copy PAN Number" })).toBeTruthy();
+  });
+
+  it("copies all five identifiers as labelled lines in one action", async () => {
+    const writes: string[] = [];
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          writes.push(text);
+        },
+      },
+    });
+    setRespond((url) =>
+      url.endsWith("/members/u-a/employment")
+        ? jsonResponse({
+            ...employmentRow(),
+            pan: "ABCDE1234F",
+            pfAccountNumber: "PF-00000001",
+            uanNumber: "100000000001",
+            ifscCode: "PQAB0001234",
+            bankAccountNumber: "500100000000001",
+          })
+        : route(url),
+    );
+
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("ABCDE1234F");
+    fireEvent.click(screen.getByRole("button", { name: "Copy identifiers" }));
+
+    expect(await screen.findByText("Identifiers copied.")).toBeTruthy();
+    await waitFor(() => expect(writes).toHaveLength(1));
+    const copied = writes[0] ?? "";
+    expect(copied).toContain("PAN Number: ABCDE1234F");
+    expect(copied).toContain("Bank Account Number: 500100000000001");
+    expect(copied.split("\n")).toHaveLength(5);
+  });
+
+  it("speaks a refused copy instead of pretending it worked", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new Error("denied");
+        },
+      },
+    });
+    setRespond((url) =>
+      url.endsWith("/members/u-a/employment")
+        ? jsonResponse({ ...employmentRow(), pan: "ABCDE1234F" })
+        : route(url),
+    );
+
+    renderAt("/admin/company/employees/u-a");
+    await screen.findByText("ABCDE1234F");
+    fireEvent.click(screen.getByRole("button", { name: "Copy PAN Number" }));
+
+    expect(await screen.findByText(/Could not copy/)).toBeTruthy();
+    expect(screen.queryByText("PAN Number copied.")).toBeNull();
+  });
+
+  it("falls back to the selection copy when the async clipboard is refused", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new Error("denied");
+        },
+      },
+    });
+    const execCommand = Object.getOwnPropertyDescriptor(document, "execCommand");
+    let copied = "";
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: (command: string) => {
+        expect(command).toBe("copy");
+        // The temporary field is the only textarea in the document while
+        // the fallback runs.
+        copied = (document.querySelector("textarea") as HTMLTextAreaElement | null)?.value ?? "";
+        return true;
+      },
+    });
+    try {
+      setRespond((url) =>
+        url.endsWith("/members/u-a/employment")
+          ? jsonResponse({ ...employmentRow(), pan: "ABCDE1234F" })
+          : route(url),
+      );
+
+      renderAt("/admin/company/employees/u-a");
+      await screen.findByText("ABCDE1234F");
+      fireEvent.click(screen.getByRole("button", { name: "Copy PAN Number" }));
+
+      expect(await screen.findByText("PAN Number copied.")).toBeTruthy();
+      expect(copied).toBe("ABCDE1234F");
+      // The invisible field is cleaned up on success too.
+      expect(document.querySelectorAll("textarea")).toHaveLength(0);
+    } finally {
+      if (execCommand === undefined) Reflect.deleteProperty(document, "execCommand");
+      else Object.defineProperty(document, "execCommand", execCommand);
+    }
+  });
+
   it("the Jobs tab fetches the person's own jobs with the technician scope", async () => {
     renderAt("/admin/company/employees/u-a?tab=jobs");
     await screen.findByText("JB-2026-0009");
     const chipRow = screen.getByText("Total Jobs", { exact: false }).closest("div");
     expect(chipRow?.textContent).toContain("3 Total Jobs");
-    expect(chipRow?.textContent).toContain("1 In progress");
+    expect(chipRow?.textContent).toContain("1 In Progress");
     expect(chipRow?.textContent).toContain("1 Scheduled");
-    expect(chipRow?.textContent).toContain("1 Completed");
+    expect(chipRow?.textContent).toContain("1 Done");
     const jobsReads = sentRequests().filter((r) => r.url.includes("/jobs/page"));
     expect(jobsReads.length).toBe(1);
     expect(jobsReads[0].url).toContain("technicianId=u-a");
@@ -293,7 +461,7 @@ describe("Employee profile: the tabs fetch only their own section", () => {
     expect(sentRequests().some((r) => r.url.includes("/attendance/punches"))).toBe(false);
   });
 
-  it("an unknown tab value falls back to Personal Details", async () => {
+  it("an unknown tab value falls back to Profile", async () => {
     renderAt("/admin/company/employees/u-a?tab=nonsense");
     await screen.findByText("Date of Birth");
     expect(screen.getByRole("heading", { level: 3, name: "Employee Details" })).toBeTruthy();
@@ -364,18 +532,18 @@ describe("Employee profile: moving between employees", () => {
       return jsonResponse({});
     });
     const router = renderAt("/admin/company/employees/u-a");
-    await screen.findByText("Asha A");
+    await screen.findByRole("heading", { level: 1, name: "Asha A" });
     const bMemberReads = () => sentRequests().filter((r) => r.url.endsWith("/members/u-b")).length;
     expect(bMemberReads()).toBe(0);
     // The two addresses carry the same (empty) search — only the person in
     // the pathname changed, and that alone must move the data.
     await router.navigate("/admin/company/employees/u-b");
-    await screen.findByText("Bunty B");
+    await screen.findByRole("heading", { level: 1, name: "Bunty B" });
     expect(bMemberReads()).toBe(1);
     // The contract stays two-sided: the same address again is a manual retry
     // and still re-runs the loader.
     await router.navigate("/admin/company/employees/u-b");
-    await screen.findByText("Bunty B");
+    await screen.findByRole("heading", { level: 1, name: "Bunty B" });
     expect(bMemberReads()).toBe(2);
   });
 });
@@ -417,7 +585,7 @@ describe("Employee profile: deactivate / reinstate", () => {
   it("never offers Deactivate on the signed-in owner's own profile", async () => {
     state.member = { userId: "u-owner", status: "active" };
     renderAt("/admin/company/employees/u-owner");
-    await screen.findByText("Asha V");
+    await screen.findByRole("heading", { level: 1, name: "Asha V" });
     expect(screen.queryByRole("button", { name: "Deactivate" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Activate Again" })).toBeNull();
   });
@@ -455,6 +623,139 @@ describe("Employee profile: the Attendance tab", () => {
     await screen.findByText("25 Oct 2026");
     expect(screen.getByText("4 m")).toBeTruthy();
     expect(screen.getByText("Absent")).toBeTruthy();
+  });
+
+  it("flags a check-in past the rule's late cut-off, and only that one", async () => {
+    state.punches = [
+      {
+        workDate: "2026-10-25",
+        checkinAt: "2026-10-25T09:50:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-25T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-1",
+        officeName: "Jha home",
+        status: "present",
+        corrected: false,
+      },
+      {
+        workDate: "2026-10-26",
+        checkinAt: "2026-10-26T09:40:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-26T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-1",
+        officeName: "Jha home",
+        status: "present",
+        corrected: false,
+      },
+    ];
+    renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
+    await screen.findByText("25 Oct 2026");
+    // 09:30 + 15 minutes = 09:45; a 09:50 check-in is 5 minutes late.
+    expect(screen.getByText("Late 5 min")).toBeTruthy();
+    expect(screen.getAllByText("Late 5 min").length).toBe(1);
+    expect(screen.queryByText(/Late 0 min/)).toBeNull();
+  });
+
+  it("does not grade a punch taken at another office with this office's rule", async () => {
+    state.punches = [
+      {
+        workDate: "2026-10-27",
+        checkinAt: "2026-10-27T10:30:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-27T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-2",
+        officeName: "Second site",
+        status: "present",
+        corrected: false,
+      },
+    ];
+    renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
+    await screen.findByText("27 Oct 2026");
+    // The assigned office's rules did not govern that day at that site, and
+    // its rules are not in hand — so the row stays ungraded, never guessed.
+    expect(screen.queryByText(/Late \d+ min/)).toBeNull();
+  });
+
+  it("grades each punch with the rule that covered its own day, not today's", async () => {
+    state.punches = [
+      {
+        workDate: "2026-10-01",
+        checkinAt: "2026-10-01T09:40:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-01T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-1",
+        officeName: "Jha home",
+        status: "present",
+        corrected: false,
+      },
+      {
+        workDate: "2026-10-02",
+        checkinAt: "2026-10-02T10:00:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-02T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-1",
+        officeName: "Jha home",
+        status: "present",
+        corrected: false,
+      },
+      {
+        workDate: "2026-10-03",
+        checkinAt: "2026-10-03T10:31:00+05:30",
+        checkinDistanceM: 4,
+        checkoutAt: "2026-10-03T18:40:00+05:30",
+        checkoutDistanceM: 58,
+        officeId: "o-1",
+        officeName: "Jha home",
+        status: "present",
+        corrected: false,
+      },
+    ];
+    installFetchMock();
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/attendance/offices/o-1"))
+        return jsonResponse({
+          id: "o-1",
+          name: "Jha home",
+          radiusM: 200,
+          formattedAddress: "H1/104B, Block H, Vikaspuri, Delhi, 110018, India",
+          rules: [
+            {
+              startTime: "09:00",
+              endTime: "18:00",
+              lateCutoffMinutes: 15,
+              fullDayHours: 8,
+              halfDayHours: 4,
+              validFrom: "2026-01-01",
+              validTo: "2026-10-02",
+            },
+            {
+              startTime: "10:00",
+              endTime: "19:00",
+              lateCutoffMinutes: 30,
+              fullDayHours: 8,
+              halfDayHours: 4,
+              validFrom: "2026-10-02",
+              validTo: null,
+            },
+          ],
+        });
+      return route(url);
+    });
+    renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
+    await screen.findByText("1 Oct 2026");
+    // 1 Oct is graded by the old 09:00 + 15 rule; 2 Oct is on time under the
+    // new 10:00 + 30 rule; 3 Oct is one minute late under it.
+    expect(screen.getByText("Late 25 min")).toBeTruthy();
+    expect(screen.getByText("Late 1 min")).toBeTruthy();
+    expect(
+      screen.getAllByText("Late 25 min").length + screen.getAllByText("Late 1 min").length,
+    ).toBe(2);
   });
 
   it("says the person is not enrolled when the roster has no row for them", async () => {
@@ -565,10 +866,10 @@ describe("Employee profile: the Attendance tab", () => {
     renderAt("/admin/company/employees/u-a?tab=attendance&month=2026-10");
     await screen.findByText("Jha home");
     const nav = screen.getByRole("navigation", { name: "Month" });
-    expect(within(nav).getByRole("link", { name: "‹ Previous Month" }).getAttribute("href")).toBe(
+    expect(within(nav).getByRole("link", { name: "Previous Month" }).getAttribute("href")).toBe(
       "/admin/company/employees/u-a?tab=attendance&month=2026-09",
     );
-    expect(within(nav).getByRole("link", { name: "Next Month ›" }).getAttribute("href")).toBe(
+    expect(within(nav).getByRole("link", { name: "Next Month" }).getAttribute("href")).toBe(
       "/admin/company/employees/u-a?tab=attendance&month=2026-11",
     );
   });
@@ -631,13 +932,74 @@ describe("Employee profile: the Leave and Payroll tabs", () => {
     ).toBeTruthy();
   });
 
+  it("keeps Manage salary in the filled state, pointing at this employee's structure", async () => {
+    installFetchMock();
+    state.member = { userId: "u-a", status: "active" };
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+      if (path.endsWith("/members/u-a")) return jsonResponse(memberProfile());
+      if (path.endsWith("/members/u-a/salary-structures"))
+        return jsonResponse([
+          {
+            effectiveFrom: "2026-09-01",
+            lines: [{ componentId: "c-1", componentName: "Basic", amount: "60000.00" }],
+            createdAt: "2026-09-01T00:00:00Z",
+            updatedAt: "2026-09-01T00:00:00Z",
+          },
+        ]);
+      if (path.endsWith("/payroll/payslips")) return jsonResponse([]);
+      return jsonResponse({});
+    });
+    renderAt("/admin/company/employees/u-a?tab=payroll");
+    await screen.findByText("Basic");
+    expect(screen.getByText("Total Monthly Gross")).toBeTruthy();
+    expect(screen.getAllByText("₹60,000.00").length).toBe(2);
+    expect(screen.getByText("Annual: ₹7,20,000.00")).toBeTruthy();
+    const manage = screen.getByText("Manage salary").closest("a");
+    expect(manage?.getAttribute("href")).toContain("employee=u-a");
+  });
+
+  it("shows no total when one component's amount cannot be read", async () => {
+    installFetchMock();
+    state.member = { userId: "u-a", status: "active" };
+    setRespond((url) => {
+      const path = new URL(url, "http://localhost").pathname;
+      if (path.endsWith("/users/me")) return jsonResponse(OWNER);
+      if (path.endsWith("/members/u-a")) return jsonResponse(memberProfile());
+      if (path.endsWith("/members/u-a/salary-structures"))
+        return jsonResponse([
+          {
+            effectiveFrom: "2026-09-01",
+            lines: [
+              { componentId: "c-1", componentName: "Basic", amount: "60000.00" },
+              // A formula line the structure can no longer evaluate: no
+              // stored amount and no computed one.
+              { componentId: "c-2", componentName: "HRA", amount: null },
+            ],
+            createdAt: "2026-09-01T00:00:00Z",
+            updatedAt: "2026-09-01T00:00:00Z",
+          },
+        ]);
+      if (path.endsWith("/payroll/payslips")) return jsonResponse([]);
+      return jsonResponse({});
+    });
+    renderAt("/admin/company/employees/u-a?tab=payroll");
+    await screen.findByText("HRA");
+    // A partial sum would be a number the record never claimed.
+    expect(screen.queryByText("Total Monthly Gross")).toBeNull();
+    expect(screen.queryByText(/^Annual:/)).toBeNull();
+    // The empty unit does not read "— per month".
+    expect(screen.queryByText("— per month")).toBeNull();
+  });
+
   it("reads the recent payslip months and keeps only this employee's rows", async () => {
     renderAt("/admin/company/employees/u-a?tab=payroll");
     await screen.findByText("No salary structure yet");
     expect(screen.getByText("Manage salary")).toBeTruthy();
     const payslipReads = sentRequests().filter((r) => r.url.includes("/payroll/payslips"));
     expect(payslipReads.length).toBe(3);
-    expect(screen.getByText(/No payslips yet/)).toBeTruthy();
+    expect(screen.getByText(/No payslips generated yet/)).toBeTruthy();
   });
 });
 
@@ -683,16 +1045,16 @@ describe("Employee profile: the employment dialog", () => {
     expect(within(dialog).getByLabelText("Date of birth")).toBeTruthy();
   });
 
-  it("opens Statutory IDs from the PAN row's Add link", async () => {
+  it("opens Govt IDs from the PAN row's Add link", async () => {
     renderAt("/admin/company/employees/u-a");
     await screen.findByText("Date of Birth");
     const panRow = screen.getByText("PAN Number").closest("div")!;
     fireEvent.click(within(panRow).getByRole("button", { name: "+ Add" }));
-    await screen.findByRole("tab", { name: /^Statutory IDs/ });
+    await screen.findByRole("tab", { name: /^Govt IDs/ });
     const dialog = screen.getByRole("dialog");
     expect(
       within(dialog)
-        .getByRole("tab", { name: /^Statutory IDs/ })
+        .getByRole("tab", { name: /^Govt IDs/ })
         .getAttribute("aria-selected"),
     ).toBe("true");
     expect(within(dialog).getByLabelText("PAN")).toBeTruthy();

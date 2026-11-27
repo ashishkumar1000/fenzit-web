@@ -6,7 +6,7 @@
 
 /** The tab strip, in the design's order. The first tab is the bare address. */
 export const EMPLOYEE_PROFILE_TABS = [
-  { value: "master", label: "Personal Details" },
+  { value: "master", label: "Profile" },
   { value: "jobs", label: "Jobs" },
   { value: "attendance", label: "Attendance" },
   { value: "leave", label: "Leave" },
@@ -31,6 +31,8 @@ export const MASTER_RECORD_FIELDS: Array<{
   { key: "ifscCode", label: "IFSC Code", statutory: true },
   { key: "bankAccountNumber", label: "Bank Account Number", statutory: true },
   { key: "department", label: "Department" },
+  { key: "designation", label: "Designation" },
+  { key: "joinDate", label: "Joining Date" },
 ];
 
 /** The leave balance card's accrual caption, from the balance row itself. */
@@ -38,6 +40,8 @@ export function accrualCaption(mode: string, days: number): string {
   if (mode === "monthly") {
     return days === 1 ? "1 day added every month." : `${days} days added every month.`;
   }
-  if (mode === "annual") return `${days} days given every year.`;
+  if (mode === "annual") {
+    return days === 1 ? "1 day added every year." : `${days} days added every year.`;
+  }
   return "Leave added by the owner.";
 }

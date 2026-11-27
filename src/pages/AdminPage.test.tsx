@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { routes } from "../app/routes";
 import { AdminChecking } from "./AdminPage";
@@ -28,6 +28,9 @@ beforeEach(() => {
   meAnswers = [];
   meCalls = 0;
   summaryAnswer = undefined;
+  // The rail's remembered state is browser storage — one test's collapse
+  // must not reshape the next test's sidebar.
+  window.localStorage.removeItem("fenzit.console.sidebar");
   // The shared summary cache is module state — one test's answer must never
   // serve the next test's badge. The identity cache is the same shape.
   resetLeaveSummaryCacheForTests();
@@ -135,13 +138,14 @@ describe("consoleRole", () => {
 });
 
 describe("sectionsFor", () => {
-  it("gives staff Inspect Person, Account Details, Reports, Delete Requests and App Settings, in that order", () => {
+  it("gives staff Inspect Person, Account Details, Reports, Delete Requests, App Settings and Help", () => {
     expect(sectionsFor("staff").map((s) => s.to)).toEqual([
       "/admin/inspect",
       "/admin/account",
       "/admin/reports",
       "/admin/deletion-requests",
       "/admin/config",
+      "/admin/help",
     ]);
   });
 
@@ -155,16 +159,21 @@ describe("sectionsFor", () => {
       "/admin/company/holidays",
       "/admin/company/leave",
       "/admin/company/attendance",
+      "/admin/help",
     ]);
   });
 
-  it("gives a member My Details and the shared Jobs page", () => {
-    expect(sectionsFor("member").map((s) => s.to)).toEqual(["/admin/me", "/admin/company/jobs"]);
+  it("gives a member My Details, the shared Jobs page and Help", () => {
+    expect(sectionsFor("member").map((s) => s.to)).toEqual([
+      "/admin/me",
+      "/admin/company/jobs",
+      "/admin/help",
+    ]);
   });
 });
 
 describe("sectionGroupsFor", () => {
-  it("clusters the owner sections under Business, Team and Money, with Overview standing alone", () => {
+  it("clusters the owner sections under Business, Team, Payroll and Preferences, with Overview standing alone", () => {
     expect(sectionGroupsFor("owner")).toEqual([
       { caption: null, links: [{ to: "/admin/company", label: "Overview" }] },
       {
@@ -183,7 +192,14 @@ describe("sectionGroupsFor", () => {
           { to: "/admin/company/holidays", label: "Holidays" },
         ],
       },
-      { caption: "Money", links: [{ to: "/admin/company/payroll", label: "Salary" }] },
+      { caption: "Payroll", links: [{ to: "/admin/company/payroll", label: "Salary" }] },
+      {
+        caption: "Preferences",
+        links: [
+          { to: "/admin/settings", label: "Settings", disabled: true },
+          { to: "/admin/help", label: "Help & Support" },
+        ],
+      },
     ]);
   });
 
@@ -194,7 +210,7 @@ describe("sectionGroupsFor", () => {
 
   it("places every owner section exactly once across the groups — a pick list can never drop one", () => {
     const grouped = sectionGroupsFor("owner")
-      .flatMap((group) => group.links.map((link) => link.to))
+      .flatMap((group) => group.links.filter((link) => !link.disabled).map((link) => link.to))
       .sort();
     expect(grouped).toEqual(
       sectionsFor("owner")
@@ -384,7 +400,7 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
     // The design's group captions over their clusters…
     expect(screen.getByText("Business")).toBeInTheDocument();
     expect(screen.getByText("Team")).toBeInTheDocument();
-    expect(screen.getByText("Money")).toBeInTheDocument();
+    expect(screen.getByText("Payroll")).toBeInTheDocument();
     // …and Overview standing alone, with no caption paragraph over it.
     expect(screen.queryByText("Overview", { selector: "p" })).toBeNull();
   });
@@ -426,6 +442,113 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
     expect(await screen.findByText("Owner")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leave" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /requests waiting/ })).toBeNull();
+  });
+
+  it("collapses the rail to icons, keeps the names and remembers the choice", async () => {
+    window.localStorage.removeItem("fenzit.console.sidebar");
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin();
+
+    const collapse = await screen.findByRole("button", { name: "Collapse sidebar" });
+    expect(collapse).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(collapse);
+
+    const expand = await screen.findByRole("button", { name: "Expand sidebar" });
+    expect(expand).toHaveAttribute("aria-expanded", "false");
+    expect(window.localStorage.getItem("fenzit.console.sidebar")).toBe("collapsed");
+
+    // The labels leave the picture, not the accessibility tree.
+    expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
+    // Settings is drawn but cannot open — the screen does not exist yet. It
+    // is a disabled link with its reason as the description, so assistive
+    // tech hears why instead of a bare grey word.
+    const settings = screen.getByRole("link", { name: /Settings/ });
+    expect(settings).toHaveAttribute("aria-disabled", "true");
+    expect(settings.getAttribute("aria-describedby")).toBe("console-settings-note");
+    expect(document.getElementById("console-settings-note")).toHaveTextContent("Coming soon");
+  });
+
+  it("keeps the phone menu behind one labelled control, closable with Escape", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin();
+
+    const menu = await screen.findByRole("button", { name: "Menu" });
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    expect(menu.getAttribute("aria-controls")).toBe("console-nav");
+
+    menu.click();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Menu" }).getAttribute("aria-expanded")).toBe(
+        "true",
+      ),
+    );
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Menu" }), { key: "Escape" });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Menu" }).getAttribute("aria-expanded")).toBe(
+        "false",
+      ),
+    );
+  });
+
+  it("opens collapsed when the last visit left the rail collapsed", async () => {
+    // The write side is pinned above; this is the read side — a remembered
+    // choice the shell ignores is a setting that does nothing.
+    window.localStorage.setItem("fenzit.console.sidebar", "collapsed");
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me(), me());
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin();
+
+    const expand = await screen.findByRole("button", { name: "Expand sidebar" });
+    expect(expand.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("link", { name: "Employees" })).toBeTruthy();
+  });
+
+  it("closes the phone menu when a section is chosen", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me());
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin();
+
+    const menu = await screen.findByRole("button", { name: "Menu" });
+    menu.click();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Menu" }).getAttribute("aria-expanded")).toBe(
+        "true",
+      ),
+    );
+
+    // A phone tap on a section is a navigation; the panel closes behind it.
+    fireEvent.click(screen.getByRole("link", { name: "Help & Support" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Menu" }).getAttribute("aria-expanded")).toBe(
+        "false",
+      ),
+    );
+    expect(await screen.findByRole("heading", { level: 1, name: "Help & Support" })).toBeTruthy();
+  });
+
+  it("serves Help & Support inside the shell with one level-one heading", async () => {
+    writeSession({ token: "tok-1", name: "Ravi Kumar" });
+    meAnswers.push(me());
+    summaryAnswer = () => jsonResponse({ activeEmployees: 10 });
+
+    renderAdmin("/admin/help");
+
+    // The route table, the layout and the page's own header rule together —
+    // the page component alone would not catch a missing route.
+    expect(await screen.findByRole("heading", { level: 1, name: "Help & Support" })).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.queryByText(/^Hello/)).toBeNull();
   });
 
   it("asks no summary read for staff — no Leave section, nothing to count", async () => {

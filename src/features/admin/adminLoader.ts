@@ -21,6 +21,9 @@ export type AdminLayoutData =
 export interface SectionLink {
   to: string;
   label: string;
+  /** A row the design shows but the console cannot open yet — rendered as a
+   *  muted, non-interactive item with the reason in its tooltip. */
+  disabled?: boolean;
 }
 
 /** Staff sees everything; an owner sees the company; a member sees their own
@@ -39,6 +42,7 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/reports", label: "Reports" },
       { to: "/admin/deletion-requests", label: "Delete Requests" },
       { to: "/admin/config", label: "App Settings" },
+      { to: "/admin/help", label: "Help & Support" },
     ];
   }
   if (role === "owner") {
@@ -51,11 +55,13 @@ export function sectionsFor(role: ConsoleRole): SectionLink[] {
       { to: "/admin/company/holidays", label: "Holidays" },
       { to: "/admin/company/leave", label: "Leave" },
       { to: "/admin/company/attendance", label: "Attendance" },
+      { to: "/admin/help", label: "Help & Support" },
     ];
   }
   return [
     { to: "/admin/me", label: "My Details" },
     { to: "/admin/company/jobs", label: "Jobs" },
+    { to: "/admin/help", label: "Help & Support" },
   ];
 }
 
@@ -90,7 +96,16 @@ export function sectionGroupsFor(role: ConsoleRole): SectionGroup[] {
         "/admin/company/holidays",
       ]),
     },
-    { caption: "Money", links: pick(["/admin/company/payroll"]) },
+    { caption: "Payroll", links: pick(["/admin/company/payroll"]) },
+    {
+      caption: "Preferences",
+      links: [
+        // The design's Settings row. No settings screen exists yet, so it is
+        // shown disabled rather than left out of the sidebar.
+        { to: "/admin/settings", label: "Settings", disabled: true },
+        ...pick(["/admin/help"]),
+      ],
+    },
   ];
 }
 

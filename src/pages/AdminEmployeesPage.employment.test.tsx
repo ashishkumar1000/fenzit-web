@@ -62,7 +62,7 @@ describe("Employees: the employment dialog", () => {
     expect((screen.getByLabelText("Designation") as HTMLInputElement).value).toBe(
       "Field technician",
     );
-    openSection("Statutory IDs");
+    openSection("Govt IDs");
     expect((screen.getByLabelText("PAN") as HTMLInputElement).value).toBe("ABCPE1234F");
     expect(
       sentRequests().some((r) => r.url.includes("/members/u-a/employment") && r.method === "GET"),
@@ -93,7 +93,7 @@ describe("Employees: the employment dialog", () => {
     fireEvent.change(screen.getByLabelText("Father's name"), { target: { value: "" } });
     openSection("Job");
     fireEvent.change(screen.getByLabelText("Joining date"), { target: { value: "" } });
-    openSection("Statutory IDs");
+    openSection("Govt IDs");
     fireEvent.change(screen.getByLabelText("PAN"), { target: { value: "" } });
     const before = sentRequests().filter((r) => r.url.includes("/members/page")).length;
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save" }));
@@ -115,12 +115,37 @@ describe("Employees: the employment dialog", () => {
       name: "Save",
     }) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
-    expect(screen.getByText("The employee code cannot be cleared.")).toBeTruthy();
+    // The field error and the footer reason agree, and the button points at
+    // the reason, so a keyboard user is told why it is closed.
+    const reason = save.getAttribute("aria-describedby");
+    expect(reason).toBeTruthy();
+    expect(document.getElementById(reason ?? "")?.textContent).toBe(
+      "The employee code cannot be cleared.",
+    );
+    expect(screen.getAllByText("The employee code cannot be cleared.")).toHaveLength(2);
+  });
+
+  it("warns only when clearing a joining date would remove salary runs", async () => {
+    await openDialog();
+    expect(screen.queryByText("This employee will be left out of salary runs.")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Joining date"), { target: { value: "" } });
+    expect(screen.getByText("This employee will be left out of salary runs.")).toBeTruthy();
+  });
+
+  it("stays quiet for an employee who never had a joining date", async () => {
+    payroll.employment["u-a"] = employmentRow("u-a", { joinDate: null });
+    await openDialog();
+    // Opening the dialog is not an edit: nothing is being cleared, so the
+    // payroll warning must not appear before the owner touches the field.
+    expect(screen.queryByText("This employee will be left out of salary runs.")).toBeNull();
+    openSection("Job");
+    expect(screen.getByLabelText("Joining date")).toBeTruthy();
+    expect(screen.queryByText("This employee will be left out of salary runs.")).toBeNull();
   });
 
   it("uppercases PAN as it is typed", async () => {
     await openDialog();
-    openSection("Statutory IDs");
+    openSection("Govt IDs");
     fireEvent.change(screen.getByLabelText("PAN"), { target: { value: "abcpe1234f" } });
     expect((screen.getByLabelText("PAN") as HTMLInputElement).value).toBe("ABCPE1234F");
   });

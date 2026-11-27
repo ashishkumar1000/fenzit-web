@@ -37,38 +37,193 @@
   text-decoration: underline;
 }
 
-.grid {
+.groups {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-4) var(--space-6);
+  gap: var(--space-5);
+  margin-block-start: var(--space-5);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* The design's group caption: a small colored dot and an uppercase line. */
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.groupDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.groupPersonal {
+  color: var(--color-status-progress-fg);
+}
+
+.groupTax {
+  color: var(--color-status-scheduled-fg);
+}
+
+.groupBank {
+  color: var(--color-status-done-fg);
+}
+
+.groupJob {
+  color: var(--color-text-muted);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-2);
   margin: 0;
 }
 
-.label {
+/* One soft tile: label with icon on top, value (and copy control) below. */
+.tile {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  min-width: 0;
+}
+
+.tileLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  margin: 0 0 var(--space-1);
+  min-width: 0;
 }
 
-.value {
+.tileIcon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.tileValue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin: 0;
-  font-size: var(--font-size-base);
-  color: var(--color-text-body);
+  min-width: 0;
+  min-height: var(--touch-min);
+}
+
+.valueText {
+  /* The tab's errand is reading these numbers aloud or checking them against
+     a bank form: the value owns the emphasis, one step above its label. */
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
 .addButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-min);
   border: none;
   background: none;
   padding: 0;
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-link);
   cursor: pointer;
 }
 
 .addButton:hover {
   text-decoration: underline;
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  flex: none;
+  margin-inline-end: calc(var(--space-2) * -1);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* The card header's one control: the five identifiers as labelled lines. */
+.copyAll {
+  min-height: var(--touch-min);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-body);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.copyAll:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-strong);
+}
+
+.copyAll:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.copyButton:hover {
+  background: var(--color-surface-card);
+  color: var(--color-primary);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Desktop tiles are dense; the touch-sized controls only need their height
+   on a phone. A coarse pointer (a tablet, a touch laptop) keeps 44px even
+   when the window is wide. */
+@media (min-width: 720px) and (pointer: fine) {
+  .tileValue {
+    min-height: 24px;
+  }
+
+  .copyButton {
+    width: 26px;
+    height: 26px;
+  }
+
+  .copyAll {
+    min-height: 28px;
+  }
+
+  .addButton {
+    min-height: 24px;
+  }
 }
 
 .retryLink {
@@ -93,7 +248,7 @@
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
-  color: var(--color-on-primary-soft);
+  color: var(--color-status-progress-fg);
   font-size: var(--font-size-sm);
 }
 

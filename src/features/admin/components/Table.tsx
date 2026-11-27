@@ -47,17 +47,26 @@ export function DataTable({ columns, rows, empty }: TableProps) {
         <tbody>
           {rows.map((cells, r) => (
             <tr key={r} className={styles.tr}>
-              {cells.map((cell, c) => (
-                <td key={c} className={styles.td}>
-                  {cell.status ? (
-                    <StatusBadge status={cell.text} />
-                  ) : cell.node !== undefined ? (
-                    cell.node
-                  ) : (
-                    <span className={cell.quiet ? styles.quiet : styles.cell}>{cell.text}</span>
-                  )}
-                </td>
-              ))}
+              {cells.map((cell, c) => {
+                const content = cell.status ? (
+                  <StatusBadge status={cell.text} />
+                ) : cell.node !== undefined ? (
+                  cell.node
+                ) : (
+                  <span className={cell.quiet ? styles.quiet : styles.cell}>{cell.text}</span>
+                );
+                // The first cell is the row's own key (the job number, the
+                // person, the date), so it names the row for assistive tech.
+                return c === 0 ? (
+                  <th key={c} scope="row" className={styles.rowHead}>
+                    {content}
+                  </th>
+                ) : (
+                  <td key={c} className={styles.td}>
+                    {content}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
