@@ -239,7 +239,7 @@ export function EmploymentForm({
   }
 
   const note = done
-    ? "Saved. The team list now shows the current details."
+    ? "Saved. The profile now shows the current details."
     : dirtyTotal === 0
       ? "Change a field to save. Emptying one clears it."
       : `${dirtyTotal} ${dirtyTotal === 1 ? "change" : "changes"} ready. Emptying a field clears it.`;

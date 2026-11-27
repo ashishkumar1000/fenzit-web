@@ -6,8 +6,9 @@ import type { JobRow } from "../companyApi";
 
 // The console jobs table's cells: the work leads the Job cell and the number
 // answers "which job" beneath it (a rejected job's owner reason instead), the
-// Customer cell carries the visit's place, and the Step cell never reads
-// "Step 7 of 5" when the template shrank under a running job.
+// Customer cell carries the visit's place, and the Employee cell opens the
+// person's profile. (The Step column retired 2026-11-28 — the job detail
+// page holds the step; the member My-Jobs tab keeps its own.)
 
 afterEach(cleanup);
 
@@ -35,6 +36,45 @@ function row(overrides: Partial<JobRow> = {}): JobRow {
 }
 
 describe("JobsTable: the cells", () => {
+  it("renders the seven trimmed columns — no Current Step (the detail page holds it)", () => {
+    renderTable(<JobsTable rows={[row()]} />);
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual([
+      "Job Details",
+      "Customer",
+      "Status",
+      "Work Type",
+      "Employee",
+      "Priority",
+      "Scheduled Date",
+    ]);
+  });
+
+  it("links the employee cell to the person's profile", () => {
+    renderTable(<JobsTable rows={[row()]} />);
+    const link = screen.getByRole("link", { name: "Amit Sharma" });
+    expect(link).toHaveAttribute("href", "/admin/company/employees/u-1");
+  });
+
+  it("reads a dash for a job with no technician and no name", () => {
+    renderTable(
+      <JobsTable
+        rows={[
+          row({ technician: null }),
+          row({ id: "j-2", jobNumber: "JB-2026-0009", technician: { id: "u-2", name: "" } }),
+        ]}
+      />,
+    );
+    // The Employee column is the fifth: the dash is its whole content, and
+    // neither row carries a profile link.
+    for (const number of ["JB-2026-0008", "JB-2026-0009"]) {
+      const tr = screen.getByText(number).closest("tr")!;
+      const employeeCell = tr.querySelectorAll("td")[4];
+      expect(employeeCell.textContent).toBe("—");
+      expect(employeeCell.querySelector("a")).toBeNull();
+    }
+  });
+
   // Every Job cell is a router Link, so the table only renders inside a router.
   function renderTable(ui: React.ReactElement) {
     const router = createMemoryRouter([{ path: "*", element: ui }], {
@@ -85,39 +125,6 @@ describe("JobsTable: the cells", () => {
     );
     const cell = screen.getByText("Sharma General Store").closest("div");
     expect(cell?.textContent).toContain("12 Nehru Road");
-  });
-
-  it("reads the step of the template while the job is on it", () => {
-    renderTable(
-      <JobsTable
-        rows={[
-          row({
-            status: "in_progress",
-            currentStep: "photo",
-            currentStepIndex: 1,
-            workflowTemplate: { version: 1, steps: [{}, {}, {}, {}, {}] as never },
-          }),
-        ]}
-      />,
-    );
-    expect(screen.getByText("Step 2 of 5")).toBeTruthy();
-  });
-
-  it("never reads Step 6 of 5 when the template shrank under the job", () => {
-    renderTable(
-      <JobsTable
-        rows={[
-          row({
-            status: "in_progress",
-            currentStep: "completed",
-            currentStepIndex: 5,
-            workflowTemplate: { version: 1, steps: [{}, {}, {}, {}, {}] as never },
-          }),
-        ]}
-      />,
-    );
-    expect(screen.getByText("Completed")).toBeTruthy();
-    expect(screen.queryByText(/Step \d+ of 5/)).toBeNull();
   });
 
   it("wears the Urgent pill only on urgent dispatches", () => {

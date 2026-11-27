@@ -81,8 +81,7 @@ export function AdminLeavePage() {
             </span>
           </h1>
           <p className={styles.lede}>
-            The leave your team can take, and the requests waiting on you — set each type's rules
-            once, decide requests as they come.
+            Decide how many days off employees can take and approve or reject their leave requests.
           </p>
         </div>
       </header>

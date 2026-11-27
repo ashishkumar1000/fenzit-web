@@ -1,0 +1,10 @@
+/* The TrendChart canvas's own styles (paired module, per the repo's
+   check-css-modules rule). The mock's chart box: fixed 240px height, the
+   canvas filling it, and the pointer cursor on tooltip dots. */
+
+.chartBox {
+  margin-top: var(--space-4);
+  position: relative;
+  height: 240px;
+  width: 100%;
+}

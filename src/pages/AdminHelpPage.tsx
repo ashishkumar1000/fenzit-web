@@ -1,7 +1,9 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router";
-import { ChevronDown, Mail, Phone } from "lucide-react";
+import { Check, ChevronDown, Copy, Mail, Phone } from "lucide-react";
 import { LinkButton } from "../components/ui/LinkButton";
 import { SectionCard } from "../features/admin/components/SectionCard";
+import { pushToast } from "../components/ui/toastStore";
 import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../config/contact";
 import styles from "./AdminHelpPage.module.css";
 
@@ -44,6 +46,52 @@ const FAQS: Array<{ question: string; answer: string }> = [
   },
 ];
 
+/** The contact card's copy control — a sibling of the mailto/tel link (never
+ *  nested inside it: a click must copy, not navigate). The icon swaps to a
+ *  check and the console's toast store announces the copy. */
+function CopyContactButton({
+  value,
+  label,
+  toast,
+}: {
+  value: string;
+  label: string;
+  toast: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  // A second click inside the reset window must not inherit the first
+  // click's timer — the "Copied" state would flip off while it is still
+  // fresh (BMAD review 2026-11-28).
+  const timerRef = useRef<number | undefined>(undefined);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      pushToast(toast, "success");
+      window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard unavailable (permissions, older browser) — the value stays
+      // selectable, so a failed copy is a no-op, never an error surface.
+    }
+  };
+  return (
+    <button
+      type="button"
+      className={copied ? styles.copyButtonCopied : styles.copyButton}
+      onClick={copy}
+      aria-label={copied ? "Copied" : label}
+      title={copied ? "Copied" : label}
+    >
+      {copied ? (
+        <Check size={15} strokeWidth={2} aria-hidden="true" />
+      ) : (
+        <Copy size={15} strokeWidth={1.75} aria-hidden="true" />
+      )}
+    </button>
+  );
+}
+
 export function AdminHelpPage() {
   return (
     <div className={styles.page}>
@@ -68,26 +116,40 @@ export function AdminHelpPage() {
           the design. */}
       <h2 className={styles.srOnly}>Contact us</h2>
       <div className={styles.contacts}>
-        <a className={styles.contact} href={`mailto:${CONTACT_EMAIL}`}>
-          <span className={styles.contactIcon} aria-hidden="true">
-            <Mail size={18} strokeWidth={1.75} />
-          </span>
-          <span className={styles.contactText}>
-            <span className={styles.contactLabel}>Email us</span>
-            <span className={styles.contactValue}>{CONTACT_EMAIL}</span>
-            <span className={styles.contactHint}>We reply within one working day.</span>
-          </span>
-        </a>
-        <a className={styles.contact} href={SALES_PHONE_HREF}>
-          <span className={styles.contactIcon} aria-hidden="true">
-            <Phone size={18} strokeWidth={1.75} />
-          </span>
-          <span className={styles.contactText}>
-            <span className={styles.contactLabel}>Call us</span>
-            <span className={styles.contactValue}>{SALES_PHONE_DISPLAY}</span>
-            <span className={styles.contactHint}>Mon to Sat, 10am to 7pm IST.</span>
-          </span>
-        </a>
+        <div className={styles.contact}>
+          <a className={styles.contactLink} href={`mailto:${CONTACT_EMAIL}`}>
+            <span className={styles.contactIcon} aria-hidden="true">
+              <Mail size={18} strokeWidth={1.75} />
+            </span>
+            <span className={styles.contactText}>
+              <span className={styles.contactLabel}>Email us</span>
+              <span className={styles.contactValue}>{CONTACT_EMAIL}</span>
+              <span className={styles.contactHint}>We reply within one working day.</span>
+            </span>
+          </a>
+          <CopyContactButton
+            value={CONTACT_EMAIL}
+            label="Copy email address"
+            toast="Email address copied to clipboard"
+          />
+        </div>
+        <div className={styles.contact}>
+          <a className={styles.contactLink} href={SALES_PHONE_HREF}>
+            <span className={styles.contactIcon} aria-hidden="true">
+              <Phone size={18} strokeWidth={1.75} />
+            </span>
+            <span className={styles.contactText}>
+              <span className={styles.contactLabel}>Call us</span>
+              <span className={styles.contactValue}>{SALES_PHONE_DISPLAY}</span>
+              <span className={styles.contactHint}>Mon to Sat, 10am to 7pm IST.</span>
+            </span>
+          </a>
+          <CopyContactButton
+            value={SALES_PHONE_DISPLAY}
+            label="Copy phone number"
+            toast="Phone number copied to clipboard"
+          />
+        </div>
       </div>
 
       <SectionCard

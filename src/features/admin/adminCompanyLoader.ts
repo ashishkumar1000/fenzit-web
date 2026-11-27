@@ -1,28 +1,35 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
 import { clearSession } from "../../services/session";
 import { isAuthError, requireConsoleRole } from "./adminLoader";
-import { fetchOwnerReport, type OwnerReportResponse, type ReportRange } from "./jobReportsApi";
 import {
-  fetchCompanyLeave,
-  fetchMembers,
-  fetchPulse,
-  type LeaveRow,
-  type MemberRow,
-  type PulseResponse,
-} from "./companyApi";
+  fetchOwnerExecReport,
+  type OwnerExecReportResponse,
+  type ReportRange,
+} from "./jobReportsApi";
+import { fetchAttendanceTrend, type AttendanceTrendResponse } from "./companyApi";
 import { istEndOfLastMonth, istFirstOfMonth, istShifted, istToday } from "./format";
 import { settle, type Slice } from "./slice";
+
+/** The banner's plan facts (tenants columns via /users/me; the BE defaults
+ *  them, the FE defaults them again so an older backend never blanks the
+ *  banner). */
+export interface SubscriptionFacts {
+  validUntil: string | null;
+  planName: string;
+  billingCycle: string;
+  autoRenews: boolean;
+}
 
 export type CompanyData =
   | {
       state: "ok";
-      pulse: Slice<PulseResponse>;
-      members: Slice<MemberRow[]>;
-      leave: Slice<LeaveRow[]>;
-      report: Slice<OwnerReportResponse>;
-      /** The report window resolved from the address — the card's meta line. */
+      /** The exec dashboard's job-flow + workforce sections (2026-11-27). */
+      report: Slice<OwnerExecReportResponse>;
+      /** The daily attendance distribution behind the trend chart. */
+      trend: Slice<AttendanceTrendResponse>;
+      /** The report window resolved from the address — every card's meta. */
       range: ReportRange;
-      validUntil: string | null;
+      subscription: SubscriptionFacts;
       /** The signed-in owner's display name for the greeting. */
       selfName: string | null;
     }
@@ -52,37 +59,43 @@ export function ownerRange(url: URL): { from: string; to: string } {
       if (from !== null && from !== "" && to !== null && to !== "") {
         return { from, to };
       }
-      return { from: istShifted(-29), to: today };
+      return { from: istShifted(-6), to: today };
     }
+    // The default is the 7-day window (owner call, 2026-11-27): the smaller
+    // range keeps the three chart reads light, and a longer period is one
+    // preset click away.
     default:
-      return { from: istShifted(-29), to: today };
+      return { from: istShifted(-6), to: today };
   }
 }
 
 /**
- * Loader for /admin/company (owners only) — the console's single overview:
- * today's pulse, the job report (the old /admin dashboard merged in), the
- * leave list and the subscription line, fetched together; each section
- * settles on its own so one failure never blanks the page.
+ * Loader for /admin/company (owners only) — the 2026-11-27 executive
+ * dashboard: the subscription banner's facts from the identity read, the
+ * owner report (job-flow trend + workforce buckets) and the attendance
+ * trend, fetched together; the two chart slices settle on their own so one
+ * failure never blanks the page. The pulse and member reads are gone — the
+ * revamped page renders charts, not tiles and tables.
  */
 export async function adminCompanyLoader({ request }: LoaderFunctionArgs): Promise<CompanyData> {
   try {
     const { token, me } = await requireConsoleRole(request, ["owner"]);
     const range = ownerRange(new URL(request.url));
-    const [pulse, members, leave, report] = await Promise.all([
-      settle(() => fetchPulse(token, request.signal)),
-      settle(() => fetchMembers(token, request.signal)),
-      settle(async () => (await fetchCompanyLeave(token, request.signal)).data),
-      settle(() => fetchOwnerReport(token, range, request.signal)),
+    const [report, trend] = await Promise.all([
+      settle(() => fetchOwnerExecReport(token, range, request.signal)),
+      settle(() => fetchAttendanceTrend(token, range, request.signal)),
     ]);
     return {
       state: "ok",
-      pulse,
-      members,
-      leave,
       report,
+      trend,
       range,
-      validUntil: me.subscription?.validUntil ?? null,
+      subscription: {
+        validUntil: me.subscription?.validUntil ?? null,
+        planName: me.subscription?.planName ?? "Enterprise",
+        billingCycle: me.subscription?.billingCycle ?? "Annual",
+        autoRenews: me.subscription?.autoRenews ?? true,
+      },
       selfName: me.name,
     };
   } catch (error) {

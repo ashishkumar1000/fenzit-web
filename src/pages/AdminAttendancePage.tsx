@@ -6,7 +6,6 @@ import type {
 } from "../features/admin/adminBrowseLoaders";
 import { readAttendanceFilters } from "../features/admin/adminBrowseLoaders";
 import { ATTENDANCE_PATH, ATTENDANCE_NO_OFFICE } from "../features/admin/attendanceUrl";
-import { humanize } from "../features/admin/status";
 import {
   RegionFormSkeleton,
   RegionTableSkeleton,
@@ -108,8 +107,8 @@ export function AdminAttendancePage() {
             </span>
           </h1>
           <p className={styles.lede}>
-            Who worked, who was late and who was away — the month's tallies for every office, and
-            the compliance report when you need it.
+            See who worked, who came late and who was absent at each office, along with monthly
+            reports.
           </p>
         </div>
         <div className={styles.pageActions}>
@@ -301,7 +300,16 @@ function MonthPanel({
                     <td>
                       <div className={styles.employeeCell}>
                         <Avatar name={e.employeeName} />
-                        <span className={styles.employeeName}>{e.employeeName}</span>
+                        {/* The name opens the employee's profile — the same
+                            link-blue affordance the jobs table wears
+                            (owner request, 2026-11-28). */}
+                        <Link
+                          to={`/admin/company/employees/${e.employeeId}`}
+                          className={styles.employeeLink}
+                          title="Open the employee's profile"
+                        >
+                          <span className={styles.employeeName}>{e.employeeName}</span>
+                        </Link>
                       </div>
                     </td>
                     <td className={styles.quiet}>{officeOf(e) ?? "—"}</td>
@@ -335,10 +343,6 @@ function MonthPanel({
             <Pager filters={filters} page={page} pages={pages} />
           </footer>
         ) : null}
-        <p className={styles.note}>
-          Status words: {humanize("present")} counts in "Worked"; {humanize("absent")} means a
-          graded absent day. Missing check-outs are tracked in the overview flags.
-        </p>
       </SectionCard>
     </>
   );

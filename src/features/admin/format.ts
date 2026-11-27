@@ -106,6 +106,18 @@ export function fmtDay(day: string): string {
   return Number.isNaN(at.getTime()) ? day : DAY.format(at);
 }
 
+/** The chart axis' short tick — "23 Oct", no year (the exec dashboard's
+ *  x-labels). Anything else passes through. */
+const DAY_MONTH = new Intl.DateTimeFormat("en-IN", {
+  day: "numeric",
+  month: "short",
+});
+
+export function fmtDayMonth(day: string): string {
+  const at = new Date(`${day}T00:00:00`);
+  return Number.isNaN(at.getTime()) ? day : DAY_MONTH.format(at);
+}
+
 /** A YYYY-MM-DD date with its weekday — "Mon, 23 Nov 2026", the day
  *  modal's return-date chip. Anything else passes through. */
 export function fmtDayWithWeekday(day: string): string {

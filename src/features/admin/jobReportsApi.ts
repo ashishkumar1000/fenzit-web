@@ -34,35 +34,64 @@ export interface OwnerHeadline {
   ownerCreated: number;
 }
 
+/** The pipeline object the mobile app reads (`pipeline.pending`, Epic 22) —
+ *  after the 2026-11-27 overview revamp only the waiting count survives; the
+ *  rest of the old pipeline retired with the overview cards it fed. */
 export interface OwnerPipeline {
+  /** Employee-created jobs waiting for the owner's decision right now. */
   pending: number;
-  pendingOverOneDay: number;
-  rejected: number;
-  rejectedWithReason: number;
-  rejectedWithoutReason: number;
-  /** approved / (approved + rejected), 0–1; null when nothing was decided. */
-  approvalRate: number | null;
-  averageMinutesToDecision: number | null;
-  medianMinutesToDecision: number | null;
-  /** The job that has waited longest, or null when nothing is pending. */
-  oldestPending: { id: string; jobNumber: string; submittedAt: string } | null;
 }
 
-/** One per-employee row of the owner dashboard's breakdown table. */
-export interface OwnerEmployeeRow extends JobOutcomeCounts {
-  employeeId: string;
-  name: string | null;
-  /** This employee's share of the company's employee-created jobs, 0–1. */
-  shareOfEmployeeCreated: number | null;
-}
-
+/** The light owner report (2026-11-28 slimming): what the mobile summary and
+ *  the jobs page's waiting badge read. The chart sections cost real queries,
+ *  so they ride the same endpoint only when asked (`?charts=true`). */
 export interface OwnerReportResponse {
   range: { from: string; to: string };
   headline: OwnerHeadline;
   pipeline: OwnerPipeline;
-  perEmployee: OwnerEmployeeRow[];
-  /** Active employees with job creation on but no job created in the window. */
-  employeesWithPermissionNoJobs: Array<{ employeeId: string; name: string | null }>;
+}
+
+/** The exec dashboard's report: the light report plus the two chart sections
+ *  — `fetchOwnerExecReport`'s ask, the overview page's read. */
+export interface OwnerExecReportResponse extends OwnerReportResponse {
+  /** 2026-11-27 exec dashboard: the cumulative job-flow chart + efficiency. */
+  trend: OwnerTrend;
+  /** 2026-11-27 exec dashboard: the workforce analytics chart. */
+  workforce: OwnerWorkforce;
+}
+
+/** One slice of the exec dashboard's window (2026-11-27): equal day spans,
+ *  oldest first — the same slicing serves every overview chart. */
+export interface OwnerTrendSlice {
+  from: string;
+  to: string;
+}
+
+/** Cumulative job-flow counts AT a slice's end — the chart's rising lines. */
+export interface OwnerTrendBucket extends OwnerTrendSlice {
+  employeeCreated: number;
+  employeeApproved: number;
+  employeeAutoApproved: number;
+  ownerCreated: number;
+}
+
+export interface OwnerTrend {
+  buckets: OwnerTrendBucket[];
+  /** approved / (approved + rejected) over the window; null when nothing
+   *  was decided. */
+  turnaroundEfficiency: number | null;
+}
+
+/** Workforce counts AS OF a slice's end (the BE documents the semantics). */
+export interface OwnerWorkforceBucket extends OwnerTrendSlice {
+  totalEmployees: number;
+  activeEmployees: number;
+  pendingInvites: number;
+  needsApproval: number;
+}
+
+export interface OwnerWorkforce {
+  buckets: OwnerWorkforceBucket[];
 }
 
 /** One rejection in the employee's reasons list, newest decision first. */
@@ -119,7 +148,9 @@ function assertCounts(row: Record<string, unknown>, keys: readonly string[]): vo
 
 const OUTCOME_KEYS = ["created", "approved", "autoApproved", "rejected", "pending"] as const;
 
-function assertOwnerReport(report: OwnerReportResponse): void {
+/** The light report's fields — the ones the mobile summary and the jobs
+ *  page's badge actually read. */
+function assertLightReport(report: OwnerReportResponse): void {
   if (!isObject(report)) throw new Error(BAD_REPORT);
   const headline = report.headline as unknown;
   if (!isObject(headline)) throw new Error(BAD_REPORT);
@@ -130,22 +161,36 @@ function assertOwnerReport(report: OwnerReportResponse): void {
     "ownerCreated",
   ]);
   const pipeline = report.pipeline as unknown;
-  if (!isObject(pipeline)) throw new Error(BAD_REPORT);
-  assertCounts(pipeline, [
-    "pending",
-    "pendingOverOneDay",
-    "rejected",
-    "rejectedWithReason",
-    "rejectedWithoutReason",
-  ]);
-  for (const key of ["approvalRate", "averageMinutesToDecision", "medianMinutesToDecision"]) {
-    const value = pipeline[key];
-    if (value !== null && !isCount(value)) throw new Error(BAD_REPORT);
+  if (!isObject(pipeline) || !isCount(pipeline.pending)) throw new Error(BAD_REPORT);
+}
+
+function assertOwnerReport(report: OwnerReportResponse): void {
+  assertLightReport(report);
+}
+
+/** The exec dashboard's sections (?charts=true, 2026-11-27): a backend older
+ *  than the trend/workforce fields fails the shape check loudly instead of
+ *  rendering undefined charts. */
+function assertExecReport(report: OwnerExecReportResponse): void {
+  assertLightReport(report);
+  const trend = report.trend as unknown;
+  if (!isObject(trend) || !Array.isArray(trend.buckets)) throw new Error(BAD_REPORT);
+  for (const bucket of trend.buckets as unknown[]) {
+    if (!isObject(bucket)) throw new Error(BAD_REPORT);
+    assertCounts(bucket, [
+      "employeeCreated",
+      "employeeApproved",
+      "employeeAutoApproved",
+      "ownerCreated",
+    ]);
   }
-  if (pipeline.oldestPending !== null && !isObject(pipeline.oldestPending))
+  if (trend.turnaroundEfficiency !== null && !isCount(trend.turnaroundEfficiency))
     throw new Error(BAD_REPORT);
-  if (!Array.isArray(report.perEmployee) || !Array.isArray(report.employeesWithPermissionNoJobs)) {
-    throw new Error(BAD_REPORT);
+  const workforce = report.workforce as unknown;
+  if (!isObject(workforce) || !Array.isArray(workforce.buckets)) throw new Error(BAD_REPORT);
+  for (const bucket of workforce.buckets as unknown[]) {
+    if (!isObject(bucket)) throw new Error(BAD_REPORT);
+    assertCounts(bucket, ["totalEmployees", "activeEmployees", "pendingInvites", "needsApproval"]);
   }
 }
 
@@ -178,6 +223,22 @@ export async function fetchOwnerReport(
     { headers: { Authorization: `Bearer ${token}` }, signal },
   );
   assertOwnerReport(report);
+  return report;
+}
+
+/** The overview page's read: the same report with `?charts=true`, so the
+ *  response carries the trend + workforce sections — asserted, never
+ *  assumed. */
+export async function fetchOwnerExecReport(
+  token: string,
+  range: ReportRange,
+  signal?: AbortSignal,
+): Promise<OwnerExecReportResponse> {
+  const report = await apiFetch<OwnerExecReportResponse>(
+    `/api/v1/job-reports/owner${rangeQuery(range)}&charts=true`,
+    { headers: { Authorization: `Bearer ${token}` }, signal },
+  );
+  assertExecReport(report);
   return report;
 }
 

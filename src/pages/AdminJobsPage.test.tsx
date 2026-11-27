@@ -797,13 +797,14 @@ describe("AdminJobsPage: the owner's console jobs tab", () => {
     });
   });
 
-  it("both the banner and the greeting offer the one create path", async () => {
+  it("the greeting carries the one create path — the banner is retired (2026-11-28)", async () => {
     await renderOwnerJobs();
+    // Exactly one create affordance remains: the greeting's link. The old
+    // banner's name is pinned ABSENT — a second control named "Create Job"
+    // would reintroduce the duplication the trim removed.
+    expect(screen.getAllByRole("link", { name: "Create New Job" })).toHaveLength(1);
+    expect(screen.queryByRole("link", { name: "Create Job" })).toBeNull();
     expect(screen.getByRole("link", { name: "Create New Job" })).toHaveAttribute(
-      "href",
-      "/admin/company/jobs/new",
-    );
-    expect(screen.getByRole("link", { name: "Create Job" })).toHaveAttribute(
       "href",
       "/admin/company/jobs/new",
     );

@@ -2,25 +2,6 @@
    imported by the component; this file carries the shell that keeps the
    title, the rail and the footer fixed while only the body scrolls. */
 
-.wideDialog {
-  /* The fifteen-field form needs more width than the shared 420px box. */
-  max-width: 640px;
-}
-
-.cellButton {
-  border: none;
-  background: none;
-  color: var(--color-text-link);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  padding: var(--space-1) var(--space-2);
-}
-
-.cellButton:hover {
-  text-decoration: underline;
-}
-
 /* Four rows: header, rail, scrolling body, pinned footer. The host's dialog
    carries `dialogRail` (overflow: hidden) so this box owns the only scroll. */
 .shell {

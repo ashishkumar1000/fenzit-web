@@ -1,92 +1,82 @@
+import { useState } from "react";
 import { Link, useLoaderData, useLocation, useNavigation, useRevalidator } from "react-router";
+import { CalendarDays, ChevronRight, Star } from "lucide-react";
 import type { adminCompanyLoader } from "../features/admin/adminCompanyLoader";
-import type { OwnerReportResponse } from "../features/admin/jobReportsApi";
+import type { SubscriptionFacts } from "../features/admin/adminCompanyLoader";
+import type {
+  OwnerExecReportResponse,
+  OwnerTrendSlice,
+  OwnerWorkforceBucket,
+} from "../features/admin/jobReportsApi";
 import type { Slice } from "../features/admin/slice";
-import { SectionCard } from "../features/admin/components/SectionCard";
-import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
-import { LinkCard } from "../features/admin/components/LinkCard";
-import {
-  RegionTableSkeleton,
-  RegionTilesSkeleton,
-} from "../features/admin/components/RegionSkeleton";
-import { DataTable, type TableCell } from "../features/admin/components/Table";
+import type { AttendanceTrendDay, AttendanceTrendResponse } from "../features/admin/companyApi";
 import { SkeletonRow, SkeletonSlot } from "../components/ui/Skeleton";
-import { AttendanceArt } from "../features/admin/components/art/AttendanceArt";
-import { CustomersArt } from "../features/admin/components/art/CustomersArt";
-import { HolidaysArt } from "../features/admin/components/art/HolidaysArt";
-import { JobsArt } from "../features/admin/components/art/JobsArt";
-import { TeamArt } from "../features/admin/components/art/TeamArt";
-import { fmtDay, fmtIstDay } from "../features/admin/format";
-import {
-  ApprovalTagIcon,
-  BellIcon,
-  ClipboardListIcon,
-  CrownIcon,
-  EditIcon,
-  UserCheckIcon,
-  UserIcon,
-  UsersIcon,
-  ZapIcon,
-} from "../components/ui/consoleIcons";
+import { TrendChart } from "../features/admin/components/TrendChart";
+import { fmtDayMonth, fmtIstDay, istToday } from "../features/admin/format";
 import styles from "./AdminCompanyPage.module.css";
 
-/** The report period's presets, newest-first wording, the same five the old
- *  /admin dashboard offered — plain links, so the address stays shareable. */
-const RANGE_LINKS: Array<{ preset: string; label: string }> = [
-  { preset: "today", label: "Today" },
-  { preset: "7", label: "Last 7 days" },
-  { preset: "30", label: "Last 30 days" },
-  { preset: "this-month", label: "This month" },
-  { preset: "last-month", label: "Last month" },
+/** The exec dashboard's chart hues — the Stitch mock's literal palette. The
+ *  series identity lives HERE so every card, legend and line agrees. */
+const COLORS = {
+  trackedLine: "#93c5fd",
+  tracked: "#3b82f6",
+  checkedIn: "#10b981",
+  notChecked: "#fbbf24",
+  shortDay: "#818cf8",
+  lateLeave: "#fb7185",
+  employeeCreated: "#2563eb",
+  approved: "#059669",
+  autoApproved: "#f59e0b",
+  ownerCreated: "#9333ea",
+} as const;
+
+/** The overview's period presets — the mock's three, mapped onto the
+ *  loader's `?range=` values. The old page's five links stay resolvable
+ *  (shareable `range=today` addresses still work); only these three render. */
+const PRESETS: Array<{ preset: string; label: string }> = [
+  { preset: "7", label: "7D" },
+  { preset: "30", label: "30 Days" },
+  { preset: "this-month", label: "This Month" },
 ];
 
-function percent(rate: number | null): string {
-  return rate === null ? "—" : `${Math.round(rate * 100)}%`;
-}
-
-function minutesLabel(minutes: number | null): string {
-  if (minutes === null) return "—";
-  if (minutes < 60) return `${Math.round(minutes)} min`;
-  const hours = minutes / 60;
-  if (hours < 24) return `${Math.round(hours * 10) / 10} h`;
-  return `${Math.round((hours / 24) * 10) / 10} d`;
-}
-
-function day(iso: string): string {
-  return iso.slice(0, 10);
-}
-
-/** The owner's overview — the console's one landing page. The old /admin
- *  dashboard (Epic 22, CAP-8) and this page said the same things twice, so
- *  they are merged here: today's pulse, the job report with its period
- *  presets, the leave list and the subscription line. The audit trail is
- *  gone by owner decision — the inspect dossier and the payroll runs keep
- *  their own records where they belong. */
+/** The owner's overview — the console's one landing page, revamped
+ *  2026-11-27 into the executive dashboard (Stitch project 12976873967605867584):
+ *  the subscription banner, the attendance trend, the jobs & approvals flow
+ *  and the workforce analytics chart. The pulse tiles, the link cards, the
+ *  per-employee table and every list are gone by owner decision — this page
+ *  reads like a command centre now, the detail lives on each section's own
+ *  console page. */
 export function AdminCompanyPage() {
   const data = useLoaderData<typeof adminCompanyLoader>();
   const revalidator = useRevalidator();
   const navigation = useNavigation();
   const busy = revalidator.state !== "idle" || navigation.state !== "idle";
-  // The report's preset is read from the address on every render — a preset
-  // link is navigation, and the loader refetches the report for it.
+  // The charts' preset is read from the address on every render — a preset
+  // link is navigation, and the loader refetches both slices for it.
   const location = useLocation();
-  const preset = new URLSearchParams(location.search).get("range") ?? "30";
-  // The report region's load: a preset link changes only the address's
-  // range — while it persists past the delay the report region (pills,
-  // headline, breakdown) stands in, and the pulse, link cards and leave
-  // list around it stay put. A different page's navigation is the shell's
-  // skeleton; the same-address "Try again" reload keeps the failed card.
+  const preset = new URLSearchParams(location.search).get("range") ?? "7";
+  // The dashboard region's load: a preset link changes only the address's
+  // range — while it persists past the delay the three chart cards stand in,
+  // and the banner and greeting around them stay put. A different page's
+  // navigation is the shell's skeleton; the same-address "Try again" reload
+  // keeps the failed card.
   const regionPending =
     navigation.state === "loading" &&
     navigation.location?.pathname === location.pathname &&
     navigation.location?.search !== location.search;
+  // The legend chips' hidden-series state lives at the page level, BEFORE
+  // the failed-state early return — hooks cannot sit behind a conditional
+  // return — and above the region's skeleton slot: a preset navigation
+  // swaps the cards out, and a toggle is a view preference that survives
+  // the swap (BMAD review 2026-11-28).
+  const [hidden, toggleHidden] = useHiddenSeries();
 
   if (data.state === "failed") {
     return (
       <>
         <TopBar />
         <div className={styles.stack}>
-          <SectionCard title="Company data">
+          <div className={styles.chartCard}>
             <p className={styles.failed} role="alert">
               The company data could not load.
               <button
@@ -98,47 +88,13 @@ export function AdminCompanyPage() {
                 {busy ? "Retrying…" : "Retry"}
               </button>
             </p>
-          </SectionCard>
+          </div>
         </div>
       </>
     );
   }
 
-  const pulseTiles: ConsoleTile[] = data.pulse.ok
-    ? [
-        {
-          label: "Tracked",
-          value: data.pulse.data.counts.tracked,
-          icon: UsersIcon,
-          tone: "primary",
-        },
-        {
-          label: "Checked in",
-          value: data.pulse.data.counts.checkedIn,
-          icon: UserCheckIcon,
-          tone: "done",
-        },
-        {
-          label: "Not checked in",
-          value: data.pulse.data.counts.notCheckedIn,
-          icon: UserIcon,
-          tone: "scheduled",
-        },
-        {
-          label: "Short day",
-          value: data.pulse.data.counts.shortDay,
-          icon: ClipboardListIcon,
-          tone: "violet",
-        },
-        { label: "Late", value: data.pulse.data.counts.late, icon: BellIcon, tone: "scheduled" },
-        {
-          label: "On leave",
-          value: data.pulse.data.counts.onLeave,
-          icon: ApprovalTagIcon,
-          tone: "violet",
-        },
-      ]
-    : [];
+  const retryTo = `${location.pathname}${location.search}`;
 
   return (
     <>
@@ -148,300 +104,868 @@ export function AdminCompanyPage() {
           <h1 className={styles.heading}>
             {data.selfName === null ? "Hello" : `Hello, ${data.selfName}`}
             <span className={styles.rolePill}>
-              <CrownIcon size={13} className={styles.rolePillIcon} />
+              <Star size={13} className={styles.rolePillIcon} fill="currentColor" />
               Owner
             </span>
           </h1>
           <p className={styles.lede}>
-            Today's pulse, the job report and every list in your company — one page.
+            See today's updates, work reports, and all company lists in one place.
           </p>
         </div>
       </header>
-      {data.pulse.ok ? (
-        <>
-          <p className={styles.dateLine}>
-            Today, {fmtDay(data.pulse.data.date)}
-            {data.pulse.data.flags.checkoutMissing.length +
-              data.pulse.data.flags.fakeLocationAttempt.length >
-            0 ? (
-              <span className={styles.flagLine}>
-                {" "}
-                · {data.pulse.data.flags.checkoutMissing.length} missing check-out
-                {data.pulse.data.flags.fakeLocationAttempt.length > 0
-                  ? ` · ${data.pulse.data.flags.fakeLocationAttempt.length} suspect location attempt${data.pulse.data.flags.fakeLocationAttempt.length === 1 ? "" : "s"}`
-                  : ""}
-              </span>
-            ) : null}
-          </p>
-          <ConsoleTiles tiles={pulseTiles} />
-        </>
-      ) : (
-        <SectionCard title="Today's pulse">
-          <p className={styles.failed} role="alert">
-            The pulse could not load.
-            <button
-              type="button"
-              className={styles.retry}
-              onClick={() => revalidator.revalidate()}
-              disabled={busy}
-            >
-              {busy ? "Retrying…" : "Retry"}
-            </button>
-          </p>
-        </SectionCard>
-      )}
 
-      <div className={styles.cards}>
-        <LinkCard
-          to="/admin/company/customers"
-          label="Customers"
-          note="Everyone who buys from you"
-          art={<CustomersArt />}
-        />
-        <LinkCard
-          to="/admin/company/employees"
-          label="Employees"
-          note="Your full team"
-          count={data.members.ok ? data.members.data.length : undefined}
-          art={<TeamArt />}
-        />
-        <LinkCard
-          to="/admin/company/jobs"
-          label="Jobs"
-          note="Every job, newest first"
-          art={<JobsArt />}
-        />
-        <LinkCard
-          to="/admin/company/holidays"
-          label="Holidays"
-          note="Upcoming and past"
-          art={<HolidaysArt />}
-        />
-        <LinkCard
-          to="/admin/company/attendance"
-          label="Attendance"
-          note="This month, per employee"
-          art={<AttendanceArt />}
-        />
-      </div>
+      <SubscriptionBanner subscription={data.subscription} />
 
-      <SkeletonSlot
-        show={regionPending}
-        className={styles.reportStack}
-        skeleton={<ReportSkeleton />}
-      >
-        <JobReport
-          report={data.report}
-          range={data.range}
-          preset={preset}
-          retryTo={`${location.pathname}${location.search}`}
-        />
+      <SkeletonSlot show={regionPending} className={styles.stack} skeleton={<DashSkeleton />}>
+        <div className={styles.chartGrid}>
+          {/* The workforce card leads (owner's 2026-11-27 ordering): the
+              full-width headcount row first, then the two flow charts. */}
+          <WorkforceCard
+            report={data.report}
+            range={data.range}
+            preset={preset}
+            retryTo={retryTo}
+            hidden={hidden}
+            onToggleHidden={toggleHidden}
+          />
+          <AttendanceTrendCard
+            trend={data.trend}
+            range={data.range}
+            preset={preset}
+            retryTo={retryTo}
+            hidden={hidden}
+            onToggleHidden={toggleHidden}
+          />
+          <JobsApprovalsCard
+            report={data.report}
+            range={data.range}
+            preset={preset}
+            retryTo={retryTo}
+            hidden={hidden}
+            onToggleHidden={toggleHidden}
+          />
+        </div>
       </SkeletonSlot>
-
-      <div className={styles.pair}>
-        {data.leave.ok ? (
-          <SectionCard title="Leave" meta={String(data.leave.data.length)}>
-            <DataTable
-              columns={["Employee", "From", "To", "Days", "State"]}
-              empty="No leave requests."
-              rows={data.leave.data.map((l): TableCell[] => [
-                { text: l.employeeName ?? l.employeeCode ?? l.id },
-                { text: fmtDay(l.startDate) },
-                { text: fmtDay(l.endDate) },
-                { text: `${l.workingDays} of ${l.totalDays}` },
-                { text: l.status, status: true },
-              ])}
-            />
-          </SectionCard>
-        ) : null}
-
-        <SectionCard title="Subscription">
-          <p className={styles.dateLine}>
-            {data.validUntil
-              ? `Valid until ${fmtIstDay(data.validUntil)} (India time).`
-              : "No end date is set for this company. Contact Fenzit support."}
-          </p>
-        </SectionCard>
-      </div>
     </>
   );
 }
 
-/** The job report (the old dashboard's body): headline counts, the approval
- *  pipeline, the per-employee breakdown and the employees-with-permission
- *  list — all computed server-side for the chosen range; the preset links
- *  navigate and the loader refetches. A failed report degrades to its own
- *  retry card; the overview around it still works. */
-function JobReport({
-  report,
+/** The mock's full-width subscription banner: plan chip, active pulse, the
+ *  validity line and the billing note, with Manage Plan on the right. */
+function SubscriptionBanner({ subscription }: { subscription: SubscriptionFacts }) {
+  const { validUntil, planName, billingCycle, autoRenews } = subscription;
+  const expired = isSubscriptionExpired(validUntil);
+  return (
+    <section className={styles.banner} aria-label="Subscription">
+      <div className={styles.bannerLeft}>
+        <span className={styles.bannerTitleCluster}>
+          <span className={styles.bannerTitle}>Subscription</span>
+          <span
+            className={`${styles.bannerChip} ${
+              expired ? styles.bannerChipExpired : styles.bannerChipActive
+            }`}
+          >
+            <span className={styles.pulseDot} aria-hidden="true" />
+            {expired ? "Expired" : "Active"}
+          </span>
+        </span>
+        <span className={styles.bannerDivider} aria-hidden="true" />
+        <span className={styles.planChip}>{planName} Plan</span>
+        <span className={styles.bannerMeta}>
+          {validUntil === null ? (
+            "No end date is set for this company."
+          ) : (
+            <>
+              Valid until <strong>{fmtIstDay(validUntil)}</strong>{" "}
+              <span className={styles.bannerMetaSoft}>(India time)</span>
+            </>
+          )}
+        </span>
+        {validUntil !== null ? (
+          <>
+            <span className={styles.bannerDivider} aria-hidden="true" />
+            <span className={styles.bannerMeta}>
+              {billingCycle} Billing
+              {autoRenews ? (
+                <>
+                  <span className={styles.bannerMetaSoft}> • </span>Auto-renews
+                </>
+              ) : null}
+            </span>
+          </>
+        ) : null}
+      </div>
+      <div className={styles.bannerRight}>
+        <Link to="/pricing" className={styles.managePlan}>
+          Manage Plan
+          <ChevronRight size={14} aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+/** ── Shared card pieces ─────────────────────────────────────── */
+
+function CardHead({
+  title,
   range,
   preset,
-  retryTo,
+  controlsLabel,
 }: {
-  report: Slice<OwnerReportResponse>;
+  title: string;
   range: { from: string; to: string };
   preset: string;
-  /** The page's current address, search included — the retry link's target. */
-  retryTo: string;
+  controlsLabel: string;
 }) {
-  const meta = `${day(range.from)} – ${day(range.to)}`;
-
-  if (!report.ok) {
-    return (
-      <>
-        <RangeNav current={preset} />
-        <SectionCard title="Job report" meta={meta}>
-          <p className={styles.failed} role="alert">
-            The report could not load for this period.
-            {/* The same address re-runs the loader — a custom range keeps
-                its from/to instead of falling back to the default window. */}
-            <Link to={retryTo} className={styles.retry}>
-              Try again
-            </Link>
-          </p>
-        </SectionCard>
-      </>
-    );
-  }
-
   return (
-    <>
-      <RangeNav current={preset} />
-      <ReportBody report={report.data} rangeMeta={meta} />
-    </>
-  );
-}
-
-function RangeNav({ current }: { current: string }) {
-  return (
-    <nav className={styles.rangeNav} aria-label="Report period">
-      {RANGE_LINKS.map((link) => (
-        <Link
-          key={link.preset}
-          to={`/admin/company?range=${link.preset}`}
-          className={styles.rangeLink}
-          aria-current={current === link.preset ? "page" : undefined}
-          replace
-        >
-          {link.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
-function ReportBody({ report, rangeMeta }: { report: OwnerReportResponse; rangeMeta: string }) {
-  const p = report.pipeline;
-  const tiles: ConsoleTile[] = [
-    {
-      label: "Created by employees",
-      value: report.headline.employeeCreated,
-      icon: EditIcon,
-      tone: "primary",
-    },
-    {
-      label: "Approved by you",
-      value: report.headline.employeeApproved,
-      icon: UserCheckIcon,
-      tone: "done",
-    },
-    {
-      label: "Auto-approved",
-      value: report.headline.employeeAutoApproved,
-      icon: ZapIcon,
-      tone: "scheduled",
-    },
-    {
-      label: "Created by you",
-      value: report.headline.ownerCreated,
-      icon: CrownIcon,
-      tone: "violet",
-    },
-  ];
-  return (
-    <>
-      <ConsoleTiles tiles={tiles} />
-      <div className={styles.pair}>
-        <SectionCard title="Approval queue" meta={String(p.pending)}>
-          <div className={styles.factGrid}>
-            <Fact label="Waiting over 24 h" value={String(p.pendingOverOneDay)} />
-            <Fact
-              label="Oldest pending"
-              value={p.oldestPending ? p.oldestPending.jobNumber : "—"}
-            />
-          </div>
-          {p.pending > 0 ? (
-            <Link to="/admin/company/jobs?tab=approval" className={styles.queueLink}>
-              Open the approval queue
-            </Link>
-          ) : null}
-        </SectionCard>
-
-        <SectionCard title="Approval rate" meta={percent(p.approvalRate)}>
-          <div className={styles.factGrid}>
-            <Fact label="Rejected" value={String(p.rejected)} />
-            <Fact label="With a reason" value={String(p.rejectedWithReason)} />
-            <Fact label="Without a reason" value={String(p.rejectedWithoutReason)} />
-            <Fact label="Average wait" value={minutesLabel(p.averageMinutesToDecision)} />
-            <Fact label="Median wait" value={minutesLabel(p.medianMinutesToDecision)} />
-          </div>
-        </SectionCard>
+    <div className={styles.cardHead}>
+      <div>
+        <h3 className={styles.cardTitle}>{title}</h3>
       </div>
-
-      <SectionCard title="Per employee" meta={rangeMeta}>
-        <DataTable
-          columns={["Employee", "Created", "Approved", "Auto", "Rejected", "Pending", "Share"]}
-          empty="No employee created a job in this period."
-          rows={report.perEmployee.map((row): TableCell[] => [
-            { text: row.name ?? "(no name)" },
-            { text: String(row.created) },
-            { text: String(row.approved) },
-            { text: String(row.autoApproved) },
-            { text: String(row.rejected) },
-            { text: String(row.pending) },
-            { text: percent(row.shareOfEmployeeCreated), quiet: true },
-          ])}
-        />
-      </SectionCard>
-
-      <SectionCard
-        title="Can create jobs, none created yet"
-        meta={String(report.employeesWithPermissionNoJobs.length)}
-      >
-        {report.employeesWithPermissionNoJobs.length === 0 ? (
-          <p className={styles.quiet}>Every employee with permission created at least one job.</p>
-        ) : (
-          <ul className={styles.nameList}>
-            {report.employeesWithPermissionNoJobs.map((row) => (
-              <li key={row.employeeId}>{row.name ?? "(no name)"}</li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
-    </>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.fact}>
-      <p className={styles.factLabel}>{label}</p>
-      <p className={styles.factValue}>{value}</p>
+      <div className={styles.rangeControls}>
+        {/* No chevron: the pill is a read-only label — the presets beside
+            it are the period control (impeccable audit 2026-11-28: a chevron
+            on a dead span promises a dropdown that does not exist). */}
+        <span className={styles.datePill}>
+          <CalendarDays size={14} aria-hidden="true" />
+          <span>
+            {fmtDayMonth(range.from)} – {fmtDayMonth(range.to)}
+          </span>
+        </span>
+        <nav className={styles.presetGroup} aria-label={controlsLabel}>
+          {PRESETS.map((link) => (
+            <Link
+              key={link.preset}
+              to={`/admin/company?range=${link.preset}`}
+              className={styles.presetLink}
+              aria-current={preset === link.preset ? "page" : undefined}
+              replace
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }
 
-/** The report region's stand-in: the period pills, the four headline tiles,
- *  the two fact cards and the per-employee breakdown — the footprint the
- *  loaded report fills. */
-function ReportSkeleton() {
+/** The chart legends are series toggles (owner request, 2026-11-27): click a
+ *  legend chip to hide or re-show that series. A hidden chip dims and its
+ *  dot goes hollow but keeps its colour ring, so re-enabling stays
+ *  discoverable. The values stay visible either way — they describe the
+ *  whole window, not the drawn line. */
+function Legend({
+  items,
+}: {
+  items: Array<{
+    key: string;
+    label: string;
+    color: string;
+    value?: string;
+    hidden?: boolean;
+    onToggle?: () => void;
+  }>;
+}) {
+  return (
+    <div className={styles.legend}>
+      {items.map((item) => {
+        const body = (
+          <>
+            <span
+              className={styles.legendDot}
+              style={
+                item.hidden
+                  ? {
+                      background: "transparent",
+                      boxShadow: `inset 0 0 0 2px ${item.color}`,
+                    }
+                  : { background: item.color }
+              }
+              aria-hidden="true"
+            />
+            {item.label}
+            {item.value !== undefined ? ` (${item.value})` : ""}
+          </>
+        );
+        if (item.onToggle === undefined) {
+          return (
+            <span
+              key={item.key}
+              className={`${styles.legendItem} ${item.hidden ? styles.legendItemHidden : ""}`}
+            >
+              {body}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={item.key}
+            type="button"
+            className={`${styles.legendItem} ${styles.legendToggle} ${
+              item.hidden ? styles.legendItemHidden : ""
+            }`}
+            aria-pressed={!item.hidden}
+            onClick={item.onToggle}
+            title={item.hidden ? `Show ${item.label}` : `Hide ${item.label}`}
+          >
+            {body}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The per-card hidden-series state: a set of legend keys, toggled by the
+ *  legend chips. */
+function useHiddenSeries(): [ReadonlySet<string>, (key: string) => void] {
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  const toggle = (key: string) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+  return [hidden, toggle];
+}
+
+function FailedCard({ retryTo, what }: { retryTo: string; what: string }) {
+  return (
+    <p className={styles.failed} role="alert">
+      {what}
+      {/* The same address re-runs the loader — a custom range keeps its
+          from/to instead of falling back to the default window. */}
+      <Link to={retryTo} className={styles.retry}>
+        Try again
+      </Link>
+    </p>
+  );
+}
+
+/** Five axis ticks, evenly spread — the mock's five x-labels. The last one
+ *  names today when the window ends on the server's today. */
+function axisTicks(count: number): number[] {
+  const last = Math.max(0, count - 1);
+  return [0, 1, 2, 3, 4].map((k) => Math.round((k * last) / 4));
+}
+
+function axisLabels(dates: string[], endsToday: boolean): Array<{ index: number; text: string }> {
+  return axisTicks(dates.length)
+    .filter((index, i, all) => all.indexOf(index) === i)
+    .map((index) => ({
+      index,
+      text:
+        endsToday && index === dates.length - 1
+          ? `${fmtDayMonth(dates[index])} (Today)`
+          : fmtDayMonth(dates[index]),
+    }));
+}
+
+function Axis({ dates, endsToday }: { dates: string[]; endsToday: boolean }) {
+  return (
+    <div className={styles.axisRow} aria-hidden="true">
+      {axisLabels(dates, endsToday).map((tick) => (
+        <span key={tick.index}>{tick.text}</span>
+      ))}
+    </div>
+  );
+}
+
+function downloadCsv(
+  filename: string,
+  header: string[],
+  rows: Array<Array<string | number>>,
+): void {
+  const cell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+  const csv = [header, ...rows].map((row) => row.map(cell).join(",")).join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  // The same deferred revoke the export card uses — a synchronous one can
+  // cancel the download before the browser fetches the blob (Safari).
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+/** One decimal, mock style — "92.4%" / "59.0%". Null reads an em dash. */
+function oneDecimal(rate: number | null): string {
+  return rate === null ? "—" : `${(rate * 100).toFixed(1)}%`;
+}
+
+/** ── Card 1: Attendance Trend ───────────────────────────────── */
+
+function AttendanceTrendCard({
+  trend,
+  range,
+  preset,
+  retryTo,
+  hidden,
+  onToggleHidden,
+}: {
+  trend: Slice<AttendanceTrendResponse>;
+  range: { from: string; to: string };
+  preset: string;
+  retryTo: string;
+  hidden: ReadonlySet<string>;
+  onToggleHidden: (key: string) => void;
+}) {
+  const endsToday = range.to === istToday();
+  return (
+    <article className={styles.chartCard}>
+      <div>
+        <CardHead
+          title="Attendance Trend"
+          range={range}
+          preset={preset}
+          controlsLabel="Attendance trend period"
+        />
+        {!trend.ok ? (
+          <FailedCard
+            retryTo={retryTo}
+            what="The attendance trend could not load for this period."
+          />
+        ) : (
+          <>
+            <TrendLegend days={trend.data.days} hidden={hidden} onToggle={onToggleHidden} />
+            <TrendChart
+              ariaLabel="Daily attendance distribution across the period"
+              series={[
+                {
+                  key: "tracked",
+                  label: "Tracked",
+                  color: COLORS.trackedLine,
+                  values: trend.data.days.map((d) => d.tracked),
+                  dashed: true,
+                },
+                {
+                  key: "checkedIn",
+                  label: "Checked in",
+                  color: COLORS.checkedIn,
+                  values: trend.data.days.map((d) => d.checkedIn),
+                  area: true,
+                  dotIndexes: axisTicks(trend.data.days.length),
+                },
+                {
+                  key: "notCheckedIn",
+                  label: "Not checked in",
+                  color: COLORS.notChecked,
+                  values: trend.data.days.map((d) => d.notCheckedIn),
+                },
+                {
+                  key: "shortDay",
+                  label: "Short day",
+                  color: COLORS.shortDay,
+                  values: trend.data.days.map((d) => d.shortDay),
+                },
+                {
+                  key: "lateLeave",
+                  label: "Late / leave",
+                  color: COLORS.lateLeave,
+                  values: trend.data.days.map((d) => d.late + d.onLeave),
+                },
+              ].filter((s) => !hidden.has(s.key))}
+            />
+            <Axis dates={trend.data.days.map((d) => d.date)} endsToday={endsToday} />
+          </>
+        )}
+      </div>
+      <div className={styles.cardFooter}>
+        {trend.ok ? (
+          <button
+            type="button"
+            className={styles.csvButton}
+            onClick={() =>
+              downloadCsv(
+                `attendance-trend-${range.from}-to-${range.to}.csv`,
+                [
+                  "Date",
+                  "Tracked",
+                  "Checked in",
+                  "Not checked in",
+                  "Short day",
+                  "Late",
+                  "On leave",
+                ],
+                trend.data.days.map((d) => [
+                  d.date,
+                  d.tracked,
+                  d.checkedIn,
+                  d.notCheckedIn,
+                  d.shortDay,
+                  d.late,
+                  d.onLeave,
+                ]),
+              )
+            }
+          >
+            Download CSV
+          </button>
+        ) : (
+          <span />
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** The mock's legend semantics: the team size (the busiest day's tracked),
+ *  per-day averages for the checked-in and not-checked buckets, and range
+ *  totals for the short days and the late/leave rows — keyed to the series
+ *  so a chip toggles its line. */
+function TrendLegend({
+  days,
+  hidden,
+  onToggle,
+}: {
+  days: AttendanceTrendDay[];
+  hidden: ReadonlySet<string>;
+  onToggle: (key: string) => void;
+}) {
+  const n = Math.max(1, days.length);
+  const sum = (pick: (d: AttendanceTrendDay) => number) =>
+    days.reduce((acc, d) => acc + pick(d), 0);
+  const avg = (pick: (d: AttendanceTrendDay) => number) => Math.round((sum(pick) / n) * 10) / 10;
+  const peakTracked = days.reduce((acc, d) => Math.max(acc, d.tracked), 0);
+  return (
+    <Legend
+      items={[
+        { key: "tracked", label: "Tracked", color: COLORS.tracked, value: String(peakTracked) },
+        {
+          key: "checkedIn",
+          label: "Checked In",
+          color: COLORS.checkedIn,
+          value: `${avg((d) => d.checkedIn)} avg`,
+        },
+        {
+          key: "notCheckedIn",
+          label: "Not Checked",
+          color: COLORS.notChecked,
+          value: `${avg((d) => d.notCheckedIn)} avg`,
+        },
+        {
+          key: "shortDay",
+          label: "Short Day",
+          color: COLORS.shortDay,
+          value: String(sum((d) => d.shortDay)),
+        },
+        {
+          key: "lateLeave",
+          label: "Late / Leave",
+          color: COLORS.lateLeave,
+          value: String(sum((d) => d.late + d.onLeave)),
+        },
+      ].map((item) => ({
+        ...item,
+        hidden: hidden.has(item.key),
+        onToggle: () => onToggle(item.key),
+      }))}
+    />
+  );
+}
+
+/** ── Card 2: Jobs & Approvals ───────────────────────────────── */
+
+const JOB_SERIES: Array<{
+  key: keyof OwnerTrendSliceBucketCounts;
+  label: string;
+  /** The legend chip's wording (the mock's abbreviated forms). */
+  legendLabel: string;
+  color: string;
+  area?: boolean;
+}> = [
+  {
+    key: "employeeCreated",
+    label: "Created by employees",
+    legendLabel: "Created by Empl.",
+    color: COLORS.employeeCreated,
+    area: true,
+  },
+  {
+    key: "ownerCreated",
+    label: "Created by you",
+    legendLabel: "Created by You",
+    color: COLORS.ownerCreated,
+  },
+  {
+    key: "employeeApproved",
+    label: "Approved by you",
+    legendLabel: "Approved by You",
+    color: COLORS.approved,
+  },
+  {
+    key: "employeeAutoApproved",
+    label: "Auto-approved",
+    legendLabel: "Auto-Approved",
+    color: COLORS.autoApproved,
+  },
+];
+
+interface OwnerTrendSliceBucketCounts {
+  employeeCreated: number;
+  employeeApproved: number;
+  employeeAutoApproved: number;
+  ownerCreated: number;
+}
+
+function JobsApprovalsCard({
+  report,
+  range,
+  preset,
+  retryTo,
+  hidden,
+  onToggleHidden,
+}: {
+  report: Slice<OwnerExecReportResponse>;
+  range: { from: string; to: string };
+  preset: string;
+  retryTo: string;
+  hidden: ReadonlySet<string>;
+  onToggleHidden: (key: string) => void;
+}) {
+  const endsToday = range.to === istToday();
+  const headline = report.ok ? report.data.headline : null;
+  return (
+    <article className={styles.chartCard}>
+      <div>
+        <CardHead
+          title="Jobs & Approvals"
+          range={range}
+          preset={preset}
+          controlsLabel="Jobs flow period"
+        />
+        {!report.ok ? (
+          <FailedCard retryTo={retryTo} what="The report could not load for this period." />
+        ) : (
+          <>
+            <Legend
+              items={JOB_SERIES.map((s) => ({
+                key: s.key,
+                label: s.legendLabel,
+                color: s.color,
+                value: String(headline?.[s.key] ?? 0),
+                hidden: hidden.has(s.key),
+                onToggle: () => onToggleHidden(s.key),
+              }))}
+            />
+            <TrendChart
+              ariaLabel="Cumulative job flow across the period"
+              series={JOB_SERIES.filter((s) => !hidden.has(s.key)).map((s) => ({
+                key: s.key,
+                label: s.label,
+                color: s.color,
+                area: s.area,
+                values: report.data.trend.buckets.map((b) => b[s.key]),
+                dotIndexes:
+                  report.data.trend.buckets.length > 0
+                    ? [report.data.trend.buckets.length - 1]
+                    : [],
+              }))}
+            />
+            <BucketAxis
+              buckets={report.data.trend.buckets}
+              endsToday={endsToday}
+              spanDays={daySpan(range.from, range.to)}
+            />
+          </>
+        )}
+      </div>
+      <div className={styles.cardFooter}>
+        {report.ok ? (
+          <>
+            <span>
+              Overall Turnaround efficiency:{" "}
+              <span className={styles.footerStat}>
+                {oneDecimal(report.data.trend.turnaroundEfficiency)}
+              </span>
+            </span>
+            <Link to="/admin/company/employees" className={styles.footerLink}>
+              Approval Rules
+              <ChevronRight size={12} aria-hidden="true" />
+            </Link>
+          </>
+        ) : (
+          <span />
+        )}
+      </div>
+    </article>
+  );
+}
+
+function daySpan(from: string, to: string): number {
+  return (
+    Math.floor((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000) + 1
+  );
+}
+
+/** The mock's weekly labels — "Week 1 (23 Oct)" — collapsing to plain dates
+ *  when the window is too short to deserve the word "week". */
+function bucketLabel(
+  bucket: OwnerTrendSlice,
+  index: number,
+  isLast: boolean,
+  endsToday: boolean,
+  spanDays: number,
+): string {
+  if (isLast && endsToday) return `Today (${fmtDayMonth(bucket.to)})`;
+  if (spanDays > 14) return `Week ${index + 1} (${fmtDayMonth(bucket.from)})`;
+  return fmtDayMonth(bucket.from);
+}
+
+function BucketAxis({
+  buckets,
+  endsToday,
+  spanDays,
+}: {
+  buckets: OwnerTrendSlice[];
+  endsToday: boolean;
+  spanDays: number;
+}) {
+  return (
+    <div className={styles.axisRow} aria-hidden="true">
+      {buckets.map((bucket, i) => (
+        <span key={bucket.from}>
+          {bucketLabel(bucket, i, i === buckets.length - 1, endsToday, spanDays)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** ── Card 3: Employee Overview & Analytics ──────────────────── */
+
+function WorkforceCard({
+  report,
+  range,
+  preset,
+  retryTo,
+  hidden,
+  onToggleHidden,
+}: {
+  report: Slice<OwnerExecReportResponse>;
+  range: { from: string; to: string };
+  preset: string;
+  retryTo: string;
+  hidden: ReadonlySet<string>;
+  onToggleHidden: (key: string) => void;
+}) {
+  const endsToday = range.to === istToday();
+  return (
+    <article className={`${styles.chartCard} ${styles.fullWidth}`}>
+      <div>
+        <CardHead
+          title="Employee Overview & Analytics"
+          range={range}
+          preset={preset}
+          controlsLabel="Workforce analytics period"
+        />
+        {!report.ok ? (
+          <FailedCard retryTo={retryTo} what="The report could not load for this period." />
+        ) : (
+          <WorkforceBody
+            buckets={report.data.workforce.buckets}
+            endsToday={endsToday}
+            hidden={hidden}
+            onToggleHidden={onToggleHidden}
+          />
+        )}
+      </div>
+      <div className={styles.cardFooter}>
+        {report.ok ? (
+          <>
+            <div className={styles.footerCluster}>
+              <button
+                type="button"
+                className={styles.csvButton}
+                onClick={() => {
+                  const buckets = report.data.workforce.buckets;
+                  downloadCsv(
+                    `workforce-${range.from}-to-${range.to}.csv`,
+                    [
+                      "From",
+                      "To",
+                      "Total employees",
+                      "Active employees",
+                      "Pending invites",
+                      "Needs approval",
+                    ],
+                    buckets.map((b) => [
+                      b.from,
+                      b.to,
+                      b.totalEmployees,
+                      b.activeEmployees,
+                      b.pendingInvites,
+                      b.needsApproval,
+                    ]),
+                  );
+                }}
+              >
+                Download CSV
+              </button>
+              <span className={styles.footerSoft}>•</span>
+              <span>
+                Active workforce rate:{" "}
+                <span className={styles.footerStat}>
+                  {workforceRate(report.data.workforce.buckets.at(-1))}
+                </span>
+              </span>
+            </div>
+            <Link to="/admin/company/employees" className={styles.footerLink}>
+              Manage Employees
+              <ChevronRight size={12} aria-hidden="true" />
+            </Link>
+          </>
+        ) : (
+          <span />
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** Render-time clock read, isolated at module scope (the same shape the
+ *  console's istToday() uses): a banner's expiry is judged on the render
+ *  instant — a re-render refreshes it, which is exactly what we want. */
+function isSubscriptionExpired(validUntil: string | null): boolean {
+  return validUntil !== null && new Date(validUntil).getTime() < Date.now();
+}
+
+function workforceRate(bucket: OwnerWorkforceBucket | undefined): string {
+  if (bucket === undefined || bucket.totalEmployees === 0) return "—";
+  return oneDecimal(bucket.activeEmployees / bucket.totalEmployees);
+}
+
+function WorkforceBody({
+  buckets,
+  endsToday,
+  hidden,
+  onToggleHidden,
+}: {
+  buckets: OwnerWorkforceBucket[];
+  endsToday: boolean;
+  hidden: ReadonlySet<string>;
+  onToggleHidden: (key: string) => void;
+}) {
+  const last = buckets.at(-1);
+  const dates = buckets.map((b) => b.to);
+  const dotIndexes = [Math.max(0, buckets.length - 1)];
+  // "Total Employees" owns TWO datasets — the dashed reference line and the
+  // solid line riding it — so its chip toggles both.
+  const isVisible = (key: string) =>
+    key === "totalLine" ? !hidden.has("total") : !hidden.has(key);
   return (
     <>
-      <SkeletonRow cells={["64px", "104px", "120px", "96px", "112px"]} height={26} />
-      <RegionTilesSkeleton tiles={4} />
-      <RegionTilesSkeleton tiles={2} />
-      <RegionTableSkeleton rows={6} columns={[2.2, 0.8, 0.8, 0.8, 0.8, 0.8, 1]} />
+      <Legend
+        items={[
+          {
+            key: "total",
+            label: "Total Employees",
+            color: COLORS.employeeCreated,
+            value: String(last?.totalEmployees ?? 0),
+          },
+          {
+            key: "active",
+            label: "Active Employees",
+            color: COLORS.checkedIn,
+            value: String(last?.activeEmployees ?? 0),
+          },
+          {
+            key: "invites",
+            label: "Pending Invites",
+            color: COLORS.notChecked,
+            value: String(last?.pendingInvites ?? 0),
+          },
+          {
+            key: "needsApproval",
+            label: "Needs Approval",
+            color: COLORS.ownerCreated,
+            value: String(last?.needsApproval ?? 0),
+          },
+        ].map((item) => ({
+          ...item,
+          hidden: hidden.has(item.key),
+          onToggle: () => onToggleHidden(item.key),
+        }))}
+      />
+      <TrendChart
+        ariaLabel="Workforce headcounts, invites and pending approvals across the period"
+        series={[
+          {
+            key: "totalLine",
+            label: "Total employees",
+            color: COLORS.trackedLine,
+            values: buckets.map((b) => b.totalEmployees),
+            dashed: true,
+          },
+          {
+            key: "total",
+            label: "Total employees",
+            color: COLORS.employeeCreated,
+            values: buckets.map((b) => b.totalEmployees),
+            dotIndexes,
+          },
+          {
+            key: "active",
+            label: "Active employees",
+            color: COLORS.checkedIn,
+            values: buckets.map((b) => b.activeEmployees),
+            area: true,
+            dotIndexes,
+          },
+          {
+            key: "invites",
+            label: "Pending invites",
+            color: COLORS.notChecked,
+            values: buckets.map((b) => b.pendingInvites),
+            dotIndexes,
+          },
+          {
+            key: "needsApproval",
+            label: "Needs approval",
+            color: COLORS.ownerCreated,
+            values: buckets.map((b) => b.needsApproval),
+            dotIndexes,
+          },
+        ].filter((s) => isVisible(s.key))}
+      />
+      <Axis dates={dates} endsToday={endsToday} />
     </>
+  );
+}
+
+/** ── Loading + shell ────────────────────────────────────────── */
+
+/** The dashboard region's stand-in: three card-shaped blocks (two half, one
+ *  full) — the footprint the loaded charts fill. */
+function DashSkeleton() {
+  return (
+    <div className={styles.dashSkeleton}>
+      {/* Same order as the loaded cards: the full-width workforce card
+          first, then the two flow charts side by side. */}
+      <div className={`${styles.skeletonCard} ${styles.fullWidth}`}>
+        <SkeletonRow cells={["220px", "260px"]} height={26} />
+        <SkeletonRow cells={["80%", "60%", "70%", "50%"]} height={14} />
+        <SkeletonRow cells={["100%", "100%", "100%"]} height={40} />
+        <SkeletonRow cells={["100%", "100%", "100%", "100%"]} height={40} />
+        <SkeletonRow cells={["100%", "100%", "100%", "100%"]} height={40} />
+      </div>
+      <div className={styles.skeletonCard}>
+        <SkeletonRow cells={["140px", "220px"]} height={26} />
+        <SkeletonRow cells={["80%", "60%", "70%", "50%"]} height={14} />
+        <SkeletonRow cells={["100%", "100%", "100%"]} height={40} />
+        <SkeletonRow cells={["100%", "100%", "100%", "100%"]} height={40} />
+      </div>
+      <div className={styles.skeletonCard}>
+        <SkeletonRow cells={["140px", "220px"]} height={26} />
+        <SkeletonRow cells={["80%", "60%", "70%", "50%"]} height={14} />
+        <SkeletonRow cells={["100%", "100%", "100%"]} height={40} />
+        <SkeletonRow cells={["100%", "100%", "100%", "100%"]} height={40} />
+      </div>
+    </div>
   );
 }
 

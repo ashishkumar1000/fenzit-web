@@ -14,7 +14,6 @@ import { ReportExportCard } from "../features/admin/ReportExportCard";
 import { ConsoleTiles, type ConsoleTile } from "../features/admin/components/ConsoleTiles";
 import { JobsTable } from "../features/admin/components/JobsTable";
 import { ExportJobsButton } from "../features/admin/components/JobsExport";
-import { JobsCreateBanner } from "../features/admin/components/JobsCreateBanner";
 import {
   ClearAllButton,
   PriorityDropdown,
@@ -466,7 +465,6 @@ export function AdminJobsPage() {
       <OwnerHeader selfName={data.selfName} />
       <Tabs basePath={JOBS_PATH} tabs={tabs} current={data.tab} />
       <ConsoleTiles tiles={tiles} />
-      <JobsCreateBanner />
       <div className={styles.card}>
         <div className={styles.filterBar}>
           <StatusChips filters={filters} stats={result.stats} />

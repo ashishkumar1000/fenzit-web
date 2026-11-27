@@ -138,6 +138,10 @@ describe("AdminAttendancePage: the month tab", () => {
     const month = await card("Attendance this month");
     const priya = within(month).getByText("Priya Nair").closest("tr");
     if (priya === null) throw new Error("no row for Priya");
+    // The name opens the employee's profile (owner request, 2026-11-28) —
+    // pinned so the navigation cannot silently revert to plain text.
+    const nameLink = within(priya!).getByRole("link", { name: "Priya Nair" });
+    expect(nameLink).toHaveAttribute("href", "/admin/company/employees/u-1");
     expect(within(priya).getByText("Andheri")).toBeInTheDocument();
     // The range in the meta is the server's answer, not a local guess.
     expect(within(month).getByText(/1 Nov .*– .*14 Nov/)).toBeInTheDocument();

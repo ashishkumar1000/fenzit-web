@@ -434,8 +434,9 @@ function memberPreset(request: Request): string {
 // — members post nothing to this page.
 export { approvalQueueAction as adminJobsAction } from "./approvalLoaders";
 
-/** The owner pipeline over the last 30 IST days — the jobs tab's strip, and
- *  the Approval tab's waiting badge on every owner tab. */
+/** The owner report's waiting count over the last 30 IST days — the light
+ *  report (2026-11-28 slimming) carries just the pipeline's `pending`, and
+ *  it feeds the Approval tab's badge on every owner tab. */
 async function ownerPipeline(token: string, signal?: AbortSignal): Promise<Slice<OwnerPipeline>> {
   const pipeline = await settle(() =>
     fetchOwnerReport(token, { from: istShifted(-29), to: istToday() }, signal),

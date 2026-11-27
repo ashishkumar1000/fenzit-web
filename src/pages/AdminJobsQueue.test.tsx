@@ -112,19 +112,9 @@ function respondDefault(url: string): Response {
         employeeAutoApproved: 0,
         ownerCreated: 1,
       },
-      pipeline: {
-        pending: pipelinePending,
-        pendingOverOneDay: 0,
-        rejected: 0,
-        rejectedWithReason: 0,
-        rejectedWithoutReason: 0,
-        approvalRate: null,
-        averageMinutesToDecision: null,
-        medianMinutesToDecision: null,
-        oldestPending: null,
-      },
-      perEmployee: [],
-      employeesWithPermissionNoJobs: [],
+      // The light report (2026-11-28 slimming): the badge reads only the
+      // pipeline's pending count.
+      pipeline: { pending: pipelinePending },
     });
   }
   if (url.includes("/approval-queue")) {

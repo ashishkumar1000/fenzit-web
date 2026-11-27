@@ -1,7 +1,8 @@
-/* The overview page's console shell — the attendance page's shell classes
-   plus the merged job-report block's pieces (the old dashboard's range
-   pills, facts and name list). Colours and spacing come from the
-   design-system tokens. */
+/* The 2026-11-27 executive dashboard (the Stitch mock's geometry on the
+   console's token system): subscription banner, two chart cards side by
+   side, the full-width workforce card. Colours and spacing come from the
+   design-system tokens; the chart series hues are the mock's literal
+   palette (the series identity, not console tokens). */
 
 .stack {
   display: grid;
@@ -67,12 +68,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: var(--font-size-xs);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  padding: var(--space-1) var(--space-3);
+  padding: 2px var(--space-2);
 }
 
 .rolePillIcon {
@@ -85,46 +87,381 @@
   color: var(--color-text-muted);
 }
 
-/* ── Today's pulse and the shared pieces ────────────────── */
+/* ── The subscription banner ────────────────────────────── */
 
-.dateLine {
-  margin: 0;
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  background: var(--color-surface-card);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+}
+
+.bannerLeft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  min-width: 0;
+}
+
+.bannerTitleCluster {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bannerTitle {
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  letter-spacing: -0.01em;
+}
+
+.bannerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.bannerChipActive {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.bannerChipExpired {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.pulseDot {
+  position: relative;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+}
+
+.pulseDot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #34d399;
+  opacity: 0.75;
+  animation: bannerPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.pulseDot::after {
+  content: "";
+  border-radius: 9999px;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+}
+
+@keyframes bannerPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.25;
+  }
+}
+
+.planChip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.bannerMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.bannerMeta strong {
+  color: var(--color-text-strong);
+  font-weight: var(--font-weight-semibold);
+}
+
+.bannerMetaSoft {
+  color: var(--color-text-disabled);
+}
+
+.bannerDivider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border-subtle);
+}
+
+.bannerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 0 0 auto;
+}
+
+.managePlan {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.managePlan:hover {
+  background: color-mix(in srgb, var(--color-primary) 88%, #000000);
+}
+
+/* ── The chart cards ────────────────────────────────────── */
+
+.chartGrid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .chartGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* The workforce card is the grid's full-width third row. */
+  .chartGrid .fullWidth {
+    grid-column: 1 / -1;
+  }
+}
+
+.chartCard {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: box-shadow 0.2s ease;
+}
+
+.chartCard:hover {
+  box-shadow: 0 4px 12px rgb(15 23 42 / 0.08);
+}
+
+/* Title on its own line first, the range controls under it — the owner's
+   2026-11-27 stacking (was row: title left, controls right, which wrapped
+   the title on narrow cards). */
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+}
+
+.rangeControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.datePill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  min-height: 28px;
+}
+
+.presetGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: #f1f5f9;
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+}
+
+.presetLink {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.presetLink:hover {
+  color: var(--color-text-strong);
+}
+
+.presetLink[aria-current="page"] {
+  background: var(--color-surface-card);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 1px 1px rgb(15 23 42 / 0.06);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-4);
+  font-size: var(--font-size-xs);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
 }
 
-.flagLine {
-  color: var(--color-status-scheduled-fg);
+/* The legend chip is a series toggle (owner request, 2026-11-27): a button
+   wearing the chip's look. Hidden series dim; their dot goes hollow via an
+   inline inset ring that keeps the series colour. */
+.legendToggle {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm, 6px);
+  transition: opacity 150ms ease;
 }
 
-.cards {
-  display: grid;
+.legendToggle:hover {
+  color: var(--color-text-strong);
+}
+
+.legendToggle:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.legendItemHidden {
+  opacity: 0.4;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  flex: 0 0 auto;
+}
+
+.axisRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-disabled);
+  margin-top: var(--space-2);
+  padding: 0 var(--space-1);
+  font-weight: var(--font-weight-medium);
+}
+
+.cardFooter {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.footerCluster {
+  display: flex;
+  align-items: center;
   gap: var(--space-4);
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
-.pair {
-  display: grid;
-  gap: var(--space-5);
+.footerSoft {
+  color: var(--color-text-disabled);
 }
 
-/* The report region's stack (2026-11-26): the skeleton swap wraps the range
-   pills + report body in one node carrying the shell main's rhythm — the
-   placeholder occupies the report's footprint exactly. When the region
-   isn't loading the slot renders its children unwrapped inside .main. */
-.reportStack {
-  display: grid;
-  gap: var(--space-5);
-  align-content: start;
+.footerStat {
+  font-weight: var(--font-weight-semibold);
+  color: #059669;
 }
 
-@media (min-width: 900px) {
-  .pair {
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
-  }
+.footerLink {
+  color: var(--color-text-link);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }
+
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+.csvButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-link);
+  cursor: pointer;
+}
+
+.csvButton:hover {
+  text-decoration: underline;
+}
+
+/* ── Failure + loading states ───────────────────────────── */
 
 .failed {
   margin: 0;
@@ -133,6 +470,7 @@
   display: flex;
   gap: var(--space-3);
   align-items: baseline;
+  flex-wrap: wrap;
 }
 
 .retry {
@@ -147,94 +485,31 @@
   text-decoration: underline;
 }
 
-/* ── The job report (the merged dashboard's body) ───────── */
-
-.rangeNav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rangeLink {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-card);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: none;
-  min-height: 32px;
-}
-
-.rangeLink:hover {
-  color: var(--color-text-strong);
-  border-color: var(--color-border-strong);
-}
-
-.rangeLink[aria-current="page"] {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.factGrid {
+/* The loading region's stand-in: three card-shaped blocks (two half, one
+   full) — the footprint the loaded charts fill. */
+.dashSkeleton {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-5);
+  grid-template-columns: 1fr;
 }
 
-.fact {
-  background: var(--color-surface-sunken);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  min-width: 0;
+@media (min-width: 1024px) {
+  .dashSkeleton {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashSkeleton .fullWidth {
+    grid-column: 1 / -1;
+  }
 }
 
-.factLabel {
-  margin: 0;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-}
-
-.factValue {
-  margin: var(--space-1) 0 0;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-strong);
-  overflow-wrap: anywhere;
-}
-
-.queueLink {
-  display: inline-block;
-  margin-top: var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-link);
-}
-
-.nameList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-strong);
-}
-
-.nameList li {
-  background: var(--color-surface-sunken);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
-}
-
-.quiet {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+.skeletonCard {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl, 16px);
+  background: var(--color-surface-card);
+  padding: var(--space-5);
+  height: 420px;
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
 }

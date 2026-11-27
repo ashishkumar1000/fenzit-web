@@ -176,6 +176,18 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* The name opens the profile — the console's link affordance (link blue at
+   rest, underline on hover), matching the jobs table. */
+.employeeLink {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.employeeLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .quiet {
   color: var(--color-text-muted);
 }
@@ -209,16 +221,12 @@
   align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
+  /* Breathing room between the table and the pager row (owner, 2026-11-28). */
+  margin-top: var(--space-5);
 }
 
 .showing {
   margin: 0;
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
-.note {
-  margin: 0;
-  font-size: var(--font-size-2xs);
   color: var(--color-text-muted);
 }

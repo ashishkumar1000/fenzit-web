@@ -303,11 +303,13 @@ describe("Console: who sees what", () => {
     // The role lives in the sidebar user chip.
     expect(screen.getByText("Company Owner")).toBeInTheDocument();
     // The dashboard merged into Overview: its failing slices degrade to
-    // their own retry lines (this test's fetch mock is offline).
+    // their own retry lines (this test's fetch mock is offline) — both
+    // report cards fail together, the attendance card on its own.
+    const reportAlerts = await screen.findAllByText("The report could not load for this period.");
+    expect(reportAlerts).toHaveLength(2);
     expect(
-      await screen.findByText("The report could not load for this period."),
+      screen.getByText("The attendance trend could not load for this period."),
     ).toBeInTheDocument();
-    expect(screen.getByText("The pulse could not load.")).toBeInTheDocument();
     // The sidebar: one Overview section, no separate Dashboard.
     expect(screen.queryByRole("link", { name: "Dashboard" })).toBeNull();
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
@@ -462,13 +464,13 @@ describe("Console: the sidebar's captions and the Leave badge", () => {
 
     // The labels leave the picture, not the accessibility tree.
     expect(screen.getByRole("link", { name: "Employees" })).toBeInTheDocument();
-    // Settings is drawn but cannot open — the screen does not exist yet. It
-    // is a disabled link with its reason as the description, so assistive
-    // tech hears why instead of a bare grey word.
+    // Settings is drawn but cannot open — the screen does not exist yet.
+    // The visible "Coming soon" note is gone (owner, 2026-11-28); the
+    // disabled link still answers why through its title tooltip.
     const settings = screen.getByRole("link", { name: /Settings/ });
     expect(settings).toHaveAttribute("aria-disabled", "true");
-    expect(settings.getAttribute("aria-describedby")).toBe("console-settings-note");
-    expect(document.getElementById("console-settings-note")).toHaveTextContent("Coming soon");
+    expect(settings.getAttribute("aria-describedby")).toBeNull();
+    expect(document.getElementById("console-settings-note")).toBeNull();
   });
 
   it("keeps the phone menu behind one labelled control, closable with Escape", async () => {

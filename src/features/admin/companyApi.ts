@@ -7,21 +7,6 @@ import { getApiBaseUrl } from "../../config/env";
  * parts of each response the console renders.
  */
 
-export interface PulseCounts {
-  tracked: number;
-  checkedIn: number;
-  notCheckedIn: number;
-  shortDay: number;
-  late: number;
-  onLeave: number;
-}
-
-export interface PulseResponse {
-  date: string;
-  counts: PulseCounts;
-  flags: { checkoutMissing: unknown[]; fakeLocationAttempt: unknown[] };
-}
-
 /** One step up the reporting tree: the manager's id and their name. */
 export interface MemberChainLink {
   userId: string;
@@ -172,11 +157,51 @@ export interface Page<T> {
   hasMore: boolean;
 }
 
-export function fetchPulse(token: string, signal?: AbortSignal): Promise<PulseResponse> {
-  return apiFetch<PulseResponse>("/api/v1/attendance/dashboard", {
-    headers: { Authorization: `Bearer ${token}` },
-    signal,
-  });
+/** One day of the exec dashboard's attendance trend (2026-11-27) — the same
+ *  buckets the pulse tiles show, evaluated per day by the same BE engine. */
+export interface AttendanceTrendDay {
+  date: string;
+  tracked: number;
+  checkedIn: number;
+  notCheckedIn: number;
+  shortDay: number;
+  late: number;
+  onLeave: number;
+}
+
+export interface AttendanceTrendResponse {
+  range: { from: string; to: string };
+  days: AttendanceTrendDay[];
+}
+
+const BAD_TREND = "The attendance trend response did not look as expected.";
+
+/** GET /attendance/trend — the daily distribution over an IST day window. */
+export async function fetchAttendanceTrend(
+  token: string,
+  range: { from: string; to: string },
+  signal?: AbortSignal,
+): Promise<AttendanceTrendResponse> {
+  const trend = await apiFetch<AttendanceTrendResponse>(
+    `/api/v1/attendance/trend?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`,
+    { headers: { Authorization: `Bearer ${token}` }, signal },
+  );
+  if (
+    trend === null ||
+    typeof trend !== "object" ||
+    !Array.isArray(trend.days) ||
+    trend.days.some(
+      (d) =>
+        d === null ||
+        typeof d.date !== "string" ||
+        (["tracked", "checkedIn", "notCheckedIn", "shortDay", "late", "onLeave"] as const).some(
+          (k) => typeof d[k] !== "number" || !Number.isFinite(d[k]),
+        ),
+    )
+  ) {
+    throw new Error(BAD_TREND);
+  }
+  return trend;
 }
 
 export function fetchMembers(token: string, signal?: AbortSignal): Promise<MemberRow[]> {
@@ -261,13 +286,6 @@ export function resendInviteSms(
     `/api/v1/auth/invite/${encodeURIComponent(membershipUserId)}/resend-sms`,
     { method: "POST", headers: { Authorization: `Bearer ${token}` }, signal },
   ).then((row) => row.sms_status ?? null);
-}
-
-export function fetchCompanyLeave(token: string, signal?: AbortSignal): Promise<Page<LeaveRow>> {
-  return apiFetch<Page<LeaveRow>>("/api/v1/attendance/leave?limit=8", {
-    headers: { Authorization: `Bearer ${token}` },
-    signal,
-  });
 }
 
 /** ── The owner's full-list drill-downs (existing endpoints) ─────────── */

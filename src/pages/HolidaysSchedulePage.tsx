@@ -20,7 +20,6 @@ import { HolidayModal } from "../features/admin/components/HolidayModal";
 import { HolidayInspectorSidebar } from "../features/admin/components/HolidayInspectorSidebar";
 import {
   downloadIcs,
-  employeesOff,
   hasWeeklyOff,
   holidaysOfficeLine,
   longWeekends,
@@ -200,7 +199,7 @@ export function HolidaysSchedulePage() {
         <div className={styles.statRow}>
           <section className={styles.statCard}>
             <span className={styles.statIcon} aria-hidden="true">
-              📅
+              <TotalHolidaysIcon />
             </span>
             <div>
               <p className={styles.statEyebrow}>TOTAL HOLIDAYS</p>
@@ -212,7 +211,7 @@ export function HolidaysSchedulePage() {
           </section>
           <section className={styles.statCard}>
             <span className={styles.statIcon} aria-hidden="true">
-              🏢
+              <IndianOfficesIcon />
             </span>
             <div>
               <p className={styles.statEyebrow}>INDIAN OFFICES</p>
@@ -225,7 +224,7 @@ export function HolidaysSchedulePage() {
           {showWeekends ? (
             <section className={styles.statCard}>
               <span className={styles.statIcon} aria-hidden="true">
-                ⚡
+                <LongWeekendIcon />
               </span>
               <div>
                 <p className={styles.statEyebrow}>LONG WEEKEND BREAKS</p>
@@ -300,7 +299,6 @@ export function HolidaysSchedulePage() {
                   <th scope="col">Holiday</th>
                   <th scope="col">Day</th>
                   <th scope="col">Duration</th>
-                  <th scope="col">Impact</th>
                   <th scope="col">Offices</th>
                   <th scope="col">
                     <span className={styles.visuallyHidden}>Edit</span>
@@ -310,7 +308,7 @@ export function HolidaysSchedulePage() {
               {groups.map((group) => (
                 <tbody key={group.month}>
                   <tr className={styles.monthRow}>
-                    <td colSpan={7}>
+                    <td colSpan={6}>
                       {group.name.toUpperCase()} {year}
                     </td>
                   </tr>
@@ -343,17 +341,6 @@ export function HolidaysSchedulePage() {
                       <td className={styles.weekdayText}>{weekdayNameOf(holiday.date)}</td>
                       <td>Full Day</td>
                       <td>
-                        <span className={styles.impact}>
-                          👥{" "}
-                          {employeesOff(
-                            holiday,
-                            overview.offices,
-                            overview.unassignedCount,
-                          ).toLocaleString()}{" "}
-                          get the day off
-                        </span>
-                      </td>
-                      <td>
                         <span className={styles.chip}>{officeLabel(holiday, officeNames)}</span>
                       </td>
                       <td>
@@ -379,7 +366,9 @@ export function HolidaysSchedulePage() {
 
         <section className={styles.card}>
           <h3 className={styles.coverageTitle}>Branch Office Coverage</h3>
-          <p className={styles.coverageSub}>Tracked employees per office — who a holiday closes.</p>
+          <p className={styles.coverageSub}>
+            How many employees work at each office and which holidays apply to them.
+          </p>
           <ul className={styles.coverageList}>
             {overview.offices.map((o) => (
               <li key={o.officeId} className={styles.coverageRow}>
@@ -441,14 +430,94 @@ export function HolidaysSchedulePage() {
 }
 
 /** The schedule region's stand-in: the three stat tiles, the month-grouped
- *  table card (the same seven columns the real table lays out) and the
+ *  table card (the same six columns the real table lays out) and the
  *  coverage card — the exact footprint the loaded region fills. */
 function ScheduleSkeleton() {
   return (
     <>
       <RegionTilesSkeleton tiles={3} />
-      <RegionTableSkeleton rows={9} columns={[0.9, 2.2, 1, 1.2, 2.4, 1.2, 0.5]} />
+      <RegionTableSkeleton rows={9} columns={[0.9, 2.2, 1, 1.2, 1.2, 0.5]} />
       <RegionTableSkeleton rows={3} columns={[1.8, 2.6, 0.9]} />
     </>
+  );
+}
+
+/** The stat tiles' marks — each one invented and hand-drawn for this page by
+ *  its own agent (2026-11-28, no emoji, no stock glyph): a pennant garland
+ *  for sanctioned stillness, a family of gathering places for the offices,
+ *  and a kite for the short blessed escape. Stroke-only line art on the 24
+ *  grid; the chip (`.statIcon`) sizes and inks them via currentColor. */
+function TotalHolidaysIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2.35 6.2C2.55 7 2.72 7.5 2.9 7.9C5.4 11.55 8.7 12.1 12 11.7C15.2 11.35 18.6 9.7 21.1 6.95C21.3 6.5 21.32 6.05 21.05 5.65" />
+      <path d="M5.6 10.58Q6.95 11.15 8.3 11.65L7.3 15Z" />
+      <path d="M9.7 11.8Q11.8 11.85 13.85 11.35L12 16.3Z" />
+      <path d="M15.1 10.95Q16.6 10.18 18.1 9.4L17.2 14.2Z" />
+      <circle cx="11.9" cy="8.1" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function IndianOfficesIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* The uneven ground the three places share. */}
+      <path d="M3.2 20 C6 19.8 8.9 20.05 12 19.9 C15.1 19.75 18.2 20 20.9 19.85" />
+      {/* The gabled hut with its tiny arch window. */}
+      <path d="M4.05 12.85 Q5.8 10.3 7.4 8.4 Q9.15 10.4 10.5 12.85" />
+      <path d="M4.5 12.95 C4.42 15.2 4.38 17.4 4.42 19.85" />
+      <path d="M10.15 13 C10.22 15.3 10.25 17.5 10.22 19.8" />
+      <path d="M6.15 17.9 V16.5 Q6.15 15.5 7.1 15.5 Q8.05 15.5 8.05 16.5 V17.9" />
+      {/* The open domed pavilion (chhatri) — tallest, centre. */}
+      <path d="M10.95 12.05 C10.75 9.7 11.35 7.1 12.55 5.6 C13.8 7 14.45 9.6 14.3 12.1" />
+      <path d="M10.55 12.2 Q12.6 11.95 14.65 12.3" />
+      <path d="M12.55 5.55 C12.5 5 12.6 4.6 12.5 4.15" />
+      <path d="M11.25 12.45 C11.2 15 11.18 17.4 11.22 19.85" />
+      <path d="M13.95 12.5 C14 15.05 14.02 17.5 13.98 19.9" />
+      {/* The plain flat-roofed block. */}
+      <path d="M15.8 10.1 C17.2 9.95 18.6 10.2 20 10.05" />
+      <path d="M15.9 10.15 C15.82 13.2 15.8 16.3 15.85 19.8" />
+      <path d="M19.92 10.1 C20 13.2 20.02 16.4 19.95 19.85" />
+    </svg>
+  );
+}
+
+function LongWeekendIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* The kite's sail — every edge bows a different way. */}
+      <path d="M14.8 2.2 Q17.2 5.5 20.2 8.1 Q17.1 10.6 13.4 12.6 Q10.6 10.1 8.4 7 Q11.9 4.3 14.8 2.2 Z" />
+      {/* Spine and cross-spar, poking past the sail tips. */}
+      <path d="M14.8 2.2 Q14.5 7.3 13.4 12.6" />
+      <path d="M8.1 6.9 Q14.3 7.95 20.45 8.2" />
+      {/* The tail and its two ribbon bows. */}
+      <path d="M13.4 12.6 C14.3 14.8 13.5 16.3 14.1 18.1 C14.5 19.3 15 20.2 15.7 20.9" />
+      <path d="M12.8 16.5 Q13.95 16.2 15.1 15.6" />
+      <path d="M13.5 19.2 Q14.4 18.8 15.4 18.3" />
+      {/* The slack string tied at the wingtip. */}
+      <path d="M8.4 7 C6.3 9.5 5 12.3 5.3 15.1 C5.5 17 6.3 18.5 7.6 19.7" />
+    </svg>
   );
 }

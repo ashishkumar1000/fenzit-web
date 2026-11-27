@@ -30,24 +30,21 @@ export interface ConsoleTile {
 }
 
 /**
- * The console's stat tile: label on top, the tinted icon chip top-right, the
- * big number with its pill, and the muted sub-line — the mockup's tile. One
- * translucent circle sits in the corner as the tile's depth, tinted by the
- * same family as the icon.
+ * The console's stat tile: label on top, the big number with its pill, and
+ * the muted sub-line. One translucent circle sits in the corner as the
+ * tile's depth, tinted by the tile's tone family. (The tinted icon chip
+ * left with the owner's 2026-11-27 trim; `icon` stays in the contract so
+ * the callers keep compiling — the field is simply not rendered.)
  */
 export function ConsoleTiles({ tiles }: { tiles: ConsoleTile[] }) {
   return (
     <div className={styles.row}>
       {tiles.map((tile) => {
-        const Icon = tile.icon;
         return (
           <div key={tile.label} className={styles.tile} data-tone={tile.tone}>
             <ConsoleTileArt variant={ART_BY_TONE[tile.tone]} />
             <div className={styles.head}>
               <p className={styles.label}>{tile.label}</p>
-              <span className={styles.iconChip}>
-                <Icon size={17} strokeWidth={2} aria-hidden="true" />
-              </span>
             </div>
             <div className={styles.valueRow}>
               <p className={styles.value}>{tile.value}</p>

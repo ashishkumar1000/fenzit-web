@@ -59,17 +59,6 @@
   color: var(--color-text-muted);
 }
 
-.iconChip {
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  display: grid;
-  place-items: center;
-  color: var(--color-text-strong);
-  background: color-mix(in srgb, currentColor 12%, transparent);
-}
-
 .valueRow {
   display: flex;
   align-items: center;

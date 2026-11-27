@@ -188,8 +188,9 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     expect(
       within(invitedRow as HTMLElement).getByRole("button", { name: "Send Invitation Again" }),
     ).toBeInTheDocument();
-    // A deactivated row reads a dash in the settings cell but keeps its
-    // Employment button — the record stays openable, the switch is dead.
+    // A deactivated row reads a dash in the settings cell — the switch is
+    // dead, and the Employment column is gone from the table entirely
+    // (2026-11-28): the record opens from the profile page.
     const parkedRow = screen.getByRole("cell", { name: /Dinesh P/ }).closest("tr");
     expect(
       within(parkedRow as HTMLElement).queryByRole("button", {
@@ -198,8 +199,8 @@ describe("AdminEmployeesPage: who gets the control (CAP-1)", () => {
     ).toBeNull();
     expect(within(parkedRow as HTMLElement).getAllByText("—")).toHaveLength(1);
     expect(
-      within(parkedRow as HTMLElement).getByRole("button", { name: "Employment" }),
-    ).toBeInTheDocument();
+      within(parkedRow as HTMLElement).queryByRole("button", { name: "Employment" }),
+    ).toBeNull();
   });
 
   it("summarises the two switches in the row's label", async () => {

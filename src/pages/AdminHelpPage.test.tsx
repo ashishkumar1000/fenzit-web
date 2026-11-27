@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { AdminHelpPage } from "./AdminHelpPage";
 import { CONTACT_EMAIL, SALES_PHONE_DISPLAY, SALES_PHONE_HREF } from "../config/contact";
@@ -15,6 +15,48 @@ function renderPage() {
 }
 
 describe("Console: Help & Support", () => {
+  it("copies each contact value to the clipboard and says so once", async () => {
+    const written: string[] = [];
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: async (value: string) => written.push(value) },
+      configurable: true,
+    });
+    try {
+      renderPage();
+      const emailCopy = screen.getByRole("button", { name: "Copy email address" });
+      const phoneCopy = screen.getByRole("button", { name: "Copy phone number" });
+      await emailCopy.click();
+      await phoneCopy.click();
+      // The exact contact values ride the clipboard — not a display variant.
+      expect(written).toEqual([CONTACT_EMAIL, SALES_PHONE_DISPLAY]);
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        configurable: true,
+      });
+    }
+  });
+
+  it("flips the copy control to Copied and back after the reset window", async () => {
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: async () => {} },
+      configurable: true,
+    });
+    try {
+      renderPage();
+      const emailCopy = screen.getByRole("button", { name: "Copy email address" });
+      await emailCopy.click();
+      await waitFor(() => expect(screen.getByRole("button", { name: "Copied" })).toBeTruthy());
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        configurable: true,
+      });
+    }
+  });
+
   it("names the page and the two ways to reach the team", () => {
     renderPage();
 

@@ -229,7 +229,6 @@ function NavLinks({
                   role="link"
                   aria-disabled="true"
                   aria-label={section.label}
-                  aria-describedby="console-settings-note"
                   tabIndex={0}
                   title={`${section.label} is coming soon.`}
                 >
@@ -237,12 +236,6 @@ function NavLinks({
                     <Glyph size={18} />
                   </span>
                   <span className={styles.navLabel}>{section.label}</span>
-                  {/* Phones have no hover: the reason rides in the row. On
-                      wide screens it is still the row's description, just
-                      visually quiet. */}
-                  <span id="console-settings-note" className={styles.navNote}>
-                    Coming soon
-                  </span>
                 </span>
               );
             }

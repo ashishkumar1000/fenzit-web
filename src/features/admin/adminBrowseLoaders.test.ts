@@ -46,6 +46,8 @@ function page(data: unknown[], hasMore = false): Response {
 }
 
 function ownerReport(): Response {
+  // The light report (2026-11-28 slimming): the jobs loader reads only the
+  // pipeline's pending count, so the fake answers the light shape.
   return jsonResponse({
     range: { from: istShifted(-29), to: istToday() },
     headline: {
@@ -54,19 +56,7 @@ function ownerReport(): Response {
       employeeAutoApproved: 1,
       ownerCreated: 2,
     },
-    pipeline: {
-      pending: 3,
-      pendingOverOneDay: 1,
-      rejected: 0,
-      rejectedWithReason: 0,
-      rejectedWithoutReason: 0,
-      approvalRate: null,
-      averageMinutesToDecision: null,
-      medianMinutesToDecision: null,
-      oldestPending: null,
-    },
-    perEmployee: [],
-    employeesWithPermissionNoJobs: [],
+    pipeline: { pending: 3 },
   });
 }
 

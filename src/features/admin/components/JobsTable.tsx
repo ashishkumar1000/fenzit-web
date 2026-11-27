@@ -3,25 +3,9 @@ import type { JobRow } from "../companyApi";
 import { Avatar } from "./Avatar";
 import { StatusBadge } from "./Badge";
 import { fmtWhen } from "../format";
-import { humanize } from "../status";
 import styles from "./JobsTable.module.css";
 
 export const JOBS_TABLE_PATH = "/admin/company/jobs";
-
-/** The step column: "Step 2 of 5" once the job is on the template, the raw
- *  step's words before that, "—" on a fresh job. An index beyond the
- *  template (it shrank after the job started) falls back to the step's
- *  words — never "Step 7 of 5". */
-function stepCell(job: JobRow): string {
-  if (
-    job.currentStepIndex !== null &&
-    job.workflowTemplate !== null &&
-    job.currentStepIndex < job.workflowTemplate.steps.length
-  ) {
-    return `Step ${job.currentStepIndex + 1} of ${job.workflowTemplate.steps.length}`;
-  }
-  return job.currentStep === null ? "—" : humanize(job.currentStep);
-}
 
 /** The Job cell: the work leads, and the line under it answers "which job" —
  *  its number, or the place when there is no description. A rejected job
@@ -67,8 +51,9 @@ function CustomerCell({ job }: { job: JobRow }) {
 
 /**
  * The jobs table: the work (title + number), the customer it serves, its
- * status, its step on the template, its skill, its employee, the dispatch
- * priority and the scheduled time. The page owns paging and filters.
+ * status, its skill, its employee, the dispatch priority and the scheduled
+ * time. The page owns paging and filters. (The Current Step column left
+ * with the owner's 2026-11-27 trim — the job detail page holds the step.)
  */
 export function JobsTable({ rows }: { rows: JobRow[] }) {
   return (
@@ -78,7 +63,6 @@ export function JobsTable({ rows }: { rows: JobRow[] }) {
           <th scope="col">Job Details</th>
           <th scope="col">Customer</th>
           <th scope="col">Status</th>
-          <th scope="col">Current Step</th>
           <th scope="col">Work Type</th>
           <th scope="col">Employee</th>
           <th scope="col">Priority</th>
@@ -97,9 +81,22 @@ export function JobsTable({ rows }: { rows: JobRow[] }) {
             <td>
               <StatusBadge status={j.status} />
             </td>
-            <td className={styles.quiet}>{stepCell(j)}</td>
             <td className={styles.quiet}>{j.skill?.name ?? "—"}</td>
-            <td>{j.technician?.name ?? <span className={styles.quiet}>—</span>}</td>
+            <td>
+              {j.technician === null || !j.technician.name?.trim() ? (
+                <span className={styles.quiet}>—</span>
+              ) : (
+                // The employee cell opens the profile page (owner request,
+                // 2026-11-27): the id is the profile route's :userId.
+                <Link
+                  to={`/admin/company/employees/${j.technician.id}`}
+                  className={styles.employeeLink}
+                  title="Open the employee's profile"
+                >
+                  {j.technician.name}
+                </Link>
+              )}
+            </td>
             <td>
               {j.priority === "urgent" ? (
                 <span className={styles.urgentPill}>Urgent</span>

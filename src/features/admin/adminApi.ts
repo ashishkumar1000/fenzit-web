@@ -17,8 +17,15 @@ export type CurrentUser = {
   phoneNumber: string;
   employeeCode: string | null;
   status: string | null;
-  /** The company's subscription end; null when there is no company or no date. */
-  subscription?: { validUntil: string | null } | null;
+  /** The company's subscription end; null when there is no company or no date.
+   *  The 2026-11-27 exec dashboard also reads the plan facts (tenants columns
+   *  via /users/me) — optional so an older backend never breaks this shape. */
+  subscription?: {
+    validUntil: string | null;
+    planName?: string;
+    billingCycle?: string;
+    autoRenews?: boolean;
+  } | null;
   /** Epic 22 (CAP-1) — the employee's own job switches. Present for
    *  employees; absent (undefined) on other shapes of the profile. Display
    *  truth only — the create endpoint re-checks server-side. */

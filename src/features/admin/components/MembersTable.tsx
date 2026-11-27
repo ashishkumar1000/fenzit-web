@@ -9,7 +9,7 @@ import { CrownIcon, UserIcon, type ConsoleIconProps } from "../../../components/
 import { pushToast } from "../../../components/ui/toastStore";
 import { humanize } from "../status";
 import { JobSettingsCell } from "./JobSettingsDialog";
-import { EmploymentCell } from "./payroll/EmploymentDialog";
+
 import { Avatar } from "./Avatar";
 import { fmtPhone } from "../format";
 import { resendOutcomeLine } from "../smsOutcome";
@@ -209,7 +209,6 @@ export function MembersTable({
           <th scope="col">Reports to</th>
           <th scope="col">Status</th>
           <th scope="col">Job Settings</th>
-          <th scope="col">Employment Details</th>
           <th
             scope="col"
             aria-sort={sortStateFor("joined", sort)}
@@ -272,13 +271,6 @@ export function MembersTable({
                   // The settings write requires an active membership — a
                   // deactivated row shows no live switch that would 404.
                   <JobSettingsCell key={m.userId} row={m} />
-                ) : (
-                  <span className={styles.quiet}>—</span>
-                )}
-              </td>
-              <td>
-                {(m.status === "active" || m.status === "deactivated") && m.role === "employee" ? (
-                  <EmploymentCell userId={m.userId} name={m.name} />
                 ) : (
                   <span className={styles.quiet}>—</span>
                 )}

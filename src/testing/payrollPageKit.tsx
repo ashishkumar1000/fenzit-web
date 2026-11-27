@@ -295,6 +295,23 @@ export function payrollStandard(url: string): Response {
   if (pathname.endsWith("/members")) {
     return jsonResponse(team.rows);
   }
+  // The employee profile's member record — the employment dialog's entry
+  // page since the team table's Employment column retired (2026-11-28).
+  const memberRecord = /\/members\/([^/]+)$/.exec(pathname);
+  if (memberRecord !== null) {
+    const refused = payroll.refusals[`GET ${pathname}`];
+    if (refused !== undefined) return jsonResponse(refused.body, refused.status);
+    const found = team.rows.find((m) => m.userId === memberRecord[1]);
+    if (found === undefined) return jsonResponse({}, 404);
+    return jsonResponse({
+      ...found,
+      // The seeded row's email is the truth — forcing null here would make
+      // a seeded-email assertion fail misleadingly (review 2026-11-28).
+      email: found.email ?? null,
+      avatarUrl: null,
+      skills: [],
+    });
+  }
   const answered = answerGet(url, pathname, method(url));
   if (answered !== undefined) return answered;
   return jsonResponse([]);
