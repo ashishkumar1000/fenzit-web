@@ -8,6 +8,10 @@
 // of /. Client-only pages and the 404 shell are marked noindex instead, so the sign-in and admin
 // pages stay out of search results while crawlers can still read the directive.
 //
+// Each prerendered page also carries the entry stylesheet inline in its <head>, so the first paint
+// does not wait for a render-blocking request (scripts/lib/entry-css.ts); the client-only shells
+// keep the shared, cached <link>.
+//
 // Also writes dist/sitemap.xml for the indexable pages, which robots.txt points at. The head and
 // sitemap builders with their guards live in scripts/lib/page-head.ts (tested there); this file
 // is the file I/O around them.
@@ -17,6 +21,8 @@ import { fileURLToPath } from "node:url";
 
 import { CLIENT_ONLY_TITLES, PUBLIC_PAGES } from "../src/app/pageMeta";
 import type { PageMeta } from "../src/app/pageMeta";
+import { inlineEntryStylesheets } from "./lib/entry-css";
+import { readEntryStylesheets } from "./lib/entry-css-files";
 import { buildHead, buildSitemap, validateTemplateBlocks } from "./lib/page-head";
 
 // Every page written with real content. The home page's head lives directly in index.html and is
@@ -75,6 +81,15 @@ if (!template.includes(EMPTY_ROOT)) {
   throw new Error(`index.html has no ${EMPTY_ROOT} to fill. Check the template.`);
 }
 
+// The entry stylesheet is the one request every page waits for before its first paint. Read it
+// now, so each public page can carry it inline (see the page loop); the shells below keep their
+// <link> and share the cached file.
+const entryStylesheets = await readEntryStylesheets(template, DIST);
+const inlinedBytes = [...entryStylesheets.values()].reduce((total, css) => total + css.length, 0);
+console.log(
+  `read ${entryStylesheets.size} stylesheet(s), ${inlinedBytes} bytes, to inline into prerendered pages`,
+);
+
 const hoverPrerenderPaths = PRERENDERED_PAGES.filter((page) => page.meta !== null).map(
   (page) => page.path,
 );
@@ -120,6 +135,11 @@ for (const page of PRERENDERED_PAGES) {
   // A replacer function, not a string: the markup may contain "$&" or "$'", which a string
   // replacement would expand and corrupt.
   out = out.replace(EMPTY_ROOT, () => `<div id="root">${body}</div>`);
+  // Inline the entry CSS into the head: the same bytes download inside this HTML, which the
+  // browser is already fetching, and the first paint no longer waits for a separate stylesheet
+  // request. The shells written above keep their <link>, because they render on the client and
+  // share the cached file.
+  out = inlineEntryStylesheets(out, entryStylesheets, page.path);
   const target = join(DIST, page.file);
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, out);
